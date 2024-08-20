@@ -6,6 +6,7 @@ using DSharpPlus.Commands.Processors.SlashCommands;
 using CustomQotd.Features;
 using DSharpPlus.Commands.Processors.TextCommands.Parsing;
 using CustomQotd.Features.Commands;
+using CustomQotd.Database;
 
 namespace CustomQotd
 {
@@ -13,6 +14,11 @@ namespace CustomQotd
     {
         public static async Task Main(string[] args)
         {
+            Console.WriteLine("Initializing database...");
+            await DatabaseHelper.InitializeDatabaseAsync();
+
+            Console.WriteLine("Starting bot...");
+
             string? discordToken = Environment.GetEnvironmentVariable("CUSTOMQOTD_TOKEN");
             if (string.IsNullOrWhiteSpace(discordToken))
             {
@@ -56,6 +62,8 @@ namespace CustomQotd
 
             // Now we connect and log in.
             await client.ConnectAsync(status, DiscordUserStatus.Online);
+
+            Console.WriteLine("Bot started");
 
             // And now we wait infinitely so that our bot actually stays connected.
             await Task.Delay(-1);
