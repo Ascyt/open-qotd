@@ -1,9 +1,9 @@
-﻿using ArtcordAdminBot.Features.Helpers;
+﻿using CustomQotd.Features.Helpers;
 using DSharpPlus.Commands;
 using DSharpPlus.Commands.EventArgs;
 using System;
 
-namespace ArtcordAdminBot
+namespace CustomQotd
 {
     public class EventHandlers
     {

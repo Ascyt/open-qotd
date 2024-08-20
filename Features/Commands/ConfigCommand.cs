@@ -1,4 +1,4 @@
-﻿using ArtcordAdminBot.Features.Helpers;
+﻿using CustomQotd.Features.Helpers;
 using DSharpPlus.Commands;
 using System.Threading.Channels;
 

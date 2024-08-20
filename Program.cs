@@ -3,11 +3,11 @@ using DSharpPlus.Entities;
 using DSharpPlus.Commands;
 using DSharpPlus.Commands.Processors.TextCommands;
 using DSharpPlus.Commands.Processors.SlashCommands;
-using ArtcordAdminBot.Features;
+using CustomQotd.Features;
 using DSharpPlus.Commands.Processors.TextCommands.Parsing;
 using CustomQotd.Features.Commands;
 
-namespace ArtcordAdminBot
+namespace CustomQotd
 {
     class Program
     {

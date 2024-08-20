@@ -3,7 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
-namespace ArtcordAdminBot.Database
+namespace CustomQotd.Database
 {
     public static class DatabaseHelper
     {
