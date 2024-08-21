@@ -107,7 +107,7 @@ namespace CustomQotd.Features.Commands
         [System.ComponentModel.Description("Set a config value")]
         public static async Task SetAsync(CommandContext context,
             [System.ComponentModel.Description("The type of the config")] ConfigType type,
-            [System.ComponentModel.Description("The value to set the config to")] string? value = null)
+            [System.ComponentModel.Description("The value to set the config to")] string? value)
         {
             try
             {
@@ -117,9 +117,6 @@ namespace CustomQotd.Features.Commands
                         MessageHelpers.GenericErrorEmbed("Must have Administrator server permission to run this command")
                         );
                 }
-
-                if (value == "null" || value == "" || value == "unset" || value == "{unset}")
-                    value = null;
 
                 await DatabaseHelper.SetConfigAsync(context.Guild.Id, type, value);
 
@@ -134,5 +131,12 @@ namespace CustomQotd.Features.Commands
                     );
             }
         }
+
+
+        [Command("reset")]
+        [System.ComponentModel.Description("Reset an optional config value to be unset")]
+        public static async Task ResetAsync(CommandContext context,
+            [System.ComponentModel.Description("The type of the config")] ConfigType type)
+            => await SetAsync(context, type, null);
     }
 }
