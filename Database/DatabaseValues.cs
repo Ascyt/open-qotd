@@ -16,6 +16,7 @@ namespace CustomQotd.Database
             QotdTimeMinuteUtc,
             SuggestionChannelId,
             SuggestionPingRoleId,
+            LogsChannelId,
         }
 
         public const string ConfigTable = @"
@@ -28,13 +29,14 @@ namespace CustomQotd.Database
                     QotdTimeHourUtc INTEGER NOT NULL,
                     QotdTimeMinuteUtc INTEGER NOT NULL,
                     SuggestionPingRoleId TEXT,
-                    SuggestionChannelId TEXT
+                    SuggestionChannelId TEXT,
+                    LogsChannelId TEXT
                 );
             ";
         public const string ConfigTypes = 
-            @"BasicRoleId, AdminRoleId, QotdChannelId, QotdPingRoleId, QotdTimeHourUtc, QotdTimeMinuteUtc, SuggestionPingRoleId, SuggestionChannelId";
+            @"BasicRoleId, AdminRoleId, QotdChannelId, QotdPingRoleId, QotdTimeHourUtc, QotdTimeMinuteUtc, SuggestionPingRoleId, SuggestionChannelId, LogsChannelId";
         public const string ConfigTypesParameters = 
-            @"@BasicRoleId, @AdminRoleId, @QotdChannelId, @QotdPingRoleId, @QotdTimeHourUtc, @QotdTimeMinuteUtc, @SuggestionPingRoleId, @SuggestionChannelId";
+            @"@BasicRoleId, @AdminRoleId, @QotdChannelId, @QotdPingRoleId, @QotdTimeHourUtc, @QotdTimeMinuteUtc, @SuggestionPingRoleId, @SuggestionChannelId, @LogsChannelId";
 
         public static void AddParameters(SqliteCommand command, Dictionary<ConfigType, object?> values)
         {
@@ -46,6 +48,7 @@ namespace CustomQotd.Database
             command.Parameters.AddWithValue("@QotdTimeMinuteUtc", values[ConfigType.QotdTimeMinuteUtc]);
             command.Parameters.AddWithValue("@SuggestionPingRoleId", values[ConfigType.SuggestionPingRoleId] ?? DBNull.Value);
             command.Parameters.AddWithValue("@SuggestionChannelId", values[ConfigType.SuggestionChannelId] ?? DBNull.Value);
+            command.Parameters.AddWithValue("@LogsChannelId", values[ConfigType.LogsChannelId] ?? DBNull.Value);
         }
 
         public static object? GetConfigParameter(SqliteDataReader reader, ConfigType configType, int index)
@@ -67,6 +70,8 @@ namespace CustomQotd.Database
                 case ConfigType.SuggestionPingRoleId:
                     return reader.IsDBNull(index) ? null : reader.GetString(index);
                 case ConfigType.SuggestionChannelId:
+                    return reader.IsDBNull(index) ? null : reader.GetString(index);
+                case ConfigType.LogsChannelId:
                     return reader.IsDBNull(index) ? null : reader.GetString(index);
             };
 

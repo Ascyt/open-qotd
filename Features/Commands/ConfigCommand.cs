@@ -7,6 +7,7 @@ using SQLitePCL;
 using System.Text;
 using System.Threading.Channels;
 using static CustomQotd.Database.DatabaseValues;
+using static CustomQotd.Features.Logging.Logging;
 
 namespace CustomQotd.Features.Commands
 {
@@ -27,7 +28,8 @@ namespace CustomQotd.Features.Commands
             [System.ComponentModel.Description("The role a user needs to have to execute any basic commands (allows anyone by default).")] DiscordRole? BasicRole = null,
             [System.ComponentModel.Description("The role that will get pinged when a new QOTD is sent.")] DiscordRole? QotdPingRole = null,
             [System.ComponentModel.Description("The channel new QOTD suggestions get announced in.")] DiscordChannel? SuggestionsChannel = null,
-            [System.ComponentModel.Description("The role that will get pinged when a new QOTD is suggested.")] DiscordRole? SuggestionsPingRole = null)
+            [System.ComponentModel.Description("The role that will get pinged when a new QOTD is suggested.")] DiscordRole? SuggestionsPingRole = null,
+            [System.ComponentModel.Description("The channel where commands, QOTDs and more get logged to.")] DiscordChannel? LogsChannel = null)
         {
             try
             {
@@ -48,13 +50,22 @@ namespace CustomQotd.Features.Commands
                     { ConfigType.QotdPingRoleId, QotdPingRole?.Id },
                     { ConfigType.SuggestionChannelId, SuggestionsChannel?.Id },
                     { ConfigType.SuggestionPingRoleId, SuggestionsPingRole?.Id },
+                    { ConfigType.LogsChannelId, LogsChannel?.Id },
                 };
 
                 await DatabaseApi.InitializeConfigAsync(context.Guild.Id, values);
+                
+                StringBuilder sb = new StringBuilder();
+                foreach (KeyValuePair<ConfigType, object?> value in values)
+                {
+                    sb.AppendLine($"- **{value.Key}**: `{value.Value ?? "{unset}"}`");
+                }
 
                 await context.RespondAsync(
-                        MessageHelpers.GenericSuccessEmbed("Successfully initialized config", "View with `/config get`")
+                        MessageHelpers.GenericSuccessEmbed("Successfully initialized config", sb.ToString())
                     );
+
+                await LogUserAction(context, "Initialize config", sb.ToString());
             }
             catch (DatabaseException ex)
             {
@@ -107,7 +118,8 @@ namespace CustomQotd.Features.Commands
             [System.ComponentModel.Description("The UTC minute of the day the QOTDs should get sent.")] int? QotdTimeMinuteUtc = null,
             [System.ComponentModel.Description("The role that will get pinged when a new QOTD is sent.")] DiscordRole? QotdPingRole = null,
             [System.ComponentModel.Description("The channel new QOTD suggestions get announced in.")] DiscordChannel? SuggestionsChannel = null,
-            [System.ComponentModel.Description("The role that will get pinged when a new QOTD is suggested.")] DiscordRole? SuggestionsPingRole = null)
+            [System.ComponentModel.Description("The role that will get pinged when a new QOTD is suggested.")] DiscordRole? SuggestionsPingRole = null,
+            [System.ComponentModel.Description("The channel where commands, QOTDs and more get logged to.")] DiscordChannel? LogsChannel = null)
         {
             try
             {
@@ -128,6 +140,7 @@ namespace CustomQotd.Features.Commands
                     { ConfigType.QotdPingRoleId, QotdPingRole?.Id },
                     { ConfigType.SuggestionChannelId, SuggestionsChannel?.Id },
                     { ConfigType.SuggestionPingRoleId, SuggestionsPingRole?.Id },
+                    { ConfigType.LogsChannelId, LogsChannel?.Id },
                 };
 
                 if (values.Values.All(v => v is null))
@@ -151,8 +164,10 @@ namespace CustomQotd.Features.Commands
                 }
 
                 await context.RespondAsync(
-                        MessageHelpers.GenericSuccessEmbed("Successfully set config", $"{valuesSet}")
+                        MessageHelpers.GenericSuccessEmbed("Successfully set config values", $"{valuesSet}")
                     );
+
+                await LogUserAction(context, "Set config values", valuesSet.ToString());
             }
             catch (DatabaseException ex)
             {
@@ -173,9 +188,9 @@ namespace CustomQotd.Features.Commands
             [System.ComponentModel.Description("The role a user needs to have to execute any basic commands (allows anyone by default).")] SingleOption? BasicRole = null,
             [System.ComponentModel.Description("The role that will get pinged when a new QOTD is sent.")] SingleOption? QotdPingRole = null,
             [System.ComponentModel.Description("The channel new QOTD suggestions get announced in.")] SingleOption? SuggestionsChannel = null,
-            [System.ComponentModel.Description("The role that will get pinged when a new QOTD is suggested.")] SingleOption? SuggestionsPingRole = null)
+            [System.ComponentModel.Description("The role that will get pinged when a new QOTD is suggested.")] SingleOption? SuggestionsPingRole = null,
+            [System.ComponentModel.Description("The channel where commands, QOTDs and more get logged to.")] SingleOption? LogsChannel = null)
         {
-
             try
             {
                 Dictionary<ConfigType, bool> isSet = new()
@@ -184,6 +199,7 @@ namespace CustomQotd.Features.Commands
                     { ConfigType.QotdPingRoleId, QotdPingRole != null },
                     { ConfigType.SuggestionChannelId, SuggestionsChannel != null },
                     { ConfigType.SuggestionPingRoleId, SuggestionsPingRole != null },
+                    { ConfigType.LogsChannelId, LogsChannel != null },
                 };
 
 
@@ -214,6 +230,8 @@ namespace CustomQotd.Features.Commands
                 await context.RespondAsync(
                         MessageHelpers.GenericSuccessEmbed("Successfully resetted config values", $"{valuesReset}")
                     );
+
+                await LogUserAction(context, "Reset config values", valuesReset.ToString());
             }
             catch (DatabaseException ex)
             {

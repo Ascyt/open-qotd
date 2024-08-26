@@ -13,6 +13,8 @@ namespace CustomQotd.Features.Helpers
 
         public static DiscordEmbed GenericErrorEmbed(string message, string title = "Error") =>
             GenericEmbed(title, message, "#ff0000");
+        public static DiscordEmbed GenericWarningEmbed(string message, string title = "Warning") =>
+            GenericEmbed(title, message, "#ffc000");
 
         public static DiscordEmbed GenericEmbed(string title, string message, string color = "#5865f2") => new DiscordEmbedBuilder()
                 .WithTitle(title)
