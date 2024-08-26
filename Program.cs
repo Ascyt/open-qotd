@@ -15,7 +15,7 @@ namespace CustomQotd
         public static async Task Main(string[] args)
         {
             Console.WriteLine("Initializing database...");
-            await DatabaseHelper.InitializeDatabaseAsync();
+            await DatabaseApi.InitializeDatabaseAsync();
 
             Console.WriteLine("Starting bot...");
 
@@ -37,7 +37,7 @@ namespace CustomQotd
                     extension.AddCommands([typeof(ConfigCommand)]);
                     TextCommandProcessor textCommandProcessor = new(new()
                     {
-                        PrefixResolver = new DefaultPrefixResolver(true, "qotd.").ResolvePrefixAsync
+                        PrefixResolver = new DefaultPrefixResolver(true, "qotd:").ResolvePrefixAsync
                     });
 
                     // Add text commands with a custom prefix 
@@ -57,7 +57,6 @@ namespace CustomQotd
 
             DiscordClient client = builder.Build();
 
-            // We can specify a status for our bot. Let's set it to "playing" and set the activity to "with fire".
             DiscordActivity status = new("/qotd", DiscordActivityType.ListeningTo);
 
             // Now we connect and log in.
