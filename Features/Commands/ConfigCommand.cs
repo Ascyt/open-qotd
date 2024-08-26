@@ -7,7 +7,7 @@ using SQLitePCL;
 using System.Text;
 using System.Threading.Channels;
 using static CustomQotd.Database.DatabaseValues;
-using static CustomQotd.Features.Logging.Logging;
+using static CustomQotd.Features.Logging;
 
 namespace CustomQotd.Features.Commands
 {
@@ -23,8 +23,8 @@ namespace CustomQotd.Features.Commands
         public static async Task InitializeAsync(CommandContext context,
             [System.ComponentModel.Description("The role a user needs to have to execute admin commands (overrides BasicRole).")] DiscordRole AdminRole,
             [System.ComponentModel.Description("The channel the QOTD should get sent in.")] DiscordChannel QotdChannel,
-            [System.ComponentModel.Description("The UTC hour of the day the QOTDs should get sent.")] int QotdTimeHourUtc,
-            [System.ComponentModel.Description("The UTC minute of the day the QOTDs should get sent.")] int QotdTimeMinuteUtc,
+            [System.ComponentModel.Description("The UTC hour of the day the QOTDs should get sent (0-23).")] int QotdTimeHourUtc,
+            [System.ComponentModel.Description("The UTC minute of the day the QOTDs should get sent (0-59).")] int QotdTimeMinuteUtc,
             [System.ComponentModel.Description("The role a user needs to have to execute any basic commands (allows anyone by default).")] DiscordRole? BasicRole = null,
             [System.ComponentModel.Description("The role that will get pinged when a new QOTD is sent.")] DiscordRole? QotdPingRole = null,
             [System.ComponentModel.Description("The channel new QOTD suggestions get announced in.")] DiscordChannel? SuggestionsChannel = null,
@@ -36,7 +36,7 @@ namespace CustomQotd.Features.Commands
                 if (!context.Member.Permissions.HasPermission(DiscordPermissions.Administrator))
                 {
                     await context.RespondAsync(
-                        MessageHelpers.GenericErrorEmbed("Administrator server permission is required to run this command.")
+                        MessageHelpers.GenericErrorEmbed("Server Administrator permission is required to run this command.")
                         );
                 }
 
@@ -84,7 +84,7 @@ namespace CustomQotd.Features.Commands
                 if (!context.Member.Permissions.HasPermission(DiscordPermissions.Administrator))
                 {
                     await context.RespondAsync(
-                        MessageHelpers.GenericErrorEmbed("Administrator server permission is required to run this command.")
+                        MessageHelpers.GenericErrorEmbed("Server Administrator permission is required to run this command.")
                         );
                 }
 
@@ -114,8 +114,8 @@ namespace CustomQotd.Features.Commands
             [System.ComponentModel.Description("The role a user needs to have to execute any basic commands (allows anyone by default).")] DiscordRole? BasicRole = null,
             [System.ComponentModel.Description("The role a user needs to have to execute admin commands (overrides BasicRole).")] DiscordRole? AdminRole = null,
             [System.ComponentModel.Description("The channel the QOTD should get sent in.")] DiscordChannel? QotdChannel = null,
-            [System.ComponentModel.Description("The UTC hour of the day the QOTDs should get sent.")] int? QotdTimeHourUtc = null,
-            [System.ComponentModel.Description("The UTC minute of the day the QOTDs should get sent.")] int? QotdTimeMinuteUtc = null,
+            [System.ComponentModel.Description("The UTC hour of the day the QOTDs should get sent (0-23).")] int? QotdTimeHourUtc = null,
+            [System.ComponentModel.Description("The UTC minute of the day the QOTDs should get sent (0-59).")] int? QotdTimeMinuteUtc = null,
             [System.ComponentModel.Description("The role that will get pinged when a new QOTD is sent.")] DiscordRole? QotdPingRole = null,
             [System.ComponentModel.Description("The channel new QOTD suggestions get announced in.")] DiscordChannel? SuggestionsChannel = null,
             [System.ComponentModel.Description("The role that will get pinged when a new QOTD is suggested.")] DiscordRole? SuggestionsPingRole = null,
@@ -126,7 +126,7 @@ namespace CustomQotd.Features.Commands
                 if (!context.Member.Permissions.HasPermission(DiscordPermissions.Administrator))
                 {
                     await context.RespondAsync(
-                        MessageHelpers.GenericErrorEmbed("Administrator server permission is required to run this command.")
+                        MessageHelpers.GenericErrorEmbed("Server Administrator permission is required to run this command.")
                         );
                 }
 

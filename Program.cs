@@ -12,6 +12,8 @@ namespace CustomQotd
 {
     class Program
     {
+        public static DiscordClient Client { get; private set; }
+
         public static async Task Main(string[] args)
         {
             Console.WriteLine("Initializing database...");
@@ -34,7 +36,7 @@ namespace CustomQotd
                 // we register our commands here
                 extension =>
                 {
-                    extension.AddCommands([typeof(ConfigCommand)]);
+                    extension.AddCommands([typeof(ConfigCommand), typeof(QuestionsCommand)]);
                     TextCommandProcessor textCommandProcessor = new(new()
                     {
                         PrefixResolver = new DefaultPrefixResolver(true, "qotd:").ResolvePrefixAsync
@@ -56,6 +58,7 @@ namespace CustomQotd
 
 
             DiscordClient client = builder.Build();
+            Client = client;
 
             DiscordActivity status = new("/qotd", DiscordActivityType.ListeningTo);
 

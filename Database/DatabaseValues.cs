@@ -5,6 +5,7 @@ namespace CustomQotd.Database
 {
     public static class DatabaseValues
     {
+        #region Config
         public enum ConfigType
         {
             GuildId,
@@ -38,7 +39,7 @@ namespace CustomQotd.Database
         public const string ConfigTypesParameters = 
             @"@BasicRoleId, @AdminRoleId, @QotdChannelId, @QotdPingRoleId, @QotdTimeHourUtc, @QotdTimeMinuteUtc, @SuggestionPingRoleId, @SuggestionChannelId, @LogsChannelId";
 
-        public static void AddParameters(SqliteCommand command, Dictionary<ConfigType, object?> values)
+        public static void AddConfigParameters(SqliteCommand command, Dictionary<ConfigType, object?> values)
         {
             command.Parameters.AddWithValue("@BasicRoleId", values[ConfigType.BasicRoleId] ?? DBNull.Value);
             command.Parameters.AddWithValue("@AdminRoleId", values[ConfigType.AdminRoleId]);
@@ -77,5 +78,28 @@ namespace CustomQotd.Database
 
             throw new DatabaseException($"Unable to find parameter `{configType}` in configuration.");
         }
+
+        #endregion
+
+        #region Questions
+
+        public enum QuestionType
+        {
+            Suggested = 0,
+            Accepted = 1,
+            Sent = 2,
+        }
+
+        public const string QuestionsTable = @"
+                CREATE TABLE IF NOT EXISTS Question (
+                    Id INTEGER PRIMARY KEY,
+                    GuildId INTEGER NOT NULL,
+                    Type INTEGER NOT NULL, -- enum value of QuestionType
+                    Text TEXT NOT NULL,
+                    SubmittedByUserId INTEGER NOT NULL,
+                    Timestamp TEXT NOT NULL
+                );
+            ";
+        #endregion
     }
 }

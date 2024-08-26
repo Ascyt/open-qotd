@@ -4,32 +4,19 @@ using DSharpPlus.Commands;
 using DSharpPlus.Entities;
 using DSharpPlus.Exceptions;
 
-namespace CustomQotd.Features.Logging
+namespace CustomQotd.Features
 {
     public static class Logging
     {
-        public static async Task LogUserAction(CommandContext context, string title, string? message = null) 
+        public static async Task LogUserAction(CommandContext context, string title, string? message = null)
         {
             object? logChannelIdObject = await DatabaseApi.GetConfigValueAsync(context.Guild.Id, DatabaseValues.ConfigType.LogsChannelId);
 
             if (logChannelIdObject == null)
                 return;
 
-            string logChannelIdString = logChannelIdObject.ToString() ?? "";
-            ulong logChannelId;
-            DiscordChannel logChannel;
-
-            try
-            {
-                if (!ulong.TryParse(logChannelIdString, out logChannelId))
-                {
-                    await PrintNotFoundWarning(context);
-                    return;
-                }
-
-                logChannel = await context.Guild.GetChannelAsync(ulong.Parse(logChannelIdString));
-            }
-            catch (NotFoundException)
+            DiscordChannel? logChannel = await GeneralHelpers.GetDiscordChannel(logChannelIdObject, commandContext:context);
+            if (logChannel is null)
             {
                 await PrintNotFoundWarning(context);
                 return;
@@ -39,10 +26,11 @@ namespace CustomQotd.Features.Logging
                     .WithTitle(title)
                     .WithColor(new DiscordColor("#20ffff"))
                     .WithTimestamp(DateTime.UtcNow)
-                    .WithFooter($"User `{context.User.Id}`")
+                    .WithFooter($"User ID: {context.User.Id}")
                     .WithAuthor(name: context.User.Username, iconUrl: context.User.AvatarUrl);
 
-            if (message != null) {
+            if (message != null)
+            {
                 embed.WithDescription(message);
             }
 

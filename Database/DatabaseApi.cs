@@ -22,10 +22,13 @@ namespace CustomQotd.Database
 
             //await ResetDatabaseAsync();
 
-            var command = connection.CreateCommand();
-            command.CommandText = ConfigTable;
+            foreach (string table in new string[] { ConfigTable, QuestionsTable })
+            {
+                var command = connection.CreateCommand();
+                command.CommandText = table;
 
-            await command.ExecuteNonQueryAsync();
+                await command.ExecuteNonQueryAsync();
+            }
         }
 
         public static async Task ResetDatabaseAsync()
@@ -52,12 +55,12 @@ namespace CustomQotd.Database
             ";
 
             command.Parameters.AddWithValue("@GuildId", guildId);
-            AddParameters(command, values);
+            AddConfigParameters(command, values);
             
             await command.ExecuteNonQueryAsync();
         }
 
-        public static async Task SetConfigAsync(ulong guildId, ConfigType configType, object? value)
+        public static async Task<bool> IsConfigInitializedAsync(ulong guildId)
         {
             using var connection = new SqliteConnection(connectionString);
             await connection.OpenAsync();
@@ -71,9 +74,15 @@ namespace CustomQotd.Database
             ";
             checkCommand.Parameters.AddWithValue("@guildId", guildId);
 
-            var exists = (long)await checkCommand.ExecuteScalarAsync() > 0;
+            return (long)await checkCommand.ExecuteScalarAsync() > 0;
+        }
 
-            if (!exists)
+        public static async Task SetConfigAsync(ulong guildId, ConfigType configType, object? value)
+        {
+            using var connection = new SqliteConnection(connectionString);
+            await connection.OpenAsync();
+
+            if (!await IsConfigInitializedAsync(guildId))
             {
                 throw new DatabaseException($"No configuration found for GuildId `{guildId}`. Use `/initialize` to initialize.");
             }
