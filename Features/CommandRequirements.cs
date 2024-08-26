@@ -3,6 +3,7 @@ using CustomQotd.Features.Helpers;
 using DSharpPlus.Commands;
 using DSharpPlus.Entities;
 using DSharpPlus.Exceptions;
+using Microsoft.EntityFrameworkCore;
 
 namespace CustomQotd.Features
 {
@@ -13,14 +14,17 @@ namespace CustomQotd.Features
         /// </summary>
         public static async Task<bool> IsConfigInitialized(CommandContext context)
         {
-            if (!await DatabaseApi.IsConfigInitializedAsync(context.Guild.Id))
+            using (var dbContext = new AppDbContext())
             {
-                await context.RespondAsync(
-                    MessageHelpers.GenericErrorEmbed($"The QOTD bot configuration has not been initialized yet. Use `/initialize` to initialize."));
-                return false;
+                if (await dbContext.Configs.AnyAsync(c => c.GuildId == context.Guild.Id))
+                {
+                    return true;
+                }
             }
 
-            return true;
+            await context.RespondAsync(
+                MessageHelpers.GenericErrorEmbed($"The QOTD bot configuration has not been initialized yet. Use `/initialize` to initialize."));
+            return false;
         }
 
         /// <summary>
@@ -31,24 +35,20 @@ namespace CustomQotd.Features
             if (context.Member.Permissions.HasPermission(DiscordPermissions.Administrator))
                 return true;
 
-            string roleIdString = (await DatabaseApi.GetConfigValueAsync(context.Guild.Id, DatabaseValues.ConfigType.AdminRoleId)).ToString();
-
             ulong roleId;
-            if (!ulong.TryParse(roleIdString, out roleId))
+            using (var dbContext = new AppDbContext())
             {
-                if (responseOnError)
-                    await context.RespondAsync(
-                        MessageHelpers.GenericErrorEmbed($"Unable to check for administrator permission because admin_role config value (\"{roleIdString}\") cannot be parsed to ID.\n\n" +
-                        $"*You can set it using `/config set admin_role [role]`.*")
-                        );
-
-                return false;
+                roleId = await dbContext.Configs.Where(c => c.GuildId == context.Guild.Id).Select(c => c.AdminRoleId).FirstOrDefaultAsync();
             }
 
             if (!context.Member.Roles.Any(role => role.Id == roleId))
             {
-                DiscordRole? role = await context.Guild.GetRoleAsync(roleId);
-                if (role is null)
+                DiscordRole role;
+                try
+                {
+                    role = await context.Guild.GetRoleAsync(roleId);
+                }
+                catch (NotFoundException)
                 {
                     if (responseOnError)
                         await context.RespondAsync(

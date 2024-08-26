@@ -16,9 +16,6 @@ namespace CustomQotd
 
         public static async Task Main(string[] args)
         {
-            Console.WriteLine("Initializing database...");
-            await DatabaseApi.InitializeDatabaseAsync();
-
             Console.WriteLine("Starting bot...");
 
             string? discordToken = Environment.GetEnvironmentVariable("CUSTOMQOTD_TOKEN");
@@ -70,6 +67,5 @@ namespace CustomQotd
             // And now we wait infinitely so that our bot actually stays connected.
             await Task.Delay(-1);
         }
-
     }
 }
