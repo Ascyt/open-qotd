@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using static CustomQotd.Database.DatabaseValues;
 using System.Linq;
 using System.Reflection.PortableExecutable;
+using CustomQotd.Database.Types;
 
 namespace CustomQotd.Database
 {
@@ -20,7 +21,7 @@ namespace CustomQotd.Database
             using var connection = new SqliteConnection(connectionString);
             await connection.OpenAsync();
 
-            //await ResetDatabaseAsync();
+            await ResetQuestionsAsync();
 
             foreach (string table in new string[] { ConfigTable, QuestionsTable })
             {
@@ -31,7 +32,7 @@ namespace CustomQotd.Database
             }
         }
 
-        public static async Task ResetDatabaseAsync()
+        public static async Task ResetConfigAsync()
         {
             using var connection = new SqliteConnection(connectionString);
             await connection.OpenAsync();
@@ -42,7 +43,19 @@ namespace CustomQotd.Database
 
             await command.ExecuteNonQueryAsync();
         }
+        public static async Task ResetQuestionsAsync()
+        {
+            using var connection = new SqliteConnection(connectionString);
+            await connection.OpenAsync();
+            var command = connection.CreateCommand();
+            command.CommandText = @"
+                DROP TABLE Questions;
+            ";
 
+            await command.ExecuteNonQueryAsync();
+        }
+
+        #region Config
         public static async Task InitializeConfigAsync(ulong guildId, Dictionary<ConfigType, object?> values)
         {
             using var connection = new SqliteConnection(connectionString);
@@ -84,7 +97,7 @@ namespace CustomQotd.Database
 
             if (!await IsConfigInitializedAsync(guildId))
             {
-                throw new DatabaseException($"No configuration found for GuildId `{guildId}`. Use `/initialize` to initialize.");
+                throw new DatabaseException($"No configuration found for GuildId `{guildId}`. Use `/config initialize` to initialize.");
             }
 
             var command = connection.CreateCommand();
@@ -138,7 +151,7 @@ namespace CustomQotd.Database
             }
             else
             {
-                throw new DatabaseException($"No configuration found for GuildId `{guildId}`. Use `/initialize` to initialize.");
+                throw new DatabaseException($"No configuration found for GuildId `{guildId}`. Use `/config initialize` to initialize.");
             }
         }
         public static async Task<object?> GetConfigValueAsync(ulong guildId, ConfigType configType)
@@ -172,8 +185,34 @@ namespace CustomQotd.Database
             }
             else
             {
-                throw new DatabaseException($"No configuration found for GuildId `{guildId}`. Use `/initialize` to initialize.");
+                throw new DatabaseException($"No configuration found for GuildId `{guildId}`. Use `/config initialize` to initialize.");
             }
         }
+        #endregion
+
+        #region Questions
+        public static async Task<Question> AddQuestionAsync(ulong guildId, QuestionType questionType, string text, ulong submittedByUserId)
+        {
+            using var connection = new SqliteConnection(connectionString);
+            await connection.OpenAsync();
+
+            var command = connection.CreateCommand();
+            command.CommandText = @"
+                INSERT INTO Question (GuildId, Type, Text, SubmittedByUserId, Timestamp)
+                VALUES (@GuildId, @Type, @Text, @SubmittedByUserId, @Timestamp);
+                SELECT last_insert_rowid();
+            ";
+
+            command.Parameters.AddWithValue("@GuildId", guildId.ToString());
+            command.Parameters.AddWithValue("@Type", (int)questionType);
+            command.Parameters.AddWithValue("@Text", text);
+            command.Parameters.AddWithValue("@SubmittedByUserId", submittedByUserId);
+            command.Parameters.AddWithValue("@Timestamp", DateTime.UtcNow.ToString("o"));
+
+            var id = (long)await command.ExecuteScalarAsync();
+
+            return new Question((int)id, questionType, text, submittedByUserId, DateTime.UtcNow);
+        }
+        #endregion
     }
 }

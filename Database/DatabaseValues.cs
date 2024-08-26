@@ -93,7 +93,7 @@ namespace CustomQotd.Database
         public const string QuestionsTable = @"
                 CREATE TABLE IF NOT EXISTS Question (
                     Id INTEGER PRIMARY KEY,
-                    GuildId INTEGER NOT NULL,
+                    GuildId TEXT NOT NULL,
                     Type INTEGER NOT NULL, -- enum value of QuestionType
                     Text TEXT NOT NULL,
                     SubmittedByUserId INTEGER NOT NULL,
