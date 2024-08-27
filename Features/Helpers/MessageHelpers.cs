@@ -52,7 +52,7 @@ namespace CustomQotd.Features.Helpers
             for (int i = 0; i < elements.Length; i++)
             {
                 T element = elements[i];
-                sb.AppendLine("- " + element!.ToString());
+                sb.AppendLine(element!.ToString());
             }
 
             message.AddEmbed(
@@ -96,7 +96,7 @@ namespace CustomQotd.Features.Helpers
             for (int i = 0; i < elements.Length; i++)
             {
                 T element = elements[i];
-                sb.AppendLine("- " + element!.ToString());
+                sb.AppendLine(element!.ToString());
             }
 
             message.AddEmbed(

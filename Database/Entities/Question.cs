@@ -16,10 +16,33 @@ namespace CustomQotd.Database.Entities
         public string Text { get; set; }
         public ulong SubmittedByUserId { get; set; }
         public DateTime Timestamp { get; set; }
+        public ulong? AcceptedByUserId { get; set; }
+        public DateTime? AcceptedTimestamp { get; set; }
+        public DateTime? SentTimestamp { get; set; }
+        public int? SentNumber { get; set; }
 
         public override string ToString()
-            => $"\"**{Text}**\" (by: <@{SubmittedByUserId}>; ID: `{GuildDependentId}`)";
+        {
+            string emoji;
 
+            switch (Type)
+            {
+                case QuestionType.Suggested:
+                    emoji = ":red_square:";
+                    break;
+                case QuestionType.Accepted:
+                    emoji = ":large_blue_diamond:";
+                    break;
+                case QuestionType.Sent:
+                    emoji = ":green_circle:";
+                    break;
+                default:
+                    emoji = ":black_large_square:";
+                    break;
+            }
+
+            return $"{emoji} \"**{Text}**\" (by: <@{SubmittedByUserId}>; ID: `{GuildDependentId}`)";
+        }
         public static async Task<int> GetNextGuildDependentId(ulong guildId)
         {
             HashSet<int> existingIds;

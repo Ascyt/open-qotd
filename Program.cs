@@ -21,7 +21,6 @@ namespace CustomQotd
         public static async Task Main(string[] args)
         {
             /* When making changes to the database, change the `#if false` to `#if true`, then run:
-                dotnet ef migrations remove
                 dotnet ef migrations add [MIGRATION_NAME] 
                 dotnet ef database update
             Replace [MIGRATION_NAME] with a name that describes the migration.
