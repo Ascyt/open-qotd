@@ -61,38 +61,44 @@ namespace CustomQotd.Features.Commands
                 page = 1;
             }
 
-            Question[] questions;
-            int totalQuestions;
-            int totalPages;
-            using (var dbContext = new AppDbContext())
+            Question[] questions = null;
+            int totalQuestions = -1;
+            int totalPages = -1;
+            async Task FetchDb()
             {
-                // Get the total number of questions
-                totalQuestions = await dbContext.Questions
-                    .Where(q => q.GuildId == context.Guild!.Id && q.Type == type)
-                    .CountAsync();
+                using (var dbContext = new AppDbContext())
+                {
+                    // Get the total number of questions
+                    totalQuestions = await dbContext.Questions
+                        .Where(q => q.GuildId == context.Guild!.Id && q.Type == type)
+                        .CountAsync();
 
-                // Calculate the total number of pages
-                totalPages = (int)Math.Ceiling(totalQuestions / (double)itemsPerPage);
+                    // Calculate the total number of pages
+                    totalPages = (int)Math.Ceiling(totalQuestions / (double)itemsPerPage);
 
-                // Fetch the questions for the current page
-                questions = await dbContext.Questions
-                    .Where(q => q.GuildId == context.Guild!.Id && q.Type == type)
-                    .Skip((page - 1) * itemsPerPage)
-                    .Take(itemsPerPage)
-                    .ToArrayAsync();
+                    // Fetch the questions for the current page
+                    questions = await dbContext.Questions
+                        .Where(q => q.GuildId == context.Guild!.Id && q.Type == type)
+                        .Skip((page - 1) * itemsPerPage)
+                        .Take(itemsPerPage)
+                        .ToArrayAsync();
+                }
             }
+            await FetchDb();
 
             await context.RespondAsync(
                 MessageHelpers.GetListMessage(questions, $"{type} Questions List", page, totalPages)
                 );
 
             DiscordMessage message = await context.GetResponseAsync();
+
+            if (totalPages < 2)
+                return;
+
             var result = await message.WaitForButtonAsync();
 
             while (!result.TimedOut)
             {
-                await result.Result.Interaction.CreateResponseAsync(DiscordInteractionResponseType.UpdateMessage);
-
                 switch (result.Result.Id)
                 {
                     case "first":
@@ -109,11 +115,17 @@ namespace CustomQotd.Features.Commands
                         break;
                 }
 
+                await FetchDb();
+
+                var newMessage = MessageHelpers.GetListMessage(questions, $"{type} Questions List", page, totalPages);
+
                 await context.EditFollowupAsync(
                     message.Id,
-                    MessageHelpers.GetListMessage(questions, $"{type} Questions List", page, totalPages)
-                ); 
-                
+                    newMessage
+                );
+
+                await result.Result.Interaction.CreateResponseAsync(DiscordInteractionResponseType.UpdateMessage);
+
                 result = await message.WaitForButtonAsync();
             }
         }

@@ -28,11 +28,11 @@ namespace CustomQotd.Features.Helpers
         /// <summary>
         /// Get a message for a list of elements. Assumes it is already filtered by page
         /// </summary>
-        public static DiscordMessageBuilder GetListMessage<T>(T[] elements, string title, int page, int maxPage)
+        public static DiscordMessageBuilder GetListMessage<T>(T[] elements, string title, int page, int totalPages)
         {
             DiscordMessageBuilder message = new();
 
-            if (maxPage == 0)
+            if (totalPages == 0)
             {
                 message.AddEmbed(GenericErrorEmbed($"No elements.", title: title));
                 return message;
@@ -40,7 +40,7 @@ namespace CustomQotd.Features.Helpers
 
             if (elements.Length == 0)
             {
-                message.AddEmbed(GenericErrorEmbed($"Page {page} does not exist out of {maxPage} pages.", title: title));
+                message.AddEmbed(GenericErrorEmbed($"Page {page} does not exist out of {totalPages} pages.", title: title));
                 return message;
             }
 
@@ -54,13 +54,16 @@ namespace CustomQotd.Features.Helpers
 
             message.AddEmbed(
                 GenericEmbed(message:sb.ToString(), title:title)
-                .WithFooter($"Page {page} of {maxPage}"));
+                .WithFooter($"Page {page} of {totalPages}"));
+
+            if (totalPages < 2)
+                return message;
 
             message.AddComponents(
                 new DiscordButtonComponent(DiscordButtonStyle.Secondary, "first", "<<", page == 1),
                 new DiscordButtonComponent(DiscordButtonStyle.Primary, "backward", "<", page == 1),
-                new DiscordButtonComponent(DiscordButtonStyle.Primary, "forward", ">", page == maxPage),
-                new DiscordButtonComponent(DiscordButtonStyle.Secondary, "last", ">>", page == maxPage)
+                new DiscordButtonComponent(DiscordButtonStyle.Primary, "forward", ">", page == totalPages),
+                new DiscordButtonComponent(DiscordButtonStyle.Secondary, "last", ">>", page == totalPages)
                 );
 
             return message;
