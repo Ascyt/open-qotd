@@ -20,8 +20,6 @@ namespace CustomQotd.Features
             if (logChannelId == null)
                 return;
 
-            Console.WriteLine(logChannelId);
-
             DiscordChannel? logChannel = await GeneralHelpers.GetDiscordChannel(logChannelId.Value, commandContext:context);
             if (logChannel is null)
             {

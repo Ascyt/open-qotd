@@ -11,8 +11,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace CustomQotd.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20240827121740_InitialCreate")]
-    partial class InitialCreate
+    [Migration("20240827124803_Update")]
+    partial class Update
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)

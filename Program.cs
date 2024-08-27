@@ -17,16 +17,15 @@ namespace CustomQotd
 
         public static async Task Main(string[] args)
         {
-            /* When making changes to the database, change the `false` to `true`, then run:
-           
-                dotnet ef migrations add InitialCreate 
-                dotnet run -- --migrate
-            
+            /* When making changes to the database, change the `#if false` to `#if true`, then run:
+                dotnet ef migrations remove
+                dotnet ef migrations add [MIGRATION_NAME] 
+                dotnet ef database update
+            Replace [MIGRATION_NAME] with a name that describes the migration.
             Then set it back to `false` and you're good to go. */
             #if false
-                File.Delete("app.db");
-                ApplyMigrations();
-                return;
+            Console.WriteLine("Applying database migrations...");
+                return; // The reason that doing this is important, is because otherwise attempting to migrate would start the bot which would run indefinitely
             #endif
 
             Console.WriteLine("Starting bot...");
@@ -78,23 +77,6 @@ namespace CustomQotd
 
             // And now we wait infinitely so that our bot actually stays connected.
             await Task.Delay(-1);
-        }
-
-        private static void ApplyMigrations()
-        {
-            try
-            {
-                using (var dbContext = new AppDbContext())
-                {
-                    Console.WriteLine("Applying database migrations...");
-                    dbContext.Database.Migrate();
-                    Console.WriteLine("Database migrations applied successfully.");
-                }
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"Error applying migrations: {ex.Message}");
-            }
         }
     }
 }
