@@ -52,11 +52,11 @@ namespace CustomQotd.Database.Entities
             try
             {
                 if (roleId == null)
-                    return "`unset`";
+                    return "*unset*";
 
                 DiscordRole role = await guild.GetRoleAsync(roleId.Value);
 
-                return $"**{role.Name}** (`{roleId}`)";
+                return $"{role.Mention} (`{roleId}`)";
             }
             catch (NotFoundException)
             {
@@ -69,7 +69,7 @@ namespace CustomQotd.Database.Entities
             try
             {
                 if (channelId == null)
-                    return "`unset`";
+                    return "*unset*";
 
                 DiscordChannel channel = await guild.GetChannelAsync(channelId.Value);
 

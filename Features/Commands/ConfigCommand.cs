@@ -70,7 +70,7 @@ namespace CustomQotd.Features.Commands
         [System.ComponentModel.Description("Get all config values")]
         public static async Task GetAsync(CommandContext context)
         {
-            if (!context.Member.Permissions.HasPermission(DiscordPermissions.Administrator))
+            if (!context.Member!.Permissions.HasPermission(DiscordPermissions.Administrator))
             {
                 await context.RespondAsync(
                     MessageHelpers.GenericErrorEmbed("Server Administrator permission is required to run this command.")
@@ -83,10 +83,11 @@ namespace CustomQotd.Features.Commands
             Config config;
             using (var dbContext = new AppDbContext())
             {
-                config = (await dbContext.Configs.Where(c => c.GuildId == context.Guild.Id).FirstOrDefaultAsync())!;
+                config = (await dbContext.Configs.Where(c => c.GuildId == context.Guild!.Id).FirstOrDefaultAsync())!;
             }
 
             string configString = await config.ToStringAsync();
+
 
             await context.RespondAsync(
                     MessageHelpers.GenericEmbed($"Config values", $"{configString}")
@@ -119,7 +120,7 @@ namespace CustomQotd.Features.Commands
             Config config;
             using (var dbContext = new AppDbContext())
             {
-                config = dbContext.Configs.Where(c => c.GuildId == context.Guild.Id).FirstOrDefault()!;
+                config = dbContext.Configs.Where(c => c.GuildId == context.Guild!.Id).FirstOrDefault()!;
 
                 if (BasicRole is not null) 
                     config.BasicRoleId = BasicRole.Id;
@@ -169,7 +170,7 @@ namespace CustomQotd.Features.Commands
             Config config;
             using (var dbContext = new AppDbContext())
             {
-                config = dbContext.Configs.Where(c => c.GuildId == context.Guild.Id).FirstOrDefault()!;
+                config = dbContext.Configs.Where(c => c.GuildId == context.Guild!.Id).FirstOrDefault()!;
 
                 if (BasicRole is not null)
                     config.BasicRoleId = null;

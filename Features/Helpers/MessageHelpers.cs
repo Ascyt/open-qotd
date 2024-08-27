@@ -1,4 +1,7 @@
-﻿using DSharpPlus.Entities;
+﻿using CustomQotd.Database.Entities;
+using DSharpPlus.Entities;
+using System.Collections.Generic;
+using System.Text;
 using System.Threading.Channels;
 
 namespace CustomQotd.Features.Helpers
@@ -8,19 +11,51 @@ namespace CustomQotd.Features.Helpers
     /// </summary>
     public static class MessageHelpers
     {
-        public static DiscordEmbed GenericSuccessEmbed(string title, string message) =>
+        public static DiscordEmbedBuilder GenericSuccessEmbed(string title, string message) =>
             GenericEmbed(title, message, "#20c020");
 
-        public static DiscordEmbed GenericErrorEmbed(string message, string title = "Error") =>
+        public static DiscordEmbedBuilder GenericErrorEmbed(string message, string title = "Error") =>
             GenericEmbed(title, message, "#ff0000");
-        public static DiscordEmbed GenericWarningEmbed(string message, string title = "Warning") =>
+        public static DiscordEmbedBuilder GenericWarningEmbed(string message, string title = "Warning") =>
             GenericEmbed(title, message, "#ffc000");
 
-        public static DiscordEmbed GenericEmbed(string title, string message, string color = "#5865f2") => new DiscordEmbedBuilder()
+        public static DiscordEmbedBuilder GenericEmbed(string title, string message, string color = "#5865f2") => new DiscordEmbedBuilder()
                 .WithTitle(title)
                 .WithColor(new DiscordColor(color))
                 .WithDescription(message)
-                .WithTimestamp(DateTime.UtcNow)
-                .Build();
+                .WithTimestamp(DateTime.UtcNow);
+
+        /// <summary>
+        /// Get a message for a list of elements. Assumes it is already filtered by page
+        /// </summary>
+        public static DiscordMessageBuilder GetListMessage<T>(T[] elements, string title, int page, int maxPage)
+        {
+            DiscordMessageBuilder message = new();
+
+            if (maxPage == 0)
+            {
+                message.AddEmbed(GenericErrorEmbed($"No elements.", title: title));
+                return message;
+            }
+
+            if (elements.Length == 0)
+            {
+                message.AddEmbed(GenericErrorEmbed($"Page {page} does not exist.", title: title));
+                return message;
+            }
+
+            StringBuilder sb = new();
+
+            for (int i = 0; i < elements.Length; i++)
+            {
+                T element = elements[i];
+                sb.AppendLine("- " + element!.ToString());
+            }
+
+            message.AddEmbed(
+                GenericEmbed(message:sb.ToString(), title:title)
+                .WithFooter($"Page {page} of {maxPage}"));
+            return message;
+        }
     }
 }

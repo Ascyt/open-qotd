@@ -2,6 +2,7 @@
 using CustomQotd.Database.Entities;
 using CustomQotd.Features.Helpers;
 using DSharpPlus.Commands;
+using Microsoft.EntityFrameworkCore;
 
 namespace CustomQotd.Features.Commands
 {
@@ -41,6 +42,46 @@ namespace CustomQotd.Features.Commands
                 MessageHelpers.GenericSuccessEmbed("Added question", body)
                 );
             await Logging.LogUserAction(context, "Added question", body);
+        }
+
+        [Command("list")]
+        public static async Task ListQuestionsAsync(CommandContext context,
+            [System.ComponentModel.Description("The type of questions to show")] QuestionType type,
+            [System.ComponentModel.Description("The page of the listing (default 1)")] int page = 1)
+        {
+            if (!await CommandRequirements.IsConfigInitialized(context) || !await CommandRequirements.UserIsAdmin(context))
+                return;
+
+            const int itemsPerPage = 10;
+
+            if (page < 1)
+            {
+                page = 1;
+            }
+
+            Question[] questions;
+            int totalQuestions;
+            int totalPages;
+            using (var dbContext = new AppDbContext())
+            {
+                // Get the total number of questions
+                totalQuestions = await dbContext.Questions
+                    .Where(q => q.GuildId == context.Guild!.Id && q.Type == type)
+                    .CountAsync();
+
+                // Calculate the total number of pages
+                totalPages = (int)Math.Ceiling(totalQuestions / (double)itemsPerPage);
+
+                // Fetch the questions for the current page
+                questions = await dbContext.Questions
+                    .Where(q => q.GuildId == context.Guild!.Id && q.Type == type)
+                    .Skip((page - 1) * itemsPerPage)
+                    .Take(itemsPerPage)
+                    .ToArrayAsync();
+            }
+
+            await context.RespondAsync(
+                MessageHelpers.GetListMessage(questions, $"{type} Questions List", page, totalPages));
         }
     }
 }

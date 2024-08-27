@@ -17,6 +17,9 @@ namespace CustomQotd.Database.Entities
         public ulong SubmittedByUserId { get; set; }
         public DateTime Timestamp { get; set; }
 
+        public override string ToString()
+            => $"\"**{Text}**\" (by: <@{SubmittedByUserId}>; ID: `{GuildDependentId}`)";
+
         public static async Task<int> GetNextGuildDependentId(ulong guildId)
         {
             HashSet<int> existingIds;

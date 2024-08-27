@@ -60,7 +60,7 @@ namespace CustomQotd.Features
 
                 if (responseOnError)
                     await context.RespondAsync(
-                        MessageHelpers.GenericErrorEmbed($"You need to have the \"{role.Name}\" role or Server Administrator permission to be able to run this command.")
+                        MessageHelpers.GenericErrorEmbed($"You need to have the \"{role.Mention}\" role or Server Administrator permission to be able to run this command.")
                         );
                 return false;
             }
