@@ -8,6 +8,9 @@ using DSharpPlus.Commands.Processors.TextCommands.Parsing;
 using CustomQotd.Features.Commands;
 using CustomQotd.Database;
 using Microsoft.EntityFrameworkCore;
+using DSharpPlus.Interactivity.Extensions;
+using DSharpPlus.Interactivity.Enums;
+using DSharpPlus.Interactivity;
 
 namespace CustomQotd
 {
@@ -64,6 +67,10 @@ namespace CustomQotd
                     UseDefaultCommandErrorHandler = false
                 }
             );
+            builder.UseInteractivity(new InteractivityConfiguration()
+            {
+
+            });
 
             DiscordClient client = builder.Build();
             Client = client;

@@ -2,6 +2,8 @@
 using CustomQotd.Database.Entities;
 using CustomQotd.Features.Helpers;
 using DSharpPlus.Commands;
+using DSharpPlus.Entities;
+using DSharpPlus.Interactivity.Extensions;
 using Microsoft.EntityFrameworkCore;
 
 namespace CustomQotd.Features.Commands
@@ -81,7 +83,39 @@ namespace CustomQotd.Features.Commands
             }
 
             await context.RespondAsync(
-                MessageHelpers.GetListMessage(questions, $"{type} Questions List", page, totalPages));
+                MessageHelpers.GetListMessage(questions, $"{type} Questions List", page, totalPages)
+                );
+
+            DiscordMessage message = await context.GetResponseAsync();
+            var result = await message.WaitForButtonAsync();
+
+            while (!result.TimedOut)
+            {
+                await result.Result.Interaction.CreateResponseAsync(DiscordInteractionResponseType.UpdateMessage);
+
+                switch (result.Result.Id)
+                {
+                    case "first":
+                        page = 1;
+                        break;
+                    case "backward":
+                        page--;
+                        break;
+                    case "forward":
+                        page++;
+                        break;
+                    case "last":
+                        page = totalPages;
+                        break;
+                }
+
+                await context.EditFollowupAsync(
+                    message.Id,
+                    MessageHelpers.GetListMessage(questions, $"{type} Questions List", page, totalPages)
+                ); 
+                
+                result = await message.WaitForButtonAsync();
+            }
         }
     }
 }
