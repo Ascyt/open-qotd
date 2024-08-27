@@ -5,16 +5,26 @@ using DSharpPlus.Commands;
 using DSharpPlus.Entities;
 using DSharpPlus.Interactivity.Extensions;
 using Microsoft.EntityFrameworkCore;
+using System.ComponentModel;
 
 namespace CustomQotd.Features.Commands
 {
     [Command("questions")]
     public class QuestionsCommand
     {
+        [Command("view")]
+        [Description("View a question using its ID.")]
+        public static async Task ViewQuestionAsync(CommandContext context,
+        [Description("The ID of the question.")] int QuestionId)
+        {
+
+        }
+
         [Command("add")]
+        [Description("Add a question.")]
         public static async Task AddQuestionAsync(CommandContext context,
-            [System.ComponentModel.Description("The question to add.")] string question,
-            [System.ComponentModel.Description("The type of the question to add.")] QuestionType type)
+            [Description("The question to add.")] string question,
+            [Description("The type of the question to add.")] QuestionType type)
         {
             if (!await CommandRequirements.IsConfigInitialized(context) || !await CommandRequirements.UserIsAdmin(context))
                 return;
@@ -46,10 +56,28 @@ namespace CustomQotd.Features.Commands
             await Logging.LogUserAction(context, "Added question", body);
         }
 
+        [Command("changetype")]
+        [Description("Change the type of a question (eg. Sent->Accepted).")]
+        public static async Task ChangeTypeOfQuestionAsync(CommandContext context,
+            [Description("The ID of the question.")] int QuestionId,
+            [Description("The type to set the question to.")] QuestionType type)
+        {
+
+        }
+
+        [Command("remove")]
+        [Description("Irreversably delete a question.")]
+        public static async Task RemoveQuestionAsync(CommandContext context,
+        [Description("The ID of the question.")] int QuestionId)
+        {
+
+        }
+
         [Command("list")]
+        [Description("List all questions of a certain type.")]
         public static async Task ListQuestionsAsync(CommandContext context,
-            [System.ComponentModel.Description("The type of questions to show")] QuestionType type,
-            [System.ComponentModel.Description("The page of the listing (default 1)")] int page = 1)
+            [Description("The type of questions to show.")] QuestionType type,
+            [Description("The page of the listing (default 1).")] int page = 1)
         {
             if (!await CommandRequirements.IsConfigInitialized(context) || !await CommandRequirements.UserIsAdmin(context))
                 return;
@@ -138,6 +166,16 @@ namespace CustomQotd.Features.Commands
 
                 result = await message.WaitForButtonAsync();
             }
+        }
+
+        [Command("search")]
+        [Description("Search all questions by a keyword.")]
+        public static async Task SearchQuestionsAsync(CommandContext context,
+            [Description("The search query (case-insensitive).")] string query,
+            [Description("The type of questions to show (default all).")] QuestionType? type,
+            [Description("The page of the listing (default 1).")] int page = 1)
+        {
+
         }
     }
 }

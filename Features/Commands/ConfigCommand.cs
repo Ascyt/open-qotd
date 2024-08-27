@@ -6,6 +6,7 @@ using DSharpPlus.Entities;
 using Microsoft.EntityFrameworkCore;
 using Newtonsoft.Json.Linq;
 using SQLitePCL;
+using System.ComponentModel;
 using System.Text;
 using System.Threading.Channels;
 using static CustomQotd.Features.Logging;
@@ -20,17 +21,17 @@ namespace CustomQotd.Features.Commands
         // Plus the ability to costumize the QOTD (premium feature)
 
         [Command("initialize")]
-        [System.ComponentModel.Description("Initialize the config with values")]
+        [Description("Initialize the config with values")]
         public static async Task InitializeAsync(CommandContext context,
-            [System.ComponentModel.Description("The role a user needs to have to execute admin commands (overrides BasicRole).")] DiscordRole AdminRole,
-            [System.ComponentModel.Description("The channel the QOTD should get sent in.")] DiscordChannel QotdChannel,
-            [System.ComponentModel.Description("The UTC hour of the day the QOTDs should get sent (0-23).")] int QotdTimeHourUtc,
-            [System.ComponentModel.Description("The UTC minute of the day the QOTDs should get sent (0-59).")] int QotdTimeMinuteUtc,
-            [System.ComponentModel.Description("The role a user needs to have to execute any basic commands (allows anyone by default).")] DiscordRole? BasicRole = null,
-            [System.ComponentModel.Description("The role that will get pinged when a new QOTD is sent.")] DiscordRole? QotdPingRole = null,
-            [System.ComponentModel.Description("The channel new QOTD suggestions get announced in.")] DiscordChannel? SuggestionsChannel = null,
-            [System.ComponentModel.Description("The role that will get pinged when a new QOTD is suggested.")] DiscordRole? SuggestionsPingRole = null,
-            [System.ComponentModel.Description("The channel where commands, QOTDs and more get logged to.")] DiscordChannel? LogsChannel = null)
+            [Description("The role a user needs to have to execute admin commands (overrides BasicRole).")] DiscordRole AdminRole,
+            [Description("The channel the QOTD should get sent in.")] DiscordChannel QotdChannel,
+            [Description("The UTC hour of the day the QOTDs should get sent (0-23).")] int QotdTimeHourUtc,
+            [Description("The UTC minute of the day the QOTDs should get sent (0-59).")] int QotdTimeMinuteUtc,
+            [Description("The role a user needs to have to execute any basic commands (allows anyone by default).")] DiscordRole? BasicRole = null,
+            [Description("The role that will get pinged when a new QOTD is sent.")] DiscordRole? QotdPingRole = null,
+            [Description("The channel new QOTD suggestions get announced in.")] DiscordChannel? SuggestionsChannel = null,
+            [Description("The role that will get pinged when a new QOTD is suggested.")] DiscordRole? SuggestionsPingRole = null,
+            [Description("The channel where commands, QOTDs and more get logged to.")] DiscordChannel? LogsChannel = null)
         {
             if (!context.Member.Permissions.HasPermission(DiscordPermissions.Administrator))
             {
@@ -67,7 +68,7 @@ namespace CustomQotd.Features.Commands
         }
 
         [Command("get")]
-        [System.ComponentModel.Description("Get all config values")]
+        [Description("Get all config values")]
         public static async Task GetAsync(CommandContext context)
         {
             if (!context.Member!.Permissions.HasPermission(DiscordPermissions.Administrator))
@@ -95,17 +96,17 @@ namespace CustomQotd.Features.Commands
         }
 
         [Command("set")]
-        [System.ComponentModel.Description("Set a config value")]
+        [Description("Set a config value")]
         public static async Task SetAsync(CommandContext context,
-            [System.ComponentModel.Description("The role a user needs to have to execute any basic commands (allows anyone by default).")] DiscordRole? BasicRole = null,
-            [System.ComponentModel.Description("The role a user needs to have to execute admin commands (overrides BasicRole).")] DiscordRole? AdminRole = null,
-            [System.ComponentModel.Description("The channel the QOTD should get sent in.")] DiscordChannel? QotdChannel = null,
-            [System.ComponentModel.Description("The UTC hour of the day the QOTDs should get sent (0-23).")] int? QotdTimeHourUtc = null,
-            [System.ComponentModel.Description("The UTC minute of the day the QOTDs should get sent (0-59).")] int? QotdTimeMinuteUtc = null,
-            [System.ComponentModel.Description("The role that will get pinged when a new QOTD is sent.")] DiscordRole? QotdPingRole = null,
-            [System.ComponentModel.Description("The channel new QOTD suggestions get announced in.")] DiscordChannel? SuggestionsChannel = null,
-            [System.ComponentModel.Description("The role that will get pinged when a new QOTD is suggested.")] DiscordRole? SuggestionsPingRole = null,
-            [System.ComponentModel.Description("The channel where commands, QOTDs and more get logged to.")] DiscordChannel? LogsChannel = null)
+            [Description("The role a user needs to have to execute any basic commands (allows anyone by default).")] DiscordRole? BasicRole = null,
+            [Description("The role a user needs to have to execute admin commands (overrides BasicRole).")] DiscordRole? AdminRole = null,
+            [Description("The channel the QOTD should get sent in.")] DiscordChannel? QotdChannel = null,
+            [Description("The UTC hour of the day the QOTDs should get sent (0-23).")] int? QotdTimeHourUtc = null,
+            [Description("The UTC minute of the day the QOTDs should get sent (0-59).")] int? QotdTimeMinuteUtc = null,
+            [Description("The role that will get pinged when a new QOTD is sent.")] DiscordRole? QotdPingRole = null,
+            [Description("The channel new QOTD suggestions get announced in.")] DiscordChannel? SuggestionsChannel = null,
+            [Description("The role that will get pinged when a new QOTD is suggested.")] DiscordRole? SuggestionsPingRole = null,
+            [Description("The channel where commands, QOTDs and more get logged to.")] DiscordChannel? LogsChannel = null)
         {
             if (!context.Member.Permissions.HasPermission(DiscordPermissions.Administrator))
             {
@@ -159,13 +160,13 @@ namespace CustomQotd.Features.Commands
         }
 
         [Command("reset")]
-        [System.ComponentModel.Description("Reset optional config values to be unset")]
+        [Description("Reset optional config values to be unset")]
         public static async Task ResetAsync(CommandContext context,
-            [System.ComponentModel.Description("The role a user needs to have to execute any basic commands (allows anyone by default).")] SingleOption? BasicRole = null,
-            [System.ComponentModel.Description("The role that will get pinged when a new QOTD is sent.")] SingleOption? QotdPingRole = null,
-            [System.ComponentModel.Description("The channel new QOTD suggestions get announced in.")] SingleOption? SuggestionsChannel = null,
-            [System.ComponentModel.Description("The role that will get pinged when a new QOTD is suggested.")] SingleOption? SuggestionsPingRole = null,
-            [System.ComponentModel.Description("The channel where commands, QOTDs and more get logged to.")] SingleOption? LogsChannel = null)
+            [Description("The role a user needs to have to execute any basic commands (allows anyone by default).")] SingleOption? BasicRole = null,
+            [Description("The role that will get pinged when a new QOTD is sent.")] SingleOption? QotdPingRole = null,
+            [Description("The channel new QOTD suggestions get announced in.")] SingleOption? SuggestionsChannel = null,
+            [Description("The role that will get pinged when a new QOTD is suggested.")] SingleOption? SuggestionsPingRole = null,
+            [Description("The channel where commands, QOTDs and more get logged to.")] SingleOption? LogsChannel = null)
         {
             Config config;
             using (var dbContext = new AppDbContext())
