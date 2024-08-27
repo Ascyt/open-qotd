@@ -5,6 +5,7 @@ using DSharpPlus.Commands;
 using DSharpPlus.Commands.Processors.SlashCommands;
 using DSharpPlus.Entities;
 using DSharpPlus.Exceptions;
+using DSharpPlus.Interactivity.Extensions;
 using Microsoft.EntityFrameworkCore;
 using System.ComponentModel;
 
@@ -48,7 +49,7 @@ namespace CustomQotd.Features.Commands
                     $"Your Question Of The Day:\n" +
                     $"> \"**{newQuestion.Text}**\"\n" +
                     $"\n" +
-                    $"Has successfully been suggested! You will be notified when it gets accepted or denied.");
+                    $"Has successfully been suggested! You'll be notified when it gets accepted or denied.");
 
             if (context is SlashCommandContext)
             {
@@ -103,23 +104,72 @@ namespace CustomQotd.Features.Commands
                 return;
             }
 
+            DiscordMessageBuilder messageBuilder = new();
 
-            DiscordMessageBuilder message = new();
-            if (pingRole is not null)
-            {
-                message.WithContent(pingRole.Mention);
-                message.WithAllowedMention(new RoleMention(pingRole));
-            }
+            AddPingIfAvailable(messageBuilder, pingRole);
 
-            message.AddEmbed(MessageHelpers.GenericEmbed("A new QOTD Suggestion is available!",
-                $"> **{newQuestion.Text}**\n" +
+            string embedBody = $"> **{newQuestion.Text}**\n" +
                 $"By: {context.Member!.Mention} (`{context.Member!.Id}`)\n" +
-                $"ID: `{newQuestion.GuildDependentId}`",
+                $"ID: `{newQuestion.GuildDependentId}`";
+
+            messageBuilder.AddEmbed(MessageHelpers.GenericEmbed("A new QOTD Suggestion is available!", embedBody,
                 color: "#d94f4f"));
 
-            await channel.SendMessageAsync(
-                    message
+            messageBuilder.AddComponents(
+                new DiscordButtonComponent(DiscordButtonStyle.Success, "accept", "Accept"),
+                new DiscordButtonComponent(DiscordButtonStyle.Danger, "deny", "Deny")
+            );
+
+            DiscordMessage message = await channel.SendMessageAsync(
+                    messageBuilder
                 );
+
+            using (var dbContext = new AppDbContext())
+            {
+                Question updateQuestion = await dbContext.Questions.FindAsync(newQuestion.Id);
+
+                if (updateQuestion != null)
+                {
+                    updateQuestion.SuggestionMessageId = message.Id;
+
+                    newQuestion = updateQuestion;
+                }
+            }
+
+            var result = await message.WaitForButtonAsync();
+
+            if (result.TimedOut)
+            {
+                DiscordMessageBuilder timeoutMessageBuilder = new();
+
+                AddPingIfAvailable(timeoutMessageBuilder, pingRole);
+                timeoutMessageBuilder.AddEmbed(MessageHelpers.GenericEmbed("A new QOTD Suggestion is available!", embedBody + 
+                    $"\n\n**Use `/suggestions accept {newQuestion.GuildDependentId}` to accept or `/suggestions deny {newQuestion.GuildDependentId} [reason]` to deny this suggestion."));
+
+                await message.ModifyAsync(
+                    timeoutMessageBuilder
+                    );
+                return;
+            }
+
+            if (result.Result.Id == "accept") 
+            {
+                await SuggestionsCommands.AcceptSuggestionNoContextAsync(newQuestion, message);
+                return;
+            }
+
+            if (result.Result.Id == "deny")
+            {
+                return;
+            }
+        }
+        private static void AddPingIfAvailable(DiscordMessageBuilder messageBuilder, DiscordRole? pingRole)
+        {
+            if (pingRole is not null)
+            {
+                messageBuilder.WithContent(pingRole.Mention);
+                messageBuilder.WithAllowedMention(new RoleMention(pingRole));
+            }
         }
 
 

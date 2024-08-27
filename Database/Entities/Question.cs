@@ -21,6 +21,8 @@ namespace CustomQotd.Database.Entities
         public DateTime? SentTimestamp { get; set; }
         public int? SentNumber { get; set; }
 
+        public ulong? SuggestionMessageId { get; set; }
+
         public override string ToString()
         {
             string emoji;
