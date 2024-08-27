@@ -90,15 +90,16 @@ namespace CustomQotd.Features.Commands
                 MessageHelpers.GetListMessage(questions, $"{type} Questions List", page, totalPages)
                 );
 
-            DiscordMessage message = await context.GetResponseAsync();
-
-            if (totalPages < 2)
+            if (totalPages == 0)
                 return;
+
+            DiscordMessage message = await context.GetResponseAsync();
 
             var result = await message.WaitForButtonAsync();
 
             while (!result.TimedOut)
             {
+                bool messageDelete = false;
                 switch (result.Result.Id)
                 {
                     case "first":
@@ -113,18 +114,27 @@ namespace CustomQotd.Features.Commands
                     case "last":
                         page = totalPages;
                         break;
+                    case "redirect":
+                        page = totalPages;
+                        messageDelete = true;
+                        break;
                 }
 
                 await FetchDb();
 
-                var newMessage = MessageHelpers.GetListMessage(questions, $"{type} Questions List", page, totalPages);
-
-                await context.EditFollowupAsync(
-                    message.Id,
-                    newMessage
-                );
-
-                await result.Result.Interaction.CreateResponseAsync(DiscordInteractionResponseType.UpdateMessage);
+                if (messageDelete)
+                {
+                    await message.DeleteAsync();
+                    var newMessageContent = MessageHelpers.GetListMessage(questions, $"{type} Questions List", page, totalPages);
+                    message = await context.Channel.SendMessageAsync(newMessageContent);
+                }
+                else
+                {
+                    DiscordInteractionResponseBuilder builder = new DiscordInteractionResponseBuilder();
+                    MessageHelpers.EditListMessage(questions, $"{type} Questions List", page, totalPages, builder);
+                    
+                    await result.Result.Interaction.CreateResponseAsync(DiscordInteractionResponseType.UpdateMessage, builder);
+                }
 
                 result = await message.WaitForButtonAsync();
             }

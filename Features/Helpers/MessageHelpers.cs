@@ -40,8 +40,55 @@ namespace CustomQotd.Features.Helpers
 
             if (elements.Length == 0)
             {
-                message.AddEmbed(GenericErrorEmbed($"Page {page} does not exist out of {totalPages} pages.", title: title));
+                message.AddEmbed(GenericErrorEmbed($"Page {page} does not exist.", title: title));
+                message.AddComponents(
+                        new DiscordButtonComponent(DiscordButtonStyle.Secondary, "redirect", $"Go to page {totalPages}")
+                    );
                 return message;
+            }
+
+            StringBuilder sb = new();
+
+            for (int i = 0; i < elements.Length; i++)
+            {
+                T element = elements[i];
+                sb.AppendLine("- " + element!.ToString());
+            }
+
+            message.AddEmbed(
+                GenericEmbed(message: sb.ToString(), title: title)
+                .WithFooter($"Page {page} of {totalPages}"));
+
+            if (totalPages < 2)
+                return message;
+
+            message.AddComponents(
+                new DiscordButtonComponent(DiscordButtonStyle.Secondary, "first", "<<", page == 1),
+                new DiscordButtonComponent(DiscordButtonStyle.Primary, "backward", "<", page == 1),
+                new DiscordButtonComponent(DiscordButtonStyle.Primary, "forward", ">", page == totalPages),
+                new DiscordButtonComponent(DiscordButtonStyle.Secondary, "last", ">>", page == totalPages)
+                );
+
+            return message;
+        }
+        /// <summary>
+        /// Edit a message for a list of elements. Assumes it is already filtered by page
+        /// </summary>
+        public static void EditListMessage<T>(T[] elements, string title, int page, int totalPages, DiscordInteractionResponseBuilder message)
+        {
+            if (totalPages == 0)
+            {
+                message.AddEmbed(GenericErrorEmbed($"No elements.", title: title));
+                return;
+            }
+
+            if (elements.Length == 0)
+            {
+                message.AddEmbed(GenericErrorEmbed($"Page {page} does not exist.", title: title));
+                message.AddComponents(
+                        new DiscordButtonComponent(DiscordButtonStyle.Secondary, "redirect", $"Go to page {totalPages}")
+                    );
+                return;
             }
 
             StringBuilder sb = new();
@@ -57,7 +104,7 @@ namespace CustomQotd.Features.Helpers
                 .WithFooter($"Page {page} of {totalPages}"));
 
             if (totalPages < 2)
-                return message;
+                return;
 
             message.AddComponents(
                 new DiscordButtonComponent(DiscordButtonStyle.Secondary, "first", "<<", page == 1),
@@ -66,7 +113,7 @@ namespace CustomQotd.Features.Helpers
                 new DiscordButtonComponent(DiscordButtonStyle.Secondary, "last", ">>", page == totalPages)
                 );
 
-            return message;
+            return;
         }
     }
 }
