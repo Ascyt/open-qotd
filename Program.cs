@@ -18,11 +18,7 @@ namespace CustomQotd
 
         public static async Task Main(string[] args)
         {
-            if (args.Contains("--migrate"))
-            {
-                ApplyMigrations();
-                return;
-            }
+            ApplyMigrations();
 
             Console.WriteLine("Starting bot...");
 

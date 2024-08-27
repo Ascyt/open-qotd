@@ -32,15 +32,15 @@ namespace CustomQotd.Database.Entities
             DiscordGuild guild = await Program.Client.GetGuildAsync(GuildId);
 
             return
-                $"- basic_role: {RoleIdToString(BasicRoleId, guild)}\n" +
-                $"- admin_role: {RoleIdToString(AdminRoleId, guild)}\n" +
-                $"- qotd_channel: {ChannelIdToString(QotdChannelId, guild)}\n" +
-                $"- qotd_ping_role: {RoleIdToString(QotdPingRoleId, guild)}\n" +
+                $"- basic_role: {await RoleIdToString(BasicRoleId, guild)}\n" +
+                $"- admin_role: {await RoleIdToString(AdminRoleId, guild)}\n" +
+                $"- qotd_channel: {await ChannelIdToString(QotdChannelId, guild)}\n" +
+                $"- qotd_ping_role: {await RoleIdToString(QotdPingRoleId, guild)}\n" +
                 $"- qotd_time_hour_utc: **{QotdTimeHourUtc}**\n" +
                 $"- qotd_time_minute_utc: **{QotdTimeMinuteUtc}**\n" +
-                $"- suggestions_channel: {ChannelIdToString(SuggestionsChannelId, guild)}\n" +
-                $"- suggestions_ping_role: {RoleIdToString(SuggestionsPingRoleId, guild)}\n" +
-                $"- logs_channel: {ChannelIdToString(LogsChannelId, guild)}";
+                $"- suggestions_channel: {await ChannelIdToString(SuggestionsChannelId, guild)}\n" +
+                $"- suggestions_ping_role: {await RoleIdToString(SuggestionsPingRoleId, guild)}\n" +
+                $"- logs_channel: {await ChannelIdToString(LogsChannelId, guild)}";
         }
 
         private static async Task<string> RoleIdToString(ulong? roleId, DiscordGuild guild)
@@ -50,7 +50,9 @@ namespace CustomQotd.Database.Entities
                 if (roleId == null)
                     return "`unset`";
 
-                return $"**{(await guild.GetRoleAsync(roleId.Value)).Name}** (`{roleId}`)";
+                DiscordRole role = await guild.GetRoleAsync(roleId.Value);
+
+                return $"**{role.Name}** (`{roleId}`)";
             }
             catch (NotFoundException)
             {
@@ -65,7 +67,9 @@ namespace CustomQotd.Database.Entities
                 if (channelId == null)
                     return "`unset`";
 
-                return (await guild.GetChannelAsync(channelId.Value)).Mention;
+                DiscordChannel channel = await guild.GetChannelAsync(channelId.Value);
+
+                return $"{channel.Mention} (`{channelId}`)";
             }
             catch (NotFoundException)
             {

@@ -14,11 +14,13 @@ namespace CustomQotd.Features
             ulong? logChannelId;
             using (var dbContext = new AppDbContext())
             {
-                logChannelId = await dbContext.Configs.Where(c => c.GuildId == context.Guild.Id).Select(c => c.QotdChannelId).FirstOrDefaultAsync();
+                logChannelId = await dbContext.Configs.Where(c => c.GuildId == context.Guild.Id).Select(c => c.LogsChannelId).FirstOrDefaultAsync();
             }
 
             if (logChannelId == null)
                 return;
+
+            Console.WriteLine(logChannelId);
 
             DiscordChannel? logChannel = await GeneralHelpers.GetDiscordChannel(logChannelId.Value, commandContext:context);
             if (logChannel is null)
