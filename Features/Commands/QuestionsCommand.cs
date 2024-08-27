@@ -96,17 +96,18 @@ namespace CustomQotd.Features.Commands
             {
                 using (var dbContext = new AppDbContext())
                 {
+                    var sqlQuery = dbContext.Questions
+                        .Where(q => q.GuildId == context.Guild!.Id && q.Type == type);
+
                     // Get the total number of questions
-                    totalQuestions = await dbContext.Questions
-                        .Where(q => q.GuildId == context.Guild!.Id && q.Type == type)
+                    totalQuestions = await sqlQuery
                         .CountAsync();
 
                     // Calculate the total number of pages
                     totalPages = (int)Math.Ceiling(totalQuestions / (double)itemsPerPage);
 
                     // Fetch the questions for the current page
-                    questions = await dbContext.Questions
-                        .Where(q => q.GuildId == context.Guild!.Id && q.Type == type)
+                    questions = await sqlQuery
                         .Skip((page - 1) * itemsPerPage)
                         .Take(itemsPerPage)
                         .ToArrayAsync();
@@ -172,10 +173,102 @@ namespace CustomQotd.Features.Commands
         [Description("Search all questions by a keyword.")]
         public static async Task SearchQuestionsAsync(CommandContext context,
             [Description("The search query (case-insensitive).")] string query,
-            [Description("The type of questions to show (default all).")] QuestionType? type,
+            [Description("The type of questions to show (default all).")] QuestionType? type = null,
             [Description("The page of the listing (default 1).")] int page = 1)
         {
 
+            if (!await CommandRequirements.IsConfigInitialized(context) || !await CommandRequirements.UserIsAdmin(context))
+                return;
+
+            const int itemsPerPage = 10;
+
+            if (page < 1)
+            {
+                page = 1;
+            }
+            query = query.ToLower();
+
+            Question[] questions = null;
+            int totalQuestions = -1;
+            int totalPages = -1;
+            async Task FetchDb()
+            {
+                using (var dbContext = new AppDbContext())
+                {
+                    // Build the base query
+                    var sqlQuery = dbContext.Questions
+                        .Where(q => q.GuildId == context.Guild!.Id && (type == null || q.Type == type))
+                        .Where(q => EF.Functions.Like(q.Text, $"%{query}%"));
+
+                    // Get the total number of questions
+                    totalQuestions = await sqlQuery.CountAsync();
+
+                    // Calculate the total number of pages
+                    totalPages = (int)Math.Ceiling(totalQuestions / (double)itemsPerPage);
+
+                    // Fetch the questions for the current page
+                    questions = await sqlQuery
+                        .Skip((page - 1) * itemsPerPage)
+                        .Take(itemsPerPage)
+                        .ToArrayAsync();
+                }
+            }
+            await FetchDb();
+
+            string title = $"{(type != null ? $"{type} " : "")}Questions Search for \"{query}\"";
+
+            await context.RespondAsync(
+                MessageHelpers.GetListMessage(questions, title, page, totalPages)
+                );
+
+            if (totalPages == 0)
+                return;
+
+            DiscordMessage message = await context.GetResponseAsync();
+
+            var result = await message.WaitForButtonAsync();
+
+            while (!result.TimedOut)
+            {
+                bool messageDelete = false;
+                switch (result.Result.Id)
+                {
+                    case "first":
+                        page = 1;
+                        break;
+                    case "backward":
+                        page--;
+                        break;
+                    case "forward":
+                        page++;
+                        break;
+                    case "last":
+                        page = totalPages;
+                        break;
+                    case "redirect":
+                        page = totalPages;
+                        messageDelete = true;
+                        break;
+                }
+
+                await FetchDb();
+
+                if (messageDelete)
+                {
+                    await message.DeleteAsync();
+                    var newMessageContent = MessageHelpers.GetListMessage(questions, title, page, totalPages);
+                    message = await context.Channel.SendMessageAsync(newMessageContent);
+                }
+                else
+                {
+                    DiscordInteractionResponseBuilder builder = new DiscordInteractionResponseBuilder();
+                    MessageHelpers.EditListMessage(questions, title, page, totalPages, builder);
+
+                    await result.Result.Interaction.CreateResponseAsync(DiscordInteractionResponseType.UpdateMessage, builder);
+                }
+
+                result = await message.WaitForButtonAsync();
+            }
         }
     }
 }
