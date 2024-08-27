@@ -3,6 +3,7 @@ using CustomQotd.Features.Helpers;
 using DSharpPlus.Commands;
 using DSharpPlus.Entities;
 using DSharpPlus.Exceptions;
+using Microsoft.EntityFrameworkCore;
 
 namespace CustomQotd.Features
 {
@@ -10,12 +11,18 @@ namespace CustomQotd.Features
     {
         public static async Task LogUserAction(CommandContext context, string title, string? message = null)
         {
-            object? logChannelIdObject = await DatabaseApi.GetConfigValueAsync(context.Guild.Id, DatabaseValues.ConfigType.LogsChannelId);
+            ulong? logChannelId;
+            using (var dbContext = new AppDbContext())
+            {
+                logChannelId = await dbContext.Configs.Where(c => c.GuildId == context.Guild.Id).Select(c => c.LogsChannelId).FirstOrDefaultAsync();
+            }
 
-            if (logChannelIdObject == null)
+            if (logChannelId == null)
                 return;
 
-            DiscordChannel? logChannel = await GeneralHelpers.GetDiscordChannel(logChannelIdObject, commandContext:context);
+            Console.WriteLine(logChannelId);
+
+            DiscordChannel? logChannel = await GeneralHelpers.GetDiscordChannel(logChannelId.Value, commandContext:context);
             if (logChannel is null)
             {
                 await PrintNotFoundWarning(context);

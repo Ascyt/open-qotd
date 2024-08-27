@@ -1,6 +1,10 @@
-﻿using static CustomQotd.Database.DatabaseValues;
-namespace CustomQotd.Database.Types
+﻿namespace CustomQotd.Database.Entities
 {
+    public enum QuestionType
+    {
+        Suggested, Accepted, Sent
+    }
+
     public class Question(int id, QuestionType questionType, string text, ulong submittedByUserId, DateTime timestamp)
     {
         public int Id { get; set; } = id;

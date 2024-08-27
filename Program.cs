@@ -1,4 +1,5 @@
-﻿using DSharpPlus;
+﻿
+using DSharpPlus;
 using DSharpPlus.Entities;
 using DSharpPlus.Commands;
 using DSharpPlus.Commands.Processors.TextCommands;
@@ -7,6 +8,7 @@ using CustomQotd.Features;
 using DSharpPlus.Commands.Processors.TextCommands.Parsing;
 using CustomQotd.Features.Commands;
 using CustomQotd.Database;
+using Microsoft.EntityFrameworkCore;
 
 namespace CustomQotd
 {
@@ -16,8 +18,7 @@ namespace CustomQotd
 
         public static async Task Main(string[] args)
         {
-            Console.WriteLine("Initializing database...");
-            await DatabaseApi.InitializeDatabaseAsync();
+            ApplyMigrations();
 
             Console.WriteLine("Starting bot...");
 
@@ -56,7 +57,6 @@ namespace CustomQotd
                 }
             );
 
-
             DiscordClient client = builder.Build();
             Client = client;
 
@@ -71,5 +71,21 @@ namespace CustomQotd
             await Task.Delay(-1);
         }
 
+        private static void ApplyMigrations()
+        {
+            try
+            {
+                using (var dbContext = new AppDbContext())
+                {
+                    Console.WriteLine("Applying database migrations...");
+                    dbContext.Database.Migrate();
+                    Console.WriteLine("Database migrations applied successfully.");
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error applying migrations: {ex.Message}");
+            }
+        }
     }
 }

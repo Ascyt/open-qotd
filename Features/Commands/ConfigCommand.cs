@@ -1,12 +1,13 @@
 ﻿using CustomQotd.Database;
+using CustomQotd.Database.Entities;
 using CustomQotd.Features.Helpers;
 using DSharpPlus.Commands;
 using DSharpPlus.Entities;
+using Microsoft.EntityFrameworkCore;
 using Newtonsoft.Json.Linq;
 using SQLitePCL;
 using System.Text;
 using System.Threading.Channels;
-using static CustomQotd.Database.DatabaseValues;
 using static CustomQotd.Features.Logging;
 
 namespace CustomQotd.Features.Commands
@@ -31,81 +32,63 @@ namespace CustomQotd.Features.Commands
             [System.ComponentModel.Description("The role that will get pinged when a new QOTD is suggested.")] DiscordRole? SuggestionsPingRole = null,
             [System.ComponentModel.Description("The channel where commands, QOTDs and more get logged to.")] DiscordChannel? LogsChannel = null)
         {
-            try
-            {
-                if (!context.Member.Permissions.HasPermission(DiscordPermissions.Administrator))
-                {
-                    await context.RespondAsync(
-                        MessageHelpers.GenericErrorEmbed("Server Administrator permission is required to run this command.")
-                        );
-                }
-
-                Dictionary<ConfigType, object?> values = new()
-                {
-                    { ConfigType.BasicRoleId, BasicRole?.Id },
-                    { ConfigType.AdminRoleId, AdminRole.Id },
-                    { ConfigType.QotdChannelId, QotdChannel.Id },
-                    { ConfigType.QotdTimeHourUtc, QotdTimeHourUtc },
-                    { ConfigType.QotdTimeMinuteUtc, QotdTimeMinuteUtc },
-                    { ConfigType.QotdPingRoleId, QotdPingRole?.Id },
-                    { ConfigType.SuggestionChannelId, SuggestionsChannel?.Id },
-                    { ConfigType.SuggestionPingRoleId, SuggestionsPingRole?.Id },
-                    { ConfigType.LogsChannelId, LogsChannel?.Id },
-                };
-
-                await DatabaseApi.InitializeConfigAsync(context.Guild.Id, values);
-                
-                StringBuilder sb = new StringBuilder();
-                foreach (KeyValuePair<ConfigType, object?> value in values)
-                {
-                    sb.AppendLine($"- **{value.Key}**: `{value.Value ?? "{unset}"}`");
-                }
-
-                await context.RespondAsync(
-                        MessageHelpers.GenericSuccessEmbed("Successfully initialized config", sb.ToString())
-                    );
-
-                await LogUserAction(context, "Initialize config", sb.ToString());
-            }
-            catch (DatabaseException ex)
+            if (!context.Member.Permissions.HasPermission(DiscordPermissions.Administrator))
             {
                 await context.RespondAsync(
-                    MessageHelpers.GenericErrorEmbed(ex.Message)
+                    MessageHelpers.GenericErrorEmbed("Server Administrator permission is required to run this command.")
                     );
             }
+
+            Config config = new Config();
+            config.GuildId = context.Guild.Id;
+            config.BasicRoleId = BasicRole?.Id;
+            config.AdminRoleId = AdminRole.Id;
+            config.QotdChannelId = QotdChannel.Id;
+            config.QotdPingRoleId = QotdPingRole?.Id;
+            config.QotdTimeHourUtc = QotdTimeHourUtc;
+            config.QotdTimeMinuteUtc = QotdTimeMinuteUtc;
+            config.SuggestionsChannelId = SuggestionsChannel?.Id;
+            config.SuggestionsPingRoleId = SuggestionsPingRole?.Id;
+            config.LogsChannelId = LogsChannel?.Id;
+            using (var dbContext = new AppDbContext())
+            {
+                await dbContext.Configs.AddAsync(config);
+                await dbContext.SaveChangesAsync();
+            }
+            string configString = await config.ToStringAsync();
+
+            await context.RespondAsync(
+                    MessageHelpers.GenericSuccessEmbed("Successfully initialized config", configString)
+                );
+
+            await LogUserAction(context, "Initialize config", configString);
         }
 
         [Command("get")]
         [System.ComponentModel.Description("Get all config values")]
         public static async Task GetAsync(CommandContext context)
         {
-            try
-            {
-                if (!context.Member.Permissions.HasPermission(DiscordPermissions.Administrator))
-                {
-                    await context.RespondAsync(
-                        MessageHelpers.GenericErrorEmbed("Server Administrator permission is required to run this command.")
-                        );
-                }
-
-                Dictionary<ConfigType, object?> values = await DatabaseApi.GetConfigAsync(context.Guild.Id);
-
-                StringBuilder sb = new StringBuilder();
-                foreach (KeyValuePair<ConfigType, object?> value in values)
-                {
-                    sb.AppendLine($"- **{value.Key}**: `{value.Value ?? "{unset}"}`");
-                }
-
-                await context.RespondAsync(
-                        MessageHelpers.GenericEmbed($"Config values", $"{sb}")
-                    );
-            }
-            catch (DatabaseException ex)
+            if (!context.Member.Permissions.HasPermission(DiscordPermissions.Administrator))
             {
                 await context.RespondAsync(
-                    MessageHelpers.GenericErrorEmbed(ex.Message)
+                    MessageHelpers.GenericErrorEmbed("Server Administrator permission is required to run this command.")
                     );
             }
+
+            if (!await CommandRequirements.IsConfigInitialized(context))
+                return;
+
+            Config config;
+            using (var dbContext = new AppDbContext())
+            {
+                config = (await dbContext.Configs.Where(c => c.GuildId == context.Guild.Id).FirstOrDefaultAsync())!;
+            }
+
+            string configString = await config.ToStringAsync();
+
+            await context.RespondAsync(
+                    MessageHelpers.GenericEmbed($"Config values", $"{configString}")
+                );
         }
 
         [Command("set")]
@@ -121,60 +104,50 @@ namespace CustomQotd.Features.Commands
             [System.ComponentModel.Description("The role that will get pinged when a new QOTD is suggested.")] DiscordRole? SuggestionsPingRole = null,
             [System.ComponentModel.Description("The channel where commands, QOTDs and more get logged to.")] DiscordChannel? LogsChannel = null)
         {
-            try
-            {
-                if (!context.Member.Permissions.HasPermission(DiscordPermissions.Administrator))
-                {
-                    await context.RespondAsync(
-                        MessageHelpers.GenericErrorEmbed("Server Administrator permission is required to run this command.")
-                        );
-                }
-
-                Dictionary<ConfigType, object?> values = new()
-                {
-                    { ConfigType.BasicRoleId, BasicRole?.Id },
-                    { ConfigType.AdminRoleId, AdminRole?.Id },
-                    { ConfigType.QotdChannelId, QotdChannel?.Id },
-                    { ConfigType.QotdTimeHourUtc, QotdTimeHourUtc },
-                    { ConfigType.QotdTimeMinuteUtc, QotdTimeMinuteUtc },
-                    { ConfigType.QotdPingRoleId, QotdPingRole?.Id },
-                    { ConfigType.SuggestionChannelId, SuggestionsChannel?.Id },
-                    { ConfigType.SuggestionPingRoleId, SuggestionsPingRole?.Id },
-                    { ConfigType.LogsChannelId, LogsChannel?.Id },
-                };
-
-                if (values.Values.All(v => v is null))
-                {
-                    await context.RespondAsync(
-                        MessageHelpers.GenericErrorEmbed("At least one argument must be specified.")
-                        );
-                    return;
-                }
-
-                StringBuilder valuesSet = new StringBuilder();
-
-                foreach (KeyValuePair<ConfigType, object?> value in values)
-                {
-                    if (value.Value is not null)
-                    {
-                        await DatabaseApi.SetConfigAsync(context.Guild.Id, value.Key, value.Value);
-
-                        valuesSet.AppendLine($"- **{value.Key}**: `{value.Value}`");
-                    }
-                }
-
-                await context.RespondAsync(
-                        MessageHelpers.GenericSuccessEmbed("Successfully set config values", $"{valuesSet}")
-                    );
-
-                await LogUserAction(context, "Set config values", valuesSet.ToString());
-            }
-            catch (DatabaseException ex)
+            if (!context.Member.Permissions.HasPermission(DiscordPermissions.Administrator))
             {
                 await context.RespondAsync(
-                    MessageHelpers.GenericErrorEmbed(ex.Message)
+                    MessageHelpers.GenericErrorEmbed("Server Administrator permission is required to run this command.")
                     );
             }
+
+            if (!await CommandRequirements.IsConfigInitialized(context))
+                return;
+
+            Config config;
+            using (var dbContext = new AppDbContext())
+            {
+                config = dbContext.Configs.Where(c => c.GuildId == context.Guild.Id).FirstOrDefault()!;
+
+                if (BasicRole is not null) 
+                    config.BasicRoleId = BasicRole.Id;
+                if (AdminRole is not null)
+                    config.AdminRoleId = AdminRole.Id;
+                if (QotdChannel is not null)
+                    config.QotdChannelId = QotdChannel.Id;
+                if (QotdTimeHourUtc is not null)
+                    config.QotdTimeHourUtc = QotdTimeHourUtc.Value;
+                if (QotdTimeMinuteUtc is not null)
+                    config.QotdTimeMinuteUtc = QotdTimeMinuteUtc.Value;
+                if (QotdPingRole is not null)
+                    config.QotdPingRoleId = QotdPingRole.Id;
+                if (SuggestionsChannel is not null)
+                    config.SuggestionsChannelId = SuggestionsChannel.Id;
+                if (SuggestionsPingRole is not null)
+                    config.SuggestionsPingRoleId = SuggestionsPingRole.Id;
+                if (LogsChannel is not null)
+                    config.LogsChannelId = LogsChannel.Id;
+
+                await dbContext.SaveChangesAsync();   
+            }
+
+            string configString = await config.ToStringAsync();
+
+            await context.RespondAsync(
+                    MessageHelpers.GenericSuccessEmbed("Successfully set config values", $"{configString}")
+                );
+
+            await LogUserAction(context, "Set config values", configString);
         }
 
         public enum SingleOption
@@ -191,54 +164,32 @@ namespace CustomQotd.Features.Commands
             [System.ComponentModel.Description("The role that will get pinged when a new QOTD is suggested.")] SingleOption? SuggestionsPingRole = null,
             [System.ComponentModel.Description("The channel where commands, QOTDs and more get logged to.")] SingleOption? LogsChannel = null)
         {
-            try
+            Config config;
+            using (var dbContext = new AppDbContext())
             {
-                Dictionary<ConfigType, bool> isSet = new()
-                {
-                    { ConfigType.BasicRoleId, BasicRole != null },
-                    { ConfigType.QotdPingRoleId, QotdPingRole != null },
-                    { ConfigType.SuggestionChannelId, SuggestionsChannel != null },
-                    { ConfigType.SuggestionPingRoleId, SuggestionsPingRole != null },
-                    { ConfigType.LogsChannelId, LogsChannel != null },
-                };
+                config = dbContext.Configs.Where(c => c.GuildId == context.Guild.Id).FirstOrDefault()!;
 
+                if (BasicRole is not null)
+                    config.BasicRoleId = null;
+                if (QotdPingRole is not null)
+                    config.QotdPingRoleId = null;
+                if (SuggestionsChannel is not null)
+                    config.SuggestionsChannelId = null;
+                if (SuggestionsPingRole is not null)
+                    config.SuggestionsPingRoleId = null;
+                if (LogsChannel is not null)
+                    config.LogsChannelId = null;
 
-                if (isSet.Values.All(v => v == false))
-                {
-                    await context.RespondAsync(
-                        MessageHelpers.GenericErrorEmbed("At least one argument must be specified.")
-                        );
-                    return;
-                }
-
-                StringBuilder valuesReset = new StringBuilder();
-
-                foreach (KeyValuePair<ConfigType, bool> value in isSet)
-                {
-                    if (value.Value == true)
-                    {
-                        await DatabaseApi.SetConfigAsync(context.Guild.Id, value.Key, null);
-
-                        if (!string.IsNullOrEmpty(valuesReset.ToString()))
-                        {
-                            valuesReset.Append(", ");
-                        }
-                        valuesReset.Append($"`{value.Key}`");
-                    }
-                }
-
-                await context.RespondAsync(
-                        MessageHelpers.GenericSuccessEmbed("Successfully resetted config values", $"{valuesReset}")
-                    );
-
-                await LogUserAction(context, "Reset config values", valuesReset.ToString());
+                await dbContext.SaveChangesAsync();
             }
-            catch (DatabaseException ex)
-            {
-                await context.RespondAsync(
-                    MessageHelpers.GenericErrorEmbed(ex.Message)
-                    );
-            }
+
+            string configString = await config.ToStringAsync();
+
+            await context.RespondAsync(
+                    MessageHelpers.GenericSuccessEmbed("Successfully set config values", $"{configString}")
+                );
+
+            await LogUserAction(context, "Set config values", configString);
         }
     }
 }

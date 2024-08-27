@@ -1,7 +1,7 @@
 ﻿using CustomQotd.Database;
+using CustomQotd.Database.Entities;
 using CustomQotd.Features.Helpers;
 using DSharpPlus.Commands;
-using static CustomQotd.Database.DatabaseValues;
 
 namespace CustomQotd.Features.Commands
 {
