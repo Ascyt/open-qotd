@@ -1,4 +1,5 @@
-﻿using DSharpPlus;
+﻿
+using DSharpPlus;
 using DSharpPlus.Entities;
 using DSharpPlus.Commands;
 using DSharpPlus.Commands.Processors.TextCommands;
@@ -7,6 +8,7 @@ using CustomQotd.Features;
 using DSharpPlus.Commands.Processors.TextCommands.Parsing;
 using CustomQotd.Features.Commands;
 using CustomQotd.Database;
+using Microsoft.EntityFrameworkCore;
 
 namespace CustomQotd
 {
@@ -16,6 +18,12 @@ namespace CustomQotd
 
         public static async Task Main(string[] args)
         {
+            if (args.Contains("--migrate"))
+            {
+                ApplyMigrations();
+                return;
+            }
+
             Console.WriteLine("Starting bot...");
 
             string? discordToken = Environment.GetEnvironmentVariable("CUSTOMQOTD_TOKEN");
@@ -53,7 +61,6 @@ namespace CustomQotd
                 }
             );
 
-
             DiscordClient client = builder.Build();
             Client = client;
 
@@ -66,6 +73,23 @@ namespace CustomQotd
 
             // And now we wait infinitely so that our bot actually stays connected.
             await Task.Delay(-1);
+        }
+
+        private static void ApplyMigrations()
+        {
+            try
+            {
+                using (var dbContext = new AppDbContext())
+                {
+                    Console.WriteLine("Applying database migrations...");
+                    dbContext.Database.Migrate();
+                    Console.WriteLine("Database migrations applied successfully.");
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error applying migrations: {ex.Message}");
+            }
         }
     }
 }
