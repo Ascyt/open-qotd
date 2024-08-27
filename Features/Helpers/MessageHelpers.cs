@@ -40,7 +40,7 @@ namespace CustomQotd.Features.Helpers
 
             if (elements.Length == 0)
             {
-                message.AddEmbed(GenericErrorEmbed($"Page {page} does not exist.", title: title));
+                message.AddEmbed(GenericErrorEmbed($"Page {page} does not exist out of {maxPage} pages.", title: title));
                 return message;
             }
 
@@ -55,6 +55,14 @@ namespace CustomQotd.Features.Helpers
             message.AddEmbed(
                 GenericEmbed(message:sb.ToString(), title:title)
                 .WithFooter($"Page {page} of {maxPage}"));
+
+            message.AddComponents(
+                new DiscordButtonComponent(DiscordButtonStyle.Secondary, "first", "<<", page == 1),
+                new DiscordButtonComponent(DiscordButtonStyle.Primary, "backward", "<", page == 1),
+                new DiscordButtonComponent(DiscordButtonStyle.Primary, "forward", ">", page == maxPage),
+                new DiscordButtonComponent(DiscordButtonStyle.Secondary, "last", ">>", page == maxPage)
+                );
+
             return message;
         }
     }
