@@ -16,7 +16,27 @@ namespace CustomQotd.Features.Commands
             if (!await CommandRequirements.IsConfigInitialized(context) || !await CommandRequirements.UserIsAdmin(context))
                 return;
 
-            string body = $"\"**{question}**\" ({type})";
+            ulong guildId = context.Guild!.Id;
+            ulong submittedByUserId = context.User.Id;
+
+            Question newQuestion;
+
+            using (var dbContext = new AppDbContext())
+            {
+                newQuestion = new Question()
+                {
+                    GuildId = guildId,
+                    GuildDependentId = await Question.GetNextGuildDependentId(guildId),
+                    Type = type,
+                    Text = question,
+                    SubmittedByUserId = submittedByUserId,
+                    Timestamp = DateTime.UtcNow
+                };
+                await dbContext.Questions.AddAsync(newQuestion);
+                await dbContext.SaveChangesAsync();
+            }
+
+            string body = $"\"**{question}**\" ({type}, ID: `{newQuestion.GuildDependentId}`)";
             await context.RespondAsync(
                 MessageHelpers.GenericSuccessEmbed("Added question", body)
                 );

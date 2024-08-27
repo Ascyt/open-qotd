@@ -11,7 +11,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace CustomQotd.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20240826225647_InitialCreate")]
+    [Migration("20240827121740_InitialCreate")]
     partial class InitialCreate
     {
         /// <inheritdoc />
@@ -56,6 +56,36 @@ namespace CustomQotd.Migrations
                     b.HasKey("GuildId");
 
                     b.ToTable("Configs");
+                });
+
+            modelBuilder.Entity("CustomQotd.Database.Entities.Question", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("GuildDependentId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<ulong>("GuildId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<ulong>("SubmittedByUserId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("Text")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime>("Timestamp")
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("Type")
+                        .HasColumnType("INTEGER");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("Questions");
                 });
 #pragma warning restore 612, 618
         }

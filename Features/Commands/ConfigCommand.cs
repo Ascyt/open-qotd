@@ -39,17 +39,19 @@ namespace CustomQotd.Features.Commands
                     );
             }
 
-            Config config = new Config();
-            config.GuildId = context.Guild.Id;
-            config.BasicRoleId = BasicRole?.Id;
-            config.AdminRoleId = AdminRole.Id;
-            config.QotdChannelId = QotdChannel.Id;
-            config.QotdPingRoleId = QotdPingRole?.Id;
-            config.QotdTimeHourUtc = QotdTimeHourUtc;
-            config.QotdTimeMinuteUtc = QotdTimeMinuteUtc;
-            config.SuggestionsChannelId = SuggestionsChannel?.Id;
-            config.SuggestionsPingRoleId = SuggestionsPingRole?.Id;
-            config.LogsChannelId = LogsChannel?.Id;
+            Config config = new Config
+            {
+                GuildId = context.Guild.Id,
+                BasicRoleId = BasicRole?.Id,
+                AdminRoleId = AdminRole.Id,
+                QotdChannelId = QotdChannel.Id,
+                QotdPingRoleId = QotdPingRole?.Id,
+                QotdTimeHourUtc = QotdTimeHourUtc,
+                QotdTimeMinuteUtc = QotdTimeMinuteUtc,
+                SuggestionsChannelId = SuggestionsChannel?.Id,
+                SuggestionsPingRoleId = SuggestionsPingRole?.Id,
+                LogsChannelId = LogsChannel?.Id
+            };
             using (var dbContext = new AppDbContext())
             {
                 await dbContext.Configs.AddAsync(config);

@@ -22,6 +22,10 @@ namespace CustomQotd.Database.Entities
         public ulong? SuggestionsPingRoleId { get; set; }
         public ulong? LogsChannelId { get; set; }
 
+        /// <summary>
+        /// Do not use ToString(), use ToStringAsync() instead
+        /// </summary>
+        /// <exception cref="NotImplementedException"></exception>
         public override string ToString()
         {
             throw new NotImplementedException($"Use ToStringAsync() instead");

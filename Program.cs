@@ -1,5 +1,4 @@
-﻿
-using DSharpPlus;
+﻿using DSharpPlus;
 using DSharpPlus.Entities;
 using DSharpPlus.Commands;
 using DSharpPlus.Commands.Processors.TextCommands;
@@ -18,7 +17,17 @@ namespace CustomQotd
 
         public static async Task Main(string[] args)
         {
-            ApplyMigrations();
+            /* When making changes to the database, change the `false` to `true`, then run:
+           
+                dotnet ef migrations add InitialCreate 
+                dotnet run -- --migrate
+            
+            Then set it back to `false` and you're good to go. */
+            #if false
+                File.Delete("app.db");
+                ApplyMigrations();
+                return;
+            #endif
 
             Console.WriteLine("Starting bot...");
 

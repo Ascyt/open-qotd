@@ -6,6 +6,7 @@ namespace CustomQotd.Database
     public class AppDbContext : DbContext
     {
         public DbSet<Config> Configs { get; set; }
+        public DbSet<Question> Questions { get; set; }
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {

@@ -1,4 +1,5 @@
-﻿using Microsoft.EntityFrameworkCore.Migrations;
+﻿using System;
+using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
 
@@ -30,6 +31,24 @@ namespace CustomQotd.Migrations
                 {
                     table.PrimaryKey("PK_Configs", x => x.GuildId);
                 });
+
+            migrationBuilder.CreateTable(
+                name: "Questions",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "INTEGER", nullable: false)
+                        .Annotation("Sqlite:Autoincrement", true),
+                    GuildId = table.Column<ulong>(type: "INTEGER", nullable: false),
+                    GuildDependentId = table.Column<int>(type: "INTEGER", nullable: false),
+                    Type = table.Column<int>(type: "INTEGER", nullable: false),
+                    Text = table.Column<string>(type: "TEXT", nullable: false),
+                    SubmittedByUserId = table.Column<ulong>(type: "INTEGER", nullable: false),
+                    Timestamp = table.Column<DateTime>(type: "TEXT", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Questions", x => x.Id);
+                });
         }
 
         /// <inheritdoc />
@@ -37,6 +56,9 @@ namespace CustomQotd.Migrations
         {
             migrationBuilder.DropTable(
                 name: "Configs");
+
+            migrationBuilder.DropTable(
+                name: "Questions");
         }
     }
 }
