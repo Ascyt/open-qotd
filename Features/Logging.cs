@@ -46,7 +46,7 @@ namespace CustomQotd.Features
         {
             await context.Channel.SendMessageAsync(
                 MessageHelpers.GenericWarningEmbed("Log channel is set, but not found.\n\n" +
-                "*Set it using `/config set log_channel [channel]`, or unset it using `/config reset log_channel`.*")
+                "*It can be set using `/config set log_channel [channel]`, or unset using `/config reset log_channel`.*")
                 );
         }
     }

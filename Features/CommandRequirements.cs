@@ -38,7 +38,7 @@ namespace CustomQotd.Features
             ulong roleId;
             using (var dbContext = new AppDbContext())
             {
-                roleId = await dbContext.Configs.Where(c => c.GuildId == context.Guild.Id).Select(c => c.AdminRoleId).FirstOrDefaultAsync();
+                roleId = await dbContext.Configs.Where(c => c.GuildId == context.Guild!.Id).Select(c => c.AdminRoleId).FirstOrDefaultAsync();
             }
 
             if (!context.Member.Roles.Any(role => role.Id == roleId))
@@ -46,14 +46,57 @@ namespace CustomQotd.Features
                 DiscordRole role;
                 try
                 {
-                    role = await context.Guild.GetRoleAsync(roleId);
+                    role = await context.Guild!.GetRoleAsync(roleId);
                 }
                 catch (NotFoundException)
                 {
                     if (responseOnError)
                         await context.RespondAsync(
                             MessageHelpers.GenericErrorEmbed($"The role in the admin_role config value with ID {roleId} could not be found.\n\n" +
-                            $"*You can set it using `/config set admin_role [role]`.*")
+                            $"*It can be set using `/config set admin_role [role]`.*")
+                            );
+                    return false;
+                }
+
+                if (responseOnError)
+                    await context.RespondAsync(
+                        MessageHelpers.GenericErrorEmbed($"You need to have the \"{role.Mention}\" role or Server Administrator permission to be able to run this command.")
+                        );
+                return false;
+            }
+
+            return true;
+        }
+        /// <summary>
+        /// Check if a user has basic or admin permission. This function also handles sending error messages, so it's recommended to end the function if it retuns false.
+        /// </summary>
+        public static async Task<bool> UserIsBasic(CommandContext context, bool responseOnError = true)
+        {
+            if (context.Member.Permissions.HasPermission(DiscordPermissions.Administrator))
+                return true;
+
+            ulong? roleId;
+            using (var dbContext = new AppDbContext())
+            {
+                roleId = await dbContext.Configs.Where(c => c.GuildId == context.Guild!.Id).Select(c => c.BasicRoleId).FirstOrDefaultAsync();
+            }
+
+            if (roleId == null)
+                return true;
+
+            if (!context.Member.Roles.Any(role => role.Id == roleId) && !await UserIsAdmin(context, responseOnError))
+            {
+                DiscordRole role;
+                try
+                {
+                    role = await context.Guild!.GetRoleAsync(roleId.Value);
+                }
+                catch (NotFoundException)
+                {
+                    if (responseOnError)
+                        await context.RespondAsync(
+                            MessageHelpers.GenericErrorEmbed($"The role in the basic_role config value with ID {roleId} could not be found.\n\n" +
+                            $"*It can be set using `/config set basic_role [role]`.*")
                             );
                     return false;
                 }

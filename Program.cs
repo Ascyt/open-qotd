@@ -47,7 +47,7 @@ namespace CustomQotd
                 // we register our commands here
                 extension =>
                 {
-                    extension.AddCommands([typeof(ConfigCommand), typeof(QuestionsCommand)]);
+                    extension.AddCommands([typeof(ConfigCommand), typeof(QuestionsCommand), typeof(SuggestCommand)]);
                     TextCommandProcessor textCommandProcessor = new(new()
                     {
                         PrefixResolver = new DefaultPrefixResolver(true, "qotd:").ResolvePrefixAsync
