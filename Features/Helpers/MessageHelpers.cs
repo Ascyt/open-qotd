@@ -28,7 +28,7 @@ namespace CustomQotd.Features.Helpers
         /// <summary>
         /// Get a message for a list of elements. Assumes it is already filtered by page
         /// </summary>
-        public static DiscordMessageBuilder GetListMessage<T>(T[] elements, string title, int page, int totalPages)
+        public static DiscordMessageBuilder GetListMessage<T>(T[] elements, string title, int page, int totalPages, bool includeButtons = true)
         {
             DiscordMessageBuilder message = new();
 
@@ -41,9 +41,12 @@ namespace CustomQotd.Features.Helpers
             if (elements.Length == 0)
             {
                 message.AddEmbed(GenericErrorEmbed($"Page {page} does not exist.", title: title));
-                message.AddComponents(
-                        new DiscordButtonComponent(DiscordButtonStyle.Secondary, "redirect", $"Go to page {totalPages}")
-                    );
+                if (includeButtons)
+                {
+                    message.AddComponents(
+                            new DiscordButtonComponent(DiscordButtonStyle.Secondary, "redirect", $"Go to page {totalPages}")
+                        );
+                }
                 return message;
             }
 
@@ -62,19 +65,22 @@ namespace CustomQotd.Features.Helpers
             if (totalPages < 2)
                 return message;
 
-            message.AddComponents(
-                new DiscordButtonComponent(DiscordButtonStyle.Secondary, "first", "<<", page == 1),
-                new DiscordButtonComponent(DiscordButtonStyle.Primary, "backward", "<", page == 1),
-                new DiscordButtonComponent(DiscordButtonStyle.Primary, "forward", ">", page == totalPages),
-                new DiscordButtonComponent(DiscordButtonStyle.Secondary, "last", ">>", page == totalPages)
-                );
+            if (includeButtons)
+            {
+                message.AddComponents(
+                    new DiscordButtonComponent(DiscordButtonStyle.Secondary, "first", "<<", page == 1),
+                    new DiscordButtonComponent(DiscordButtonStyle.Primary, "backward", "<", page == 1),
+                    new DiscordButtonComponent(DiscordButtonStyle.Primary, "forward", ">", page == totalPages),
+                    new DiscordButtonComponent(DiscordButtonStyle.Secondary, "last", ">>", page == totalPages)
+                    );
+            }
 
             return message;
         }
         /// <summary>
         /// Edit a message for a list of elements. Assumes it is already filtered by page
         /// </summary>
-        public static void EditListMessage<T>(T[] elements, string title, int page, int totalPages, DiscordInteractionResponseBuilder message)
+        public static void EditListMessage<T>(T[] elements, string title, int page, int totalPages, DiscordInteractionResponseBuilder message, bool includeButtons = true)
         {
             if (totalPages == 0)
             {
@@ -85,9 +91,12 @@ namespace CustomQotd.Features.Helpers
             if (elements.Length == 0)
             {
                 message.AddEmbed(GenericErrorEmbed($"Page {page} does not exist.", title: title));
-                message.AddComponents(
+                if (includeButtons)
+                {
+                    message.AddComponents(
                         new DiscordButtonComponent(DiscordButtonStyle.Secondary, "redirect", $"Go to page {totalPages}")
                     );
+                }
                 return;
             }
 
@@ -106,12 +115,15 @@ namespace CustomQotd.Features.Helpers
             if (totalPages < 2)
                 return;
 
-            message.AddComponents(
+            if (includeButtons)
+            {
+                message.AddComponents(
                 new DiscordButtonComponent(DiscordButtonStyle.Secondary, "first", "<<", page == 1),
                 new DiscordButtonComponent(DiscordButtonStyle.Primary, "backward", "<", page == 1),
                 new DiscordButtonComponent(DiscordButtonStyle.Primary, "forward", ">", page == totalPages),
                 new DiscordButtonComponent(DiscordButtonStyle.Secondary, "last", ">>", page == totalPages)
                 );
+            }
 
             return;
         }

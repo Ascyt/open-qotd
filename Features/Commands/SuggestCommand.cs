@@ -227,7 +227,7 @@ namespace CustomQotd.Features.Commands
                         timeoutDenyMessageBuilder.WithAllowedMention(new UserMention(result.Result.User));
                         timeoutDenyMessageBuilder.WithReply(message.Id);
                         timeoutDenyMessageBuilder.AddEmbed(
-                            MessageHelpers.GenericErrorEmbed(title: "Denial Reason Required: Error", message:
+                            MessageHelpers.GenericErrorEmbed(title: "Denial Reason Required: Error (timeout)", message:
                             "This action has timed out, and the suggestion has not been denied."));
 
                         await denyMessage.ModifyAsync(timeoutDenyMessageBuilder);
@@ -263,7 +263,7 @@ namespace CustomQotd.Features.Commands
                         alteredDenyBuilder.WithAllowedMention(new UserMention(result.Result.User));
                         alteredDenyBuilder.WithReply(message.Id);
                         alteredDenyBuilder.AddEmbed(
-                            MessageHelpers.GenericErrorEmbed(title: "Denial Reason Required: Error", message:
+                            MessageHelpers.GenericErrorEmbed(title: "Denial Reason Required: Error (modified)", message:
                             "This the question could not be denied because it had been denied or accept from another source."));
 
                         await denyMessage.ModifyAsync(alteredDenyBuilder);

@@ -267,6 +267,8 @@ namespace CustomQotd.Features.Commands
 
                 result = await message.WaitForButtonAsync();
             }
+
+            await message.ModifyAsync(MessageHelpers.GetListMessage(questions, $"{type} Questions List", page, totalPages, includeButtons:false));
         }
 
         [Command("search")]
@@ -368,6 +370,8 @@ namespace CustomQotd.Features.Commands
 
                 result = await message.WaitForButtonAsync();
             }
+
+            await message.ModifyAsync(MessageHelpers.GetListMessage(questions, title, page, totalPages, includeButtons: false));
         }
     }
 }
