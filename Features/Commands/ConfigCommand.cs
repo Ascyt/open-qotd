@@ -72,7 +72,8 @@ namespace CustomQotd.Features.Commands
                     MessageHelpers.GenericSuccessEmbed("Successfully initialized config", configString)
                 );
 
-            await LogUserAction(context, "Initialize config", configString);
+            // Can cause issues
+            // await LogUserAction(context, "Initialize config", configString);
         }
 
         [Command("get")]

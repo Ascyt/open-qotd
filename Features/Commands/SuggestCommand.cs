@@ -142,13 +142,23 @@ namespace CustomQotd.Features.Commands
                 }
             }
 
-            InteractivityResult<ComponentInteractionCreatedEventArgs> result;
-            result = await message.WaitForButtonAsync();
-
-            if (result.TimedOut || result.Result?.Id == null)
+            InteractivityResult<ComponentInteractionCreatedEventArgs>? resultNullable = null;
+            int timeToLive = 15;
+            do
             {
-                await OnTimeoutAsync();
+                if (timeToLive <= 0)
+                {
+                    await OnTimeoutAsync();
+                    break;
+                }
+
+                resultNullable = await message.WaitForButtonAsync();
+
+                timeToLive--;
             }
+            while (resultNullable.Value.TimedOut);
+
+            var result = resultNullable!.Value;
 
             async Task<bool> QuestionAlteredOrDeleted()
             {
