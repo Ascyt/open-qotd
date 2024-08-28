@@ -168,7 +168,7 @@ namespace CustomQotd.Features.Commands
 
                 AddPingIfAvailable(timeoutMessageBuilder, pingRole);
                 timeoutMessageBuilder.AddEmbed(MessageHelpers.GenericEmbed("A new QOTD Suggestion is available!", embedBody +
-                    $"\n\n*Use `/suggestions accept {newQuestion.GuildDependentId}` to accept or\n`/suggestions deny {newQuestion.GuildDependentId} [reason]` to deny this suggestion.*", color: "#f0b132"));
+                    $"\n\n*Use `/suggestions accept {newQuestion.GuildDependentId}` to accept,\nor `/suggestions deny {newQuestion.GuildDependentId} [reason]` to deny this suggestion.*", color: "#f0b132"));
 
                 await message.ModifyAsync(
                     timeoutMessageBuilder
@@ -206,16 +206,17 @@ namespace CustomQotd.Features.Commands
                     denyMessageBuilder.WithAllowedMention(new UserMention(result.Result.User));
                     denyMessageBuilder.WithReply(message.Id);
                     denyMessageBuilder.AddEmbed(
-                        MessageHelpers.GenericWarningEmbed(title: "Reason Required", message:
+                        MessageHelpers.GenericWarningEmbed(title: "Denial Reason Required", message:
                         "To continue, type the reason for the denial into this channel.\n" +
                         "This will be sent to the user whose suggestion is denied.\n\n" +
-                        $"*The first message sent into this channel by user {result.Result.User.Mention} will be provided as reason.*"));
+                        $"*The first message sent into this channel by user {result.Result.User.Mention} will be provided as reason.*\n" +
+                        $"*Respond with \"qotd:cancel\" to cancel.*"));
 
                     DiscordMessage denyMessage = await channel.SendMessageAsync(denyMessageBuilder);
 
                     var reasonResult = await denyMessage.Channel!.GetNextMessageAsync(m =>
                     {
-                        return (m.Author!.Id == result.Result.User.Id);
+                        return (m.Author!.Id == result.Result.User.Id || m.Content == "qotd:cancel");
                     });
 
                     if (reasonResult.TimedOut || reasonResult.Result == null)
@@ -226,10 +227,28 @@ namespace CustomQotd.Features.Commands
                         timeoutDenyMessageBuilder.WithAllowedMention(new UserMention(result.Result.User));
                         timeoutDenyMessageBuilder.WithReply(message.Id);
                         timeoutDenyMessageBuilder.AddEmbed(
-                            MessageHelpers.GenericErrorEmbed(title: "Reason Required: Error", message:
+                            MessageHelpers.GenericErrorEmbed(title: "Denial Reason Required: Error", message:
                             "This action has timed out, and the suggestion has not been denied."));
 
                         await denyMessage.ModifyAsync(timeoutDenyMessageBuilder);
+
+                        await OnTimeoutAsync();
+
+                        return;
+                    }
+
+                    if (reasonResult.Result.Content == "qotd:cancel")
+                    {
+                        DiscordMessageBuilder timeoutDenyMessageBuilder = new();
+
+                        timeoutDenyMessageBuilder.WithReply(message.Id);
+                        timeoutDenyMessageBuilder.AddEmbed(
+                            MessageHelpers.GenericErrorEmbed(title: "Denial Reason Required: Cancelled", message:
+                            "This action has been cancelled."));
+
+                        await denyMessage.ModifyAsync(timeoutDenyMessageBuilder);
+
+                        await reasonResult.Result.DeleteAsync();
 
                         await OnTimeoutAsync();
 
@@ -244,7 +263,7 @@ namespace CustomQotd.Features.Commands
                         alteredDenyBuilder.WithAllowedMention(new UserMention(result.Result.User));
                         alteredDenyBuilder.WithReply(message.Id);
                         alteredDenyBuilder.AddEmbed(
-                            MessageHelpers.GenericErrorEmbed(title: "Reason Required: Error", message:
+                            MessageHelpers.GenericErrorEmbed(title: "Denial Reason Required: Error", message:
                             "This the question could not be denied because it had been denied or accept from another source."));
 
                         await denyMessage.ModifyAsync(alteredDenyBuilder);

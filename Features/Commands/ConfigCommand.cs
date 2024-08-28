@@ -42,7 +42,7 @@ namespace CustomQotd.Features.Commands
 
             Config config = new Config
             {
-                GuildId = context.Guild.Id,
+                GuildId = context!.Guild.Id,
                 BasicRoleId = BasicRole?.Id,
                 AdminRoleId = AdminRole.Id,
                 QotdChannelId = QotdChannel.Id,
@@ -55,7 +55,15 @@ namespace CustomQotd.Features.Commands
             };
             using (var dbContext = new AppDbContext())
             {
-                await dbContext.Configs.AddAsync(config);
+                Config? existingConfig = await dbContext.Configs.FindAsync(context!.Guild.Id);
+                if (existingConfig != null)
+                {
+                    existingConfig = config;
+                }
+                else
+                {
+                    await dbContext.Configs.AddAsync(config);
+                }
                 await dbContext.SaveChangesAsync();
             }
             string configString = await config.ToStringAsync();
