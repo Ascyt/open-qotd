@@ -194,7 +194,7 @@ namespace CustomQotd.Features.Commands
             if (suggester is not null)
             {
                 DiscordMessageBuilder userSendMessage = new();
-                userSendMessage.AddEmbed(MessageHelpers.GenericEmbed($"{guild.Name}: QOTD Suggestion Denied",
+                userSendMessage.AddEmbed(MessageHelpers.GenericEmbed($"{guild.Name}: QOTD Suggestion Accepted",
                         $"Your QOTD Suggestion:\n" +
                         $"> \"**{question.Text}**\"\n\n" +
                         $"Has been :white_check_mark: **ACCEPTED** :white_check_mark:!\n" +

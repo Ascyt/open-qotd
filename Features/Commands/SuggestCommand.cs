@@ -150,15 +150,18 @@ namespace CustomQotd.Features.Commands
                 await OnTimeoutAsync();
             }
 
-            async Task OnTimeoutAsync()
+            async Task<bool> QuestionAlteredOrDeleted()
             {
-                // Make sure suggestion is not altered or deleted
                 Question? updatedQuestion;
                 using (var dbContext = new AppDbContext())
                 {
                     updatedQuestion = await dbContext.Questions.FindAsync(newQuestion.Id);
                 }
-                if (updatedQuestion is null || updatedQuestion.Type != QuestionType.Suggested)
+                return updatedQuestion is null || updatedQuestion.Type != QuestionType.Suggested;
+            }
+            async Task OnTimeoutAsync()
+            {
+                if (await QuestionAlteredOrDeleted())
                     return;
 
                 DiscordMessageBuilder timeoutMessageBuilder = new();
@@ -223,12 +226,28 @@ namespace CustomQotd.Features.Commands
                         timeoutDenyMessageBuilder.WithAllowedMention(new UserMention(result.Result.User));
                         timeoutDenyMessageBuilder.WithReply(message.Id);
                         timeoutDenyMessageBuilder.AddEmbed(
-                            MessageHelpers.GenericErrorEmbed(title: "Reason Required", message:
+                            MessageHelpers.GenericErrorEmbed(title: "Reason Required: Error", message:
                             "This action has timed out, and the suggestion has not been denied."));
 
                         await denyMessage.ModifyAsync(timeoutDenyMessageBuilder);
 
                         await OnTimeoutAsync();
+
+                        return;
+                    }
+
+                    if (await QuestionAlteredOrDeleted())
+                    {
+                        DiscordMessageBuilder alteredDenyBuilder = new();
+
+                        alteredDenyBuilder.WithContent(result.Result.User.Mention);
+                        alteredDenyBuilder.WithAllowedMention(new UserMention(result.Result.User));
+                        alteredDenyBuilder.WithReply(message.Id);
+                        alteredDenyBuilder.AddEmbed(
+                            MessageHelpers.GenericErrorEmbed(title: "Reason Required: Error", message:
+                            "This the question could not be denied because it had been denied or accept from another source."));
+
+                        await denyMessage.ModifyAsync(alteredDenyBuilder);
 
                         return;
                     }
