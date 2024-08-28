@@ -226,7 +226,7 @@ namespace CustomQotd.Features.Commands
 
             var result = await message.WaitForButtonAsync();
 
-            while (!result.TimedOut)
+            while (!result.TimedOut && result.Result?.Id != null)
             {
                 bool messageDelete = false;
                 switch (result.Result.Id)
@@ -327,7 +327,7 @@ namespace CustomQotd.Features.Commands
 
             var result = await message.WaitForButtonAsync();
 
-            while (!result.TimedOut)
+            while (!result.TimedOut && result.Result?.Id != null)
             {
                 bool messageDelete = false;
                 switch (result.Result.Id)
