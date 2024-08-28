@@ -1,10 +1,13 @@
-﻿using CustomQotd.Database;
+﻿using CommunityToolkit.HighPerformance.Helpers;
+using CustomQotd.Database;
 using CustomQotd.Database.Entities;
 using CustomQotd.Features.Helpers;
 using DSharpPlus.Commands;
 using DSharpPlus.Commands.Processors.SlashCommands;
 using DSharpPlus.Entities;
+using DSharpPlus.EventArgs;
 using DSharpPlus.Exceptions;
+using DSharpPlus.Interactivity;
 using DSharpPlus.Interactivity.Extensions;
 using Microsoft.EntityFrameworkCore;
 using System.ComponentModel;
@@ -136,14 +139,20 @@ namespace CustomQotd.Features.Commands
                 }
             }
 
-            var result = await message.WaitForButtonAsync();
+            InteractivityResult<ComponentInteractionCreatedEventArgs> result;
+            result = await message.WaitForButtonAsync();
 
             if (result.TimedOut)
+            {
+                await OnTimeoutAsync();
+            }
+
+            async Task OnTimeoutAsync()
             {
                 DiscordMessageBuilder timeoutMessageBuilder = new();
 
                 AddPingIfAvailable(timeoutMessageBuilder, pingRole);
-                timeoutMessageBuilder.AddEmbed(MessageHelpers.GenericEmbed("A new QOTD Suggestion is available!", embedBody + 
+                timeoutMessageBuilder.AddEmbed(MessageHelpers.GenericEmbed("A new QOTD Suggestion is available!", embedBody +
                     $"\n\n**Use `/suggestions accept {newQuestion.GuildDependentId}` to accept or `/suggestions deny {newQuestion.GuildDependentId} [reason]` to deny this suggestion."));
 
                 await message.ModifyAsync(
@@ -154,12 +163,64 @@ namespace CustomQotd.Features.Commands
 
             if (result.Result.Id == "accept") 
             {
-                await SuggestionsCommands.AcceptSuggestionNoContextAsync(newQuestion, message);
+                await SuggestionsCommands.AcceptSuggestionNoContextAsync(newQuestion, message, result, embedBody);
                 return;
             }
 
             if (result.Result.Id == "deny")
             {
+                DiscordMessageBuilder editMessage = new();
+
+                editMessage.AddEmbed(
+                    MessageHelpers.GenericEmbed("QOTD Suggestion is awaiting denial", embedBody + 
+                    $"\n\nAwaiting denial by: {result.Result.User.Id}", color: "#c04040")
+                    );
+
+                await message.ModifyAsync(editMessage);
+
+                DiscordMessageBuilder denyMessageBuilder = new();
+                denyMessageBuilder.WithContent(result.Result.User.Mention);
+                denyMessageBuilder.WithAllowedMention(new UserMention(result.Result.User));
+                denyMessageBuilder.WithReply(message.Id);
+                denyMessageBuilder.AddEmbed(
+                    MessageHelpers.GenericWarningEmbed(title:"Reason Required", message:
+                    "To continue, type the reason for the denial into this channel.\n" +
+                    "This will be sent to the user whose suggestion is denied.\n\n" +
+                    $"*The first message sent into this channel by user {result.Result.User.Mention} will be provided as reason.*"));
+
+                DiscordMessage denyMessage = await channel.SendMessageAsync(denyMessageBuilder);
+
+                var reasonResult = await denyMessage.Channel!.GetNextMessageAsync(m =>
+                {
+                    return (m.Author!.Id == result.Result.User.Id);
+                });
+
+                if (reasonResult.TimedOut)
+                {
+                    DiscordMessageBuilder timeoutDenyMessageBuilder = new();
+
+                    timeoutDenyMessageBuilder.WithContent(result.Result.User.Mention);
+                    timeoutDenyMessageBuilder.WithAllowedMention(new UserMention(result.Result.User));
+                    timeoutDenyMessageBuilder.WithReply(message.Id);
+                    timeoutDenyMessageBuilder.AddEmbed(
+                        MessageHelpers.GenericErrorEmbed(title: "Reason Required", message:
+                        "This action has timed out, and the suggestion has not been denied."));
+
+                    await denyMessage.ModifyAsync(timeoutDenyMessageBuilder);
+
+                    await OnTimeoutAsync();
+
+                    return;
+                }
+
+                await denyMessage.DeleteAsync();
+
+                string reason = reasonResult.Result.Content;
+
+                await reasonResult.Result.DeleteAsync();
+
+                await SuggestionsCommands.DenySuggestionNoContextAsync(newQuestion, message, result, embedBody, reason);
+
                 return;
             }
         }
