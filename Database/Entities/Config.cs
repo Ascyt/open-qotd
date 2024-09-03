@@ -1,5 +1,6 @@
 ﻿using DSharpPlus.Entities;
 using DSharpPlus.Exceptions;
+using Newtonsoft.Json;
 using System.ComponentModel.DataAnnotations;
 
 namespace CustomQotd.Database.Entities
