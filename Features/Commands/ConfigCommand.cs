@@ -43,6 +43,9 @@ namespace CustomQotd.Features.Commands
                     );
             }
 
+            QotdTimeMinuteUtc = Math.Clamp(QotdTimeMinuteUtc, 0, 59);
+            QotdTimeHourUtc = Math.Clamp(QotdTimeHourUtc, 0, 23);
+
             Config config = new Config
             {
                 GuildId = context!.Guild!.Id,
@@ -135,6 +138,10 @@ namespace CustomQotd.Features.Commands
 
             if (!await CommandRequirements.IsConfigInitialized(context))
                 return;
+            if (QotdTimeMinuteUtc is not null)
+                QotdTimeMinuteUtc = Math.Clamp(QotdTimeMinuteUtc.Value, 0, 59);
+            if (QotdTimeHourUtc is not null)
+                QotdTimeHourUtc = Math.Clamp(QotdTimeHourUtc.Value, 0, 23);
 
             Config config;
             using (var dbContext = new AppDbContext())
