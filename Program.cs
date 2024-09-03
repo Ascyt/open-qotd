@@ -11,6 +11,7 @@ using Microsoft.EntityFrameworkCore;
 using DSharpPlus.Interactivity.Extensions;
 using DSharpPlus.Interactivity.Enums;
 using DSharpPlus.Interactivity;
+using CustomQotd.Features.QotdSending;
 
 namespace CustomQotd
 {
@@ -80,6 +81,9 @@ namespace CustomQotd
             await client.ConnectAsync(status, DiscordUserStatus.Online);
 
             Console.WriteLine("Bot started");
+
+            // Run the CheckTimeLoop in a separate task
+            _ = Task.Run(() => QotdTimer.FetchLoopAsync());
 
             // And now we wait infinitely so that our bot actually stays connected.
             await Task.Delay(-1);

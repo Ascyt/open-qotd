@@ -7,6 +7,7 @@ using System.ComponentModel;
 using Microsoft.EntityFrameworkCore;
 using Newtonsoft.Json;
 using System.Text;
+using Microsoft.AspNetCore.Http.Connections;
 
 namespace CustomQotd.Features.Commands
 {
@@ -82,6 +83,26 @@ namespace CustomQotd.Features.Commands
 
                                 fileStream.Close();
                             }
+                            return;
+
+                        case "resetlastsentday":
+                            ulong guildId1 = argsSplit.Length > 2 ? ulong.Parse(argsSplit[2]) : context.Guild!.Id;
+
+                            using (var dbContext = new AppDbContext())
+                            {
+                                Config? config = await dbContext.Configs.Where(c => c.GuildId == guildId1).FirstOrDefaultAsync();
+
+                                if (config == null)
+                                {
+                                    await context.RespondAsync("Guild not found");
+                                    return;
+                                }
+
+                                config.LastSentDay = -1;
+                                await dbContext.SaveChangesAsync();
+                            }
+
+                            await context.RespondAsync("Resetted last_sent_day");
                             return;
                     }
                     break;
