@@ -10,6 +10,7 @@ using DSharpPlus.Exceptions;
 using DSharpPlus.Interactivity;
 using DSharpPlus.Interactivity.Extensions;
 using Microsoft.EntityFrameworkCore;
+using SQLitePCL;
 using System.ComponentModel;
 using System.ComponentModel.Design.Serialization;
 
@@ -24,6 +25,18 @@ namespace CustomQotd.Features.Commands
         {
             if (!await CommandRequirements.IsConfigInitialized(context) || !await CommandRequirements.UserIsBasic(context))
                 return;
+
+            using (var dbContext = new AppDbContext())
+            {
+                Config? config = await dbContext.Configs.Where(c => c.GuildId == context.Guild!.Id).FirstOrDefaultAsync();
+                
+                if (config != null && !config.EnableSuggestions)
+                {
+                    await context.RespondAsync(
+                        MessageHelpers.GenericErrorEmbed(title: "Suggestions Disabled", message: "Suggesting of QOTDs using `/qotd` or `/suggest` has been disabled by staff."));
+                    return;
+                }
+            }
 
             ulong guildId = context.Guild!.Id;
             ulong userId = context.User.Id;
@@ -143,6 +156,7 @@ namespace CustomQotd.Features.Commands
             }
 
             InteractivityResult<ComponentInteractionCreatedEventArgs>? resultNullable = null;
+            // Generally timeouts after one minute, so a TTL of 15 means 15 minutes
             int timeToLive = 15;
             do
             {

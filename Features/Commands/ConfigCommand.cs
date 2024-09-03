@@ -29,6 +29,9 @@ namespace CustomQotd.Features.Commands
             [Description("The UTC minute of the day the QOTDs should get sent (0-59).")] int QotdTimeMinuteUtc,
             [Description("The role a user needs to have to execute any basic commands (allows anyone by default).")] DiscordRole? BasicRole = null,
             [Description("The role that will get pinged when a new QOTD is sent.")] DiscordRole? QotdPingRole = null,
+            [Description("Whether to pin the most recent QOTD to the channel or not (true by default).")] bool EnableQotdPinMessage = true,
+            [Description("Whether to send a \"not available\" message when there is no QOTD available (true by default).")] bool EnableQotdUnvailableMessage = true,
+            [Description("Whether to allow users with the BasicRole to suggest QOTDs (true by default).")] bool EnableSuggestions = true,
             [Description("The channel new QOTD suggestions get announced in.")] DiscordChannel? SuggestionsChannel = null,
             [Description("The role that will get pinged when a new QOTD is suggested.")] DiscordRole? SuggestionsPingRole = null,
             [Description("The channel where commands, QOTDs and more get logged to.")] DiscordChannel? LogsChannel = null)
@@ -42,13 +45,16 @@ namespace CustomQotd.Features.Commands
 
             Config config = new Config
             {
-                GuildId = context!.Guild.Id,
+                GuildId = context!.Guild!.Id,
                 BasicRoleId = BasicRole?.Id,
                 AdminRoleId = AdminRole.Id,
                 QotdChannelId = QotdChannel.Id,
                 QotdPingRoleId = QotdPingRole?.Id,
+                EnableQotdPinMessage = EnableQotdPinMessage,
+                EnableQotdUnavailableMessage = EnableQotdUnvailableMessage,
                 QotdTimeHourUtc = QotdTimeHourUtc,
                 QotdTimeMinuteUtc = QotdTimeMinuteUtc,
+                EnableSuggestions = EnableSuggestions,
                 SuggestionsChannelId = SuggestionsChannel?.Id,
                 SuggestionsPingRoleId = SuggestionsPingRole?.Id,
                 LogsChannelId = LogsChannel?.Id
@@ -113,6 +119,9 @@ namespace CustomQotd.Features.Commands
             [Description("The UTC hour of the day the QOTDs should get sent (0-23).")] int? QotdTimeHourUtc = null,
             [Description("The UTC minute of the day the QOTDs should get sent (0-59).")] int? QotdTimeMinuteUtc = null,
             [Description("The role that will get pinged when a new QOTD is sent.")] DiscordRole? QotdPingRole = null,
+            [Description("Whether to pin the most recent QOTD to the channel or not (true by default).")] bool? EnableQotdPinMessage = null,
+            [Description("Whether to send a \"not available\" message when there is no QOTD available (true by default).")] bool? EnableQotdUnavailableMessage = null,
+            [Description("Whether to allow users with the BasicRole to suggest QOTDs (true by default).")] bool? EnableSuggestions = null,
             [Description("The channel new QOTD suggestions get announced in.")] DiscordChannel? SuggestionsChannel = null,
             [Description("The role that will get pinged when a new QOTD is suggested.")] DiscordRole? SuggestionsPingRole = null,
             [Description("The channel where commands, QOTDs and more get logged to.")] DiscordChannel? LogsChannel = null)
@@ -138,12 +147,18 @@ namespace CustomQotd.Features.Commands
                     config.AdminRoleId = AdminRole.Id;
                 if (QotdChannel is not null)
                     config.QotdChannelId = QotdChannel.Id;
+                if (EnableQotdPinMessage is not null)
+                    config.EnableQotdPinMessage = EnableQotdPinMessage.Value;
+                if (EnableQotdUnavailableMessage is not null)
+                    config.EnableQotdUnavailableMessage = EnableQotdUnavailableMessage.Value;
                 if (QotdTimeHourUtc is not null)
                     config.QotdTimeHourUtc = QotdTimeHourUtc.Value;
                 if (QotdTimeMinuteUtc is not null)
                     config.QotdTimeMinuteUtc = QotdTimeMinuteUtc.Value;
                 if (QotdPingRole is not null)
-                    config.QotdPingRoleId = QotdPingRole.Id;
+                    config.QotdPingRoleId = QotdPingRole.Id; 
+                if (EnableSuggestions is not null)
+                    config.EnableSuggestions = EnableSuggestions.Value;
                 if (SuggestionsChannel is not null)
                     config.SuggestionsChannelId = SuggestionsChannel.Id;
                 if (SuggestionsPingRole is not null)

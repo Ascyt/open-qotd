@@ -14,13 +14,25 @@ namespace CustomQotd.Database.Entities
 
         public ulong QotdChannelId { get; set; }
         public ulong? QotdPingRoleId { get; set; }
+        public bool EnableQotdPinMessage { get; set; } = true;
+        public bool EnableQotdUnavailableMessage { get; set; } = true;
 
         public int QotdTimeHourUtc { get; set; }
         public int QotdTimeMinuteUtc { get; set; }
-
+        public bool EnableSuggestions { get; set; } = true;
         public ulong? SuggestionsChannelId { get; set; }
         public ulong? SuggestionsPingRoleId { get; set; }
         public ulong? LogsChannelId { get; set; }
+
+        // Variables (not set using /config)
+        public int? LastSentDay { get; set; }
+
+        public int QotdCounter { get; set; }
+
+        public int? CurrentSuggestStreak { get; set; }
+        public ulong? CurrentSuggestStreakUserId { get; set; }
+
+        public ulong? LastQotdMessageId { get; set; }
 
         /// <summary>
         /// Do not use ToString(), use ToStringAsync() instead
@@ -40,8 +52,11 @@ namespace CustomQotd.Database.Entities
                 $"- admin_role: {await RoleIdToString(AdminRoleId, guild)}\n" +
                 $"- qotd_channel: {await ChannelIdToString(QotdChannelId, guild)}\n" +
                 $"- qotd_ping_role: {await RoleIdToString(QotdPingRoleId, guild)}\n" +
+                $"- enable_qotd_pin_message: **{EnableQotdPinMessage}**\n" +
+                $"- enable_qotd_unavailable_message: **{EnableQotdUnavailableMessage}**\n" +
                 $"- qotd_time_hour_utc: **{QotdTimeHourUtc}**\n" +
                 $"- qotd_time_minute_utc: **{QotdTimeMinuteUtc}**\n" +
+                $"- enable_suggestions: **{EnableSuggestions}**\n" + 
                 $"- suggestions_channel: {await ChannelIdToString(SuggestionsChannelId, guild)}\n" +
                 $"- suggestions_ping_role: {await RoleIdToString(SuggestionsPingRoleId, guild)}\n" +
                 $"- logs_channel: {await ChannelIdToString(LogsChannelId, guild)}";
