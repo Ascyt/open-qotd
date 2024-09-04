@@ -28,8 +28,6 @@ namespace CustomQotd.Database.Entities
         // Variables (not set using /config)
         public int? LastSentDay { get; set; }
 
-        public int QotdCounter { get; set; }
-
         public int? CurrentSuggestStreak { get; set; }
         public ulong? CurrentSuggestStreakUserId { get; set; }
 

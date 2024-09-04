@@ -45,7 +45,23 @@ namespace CustomQotd.Features.QotdSending
             }
             catch (NotFoundException)
             {
-                return false; // TODO: Remove guild from config when not existing anymore
+                using (var dbContext = new AppDbContext())
+                {
+                    Config? delConfig = await dbContext.Configs.Where(c => c.GuildId == guildId).FirstOrDefaultAsync();
+
+                    if (delConfig != null)
+                    {
+                        dbContext.Remove(delConfig);
+                    }
+
+                    List<Question> delQuestions = await dbContext.Questions.Where(q => q.GuildId == guildId).ToListAsync();
+
+                    dbContext.RemoveRange(delQuestions);
+
+                    await dbContext.SaveChangesAsync();
+                }
+
+                return false; 
             }
 
             Config? config;
@@ -103,19 +119,21 @@ namespace CustomQotd.Features.QotdSending
 
             await AddPingRoleIfExistent(qotdMessageBuilder, guild, config, qotdChannel);
 
-            int questionsCount;
+            int sentQuestionsCount;
+            int acceptedQuestionsCount;
             using (var dbContext = new AppDbContext())
             {
-                questionsCount = await dbContext.Questions.Where(q => q.GuildId == guildId && q.Type == QuestionType.Accepted).CountAsync();
+                sentQuestionsCount = await dbContext.Questions.Where(q => q.GuildId == guildId && q.Type == QuestionType.Sent).CountAsync();
+                acceptedQuestionsCount = await dbContext.Questions.Where(q => q.GuildId == guildId && q.Type == QuestionType.Accepted).CountAsync();
             }
 
             qotdMessageBuilder.AddEmbed(
-                MessageHelpers.GenericEmbed($"Question Of The Day #{config.QotdCounter + 1}",
+                MessageHelpers.GenericEmbed($"Question Of The Day #{sentQuestionsCount + 1}",
                 $"> **{question.Text}**\n" +
                 $"\n" +
                 $"*Submitted by {(user is not null ? $"{user.Mention}" : $"user with ID `{question.SubmittedByUserId}`")}*",
                 color: "#8acfac")
-                .WithFooter($"{questionsCount} question{(questionsCount == 1 ? "" : "s")} left{(config.EnableSuggestions ? $", /qotd to suggest" : "")} \x2022 Question ID: {question.GuildDependentId}")
+                .WithFooter($"{sentQuestionsCount} question{(sentQuestionsCount == 1 ? "" : "s")} left{(config.EnableSuggestions ? $", /qotd to suggest" : "")} \x2022 Question ID: {question.GuildDependentId}")
                 );
 
             DiscordMessage qotdMessage = await qotdChannel.SendMessageAsync(qotdMessageBuilder);
@@ -147,7 +165,6 @@ namespace CustomQotd.Features.QotdSending
                 Config? foundConfig = await dbContext.Configs.Where(c => c.GuildId == guildId).FirstOrDefaultAsync();
                 if (foundConfig != null)
                 {
-                    foundConfig.QotdCounter++;
                     foundConfig.LastQotdMessageId = qotdMessage.Id;
                 }
 
@@ -156,7 +173,7 @@ namespace CustomQotd.Features.QotdSending
                 if (foundQuestion != null)
                 {
                     foundQuestion.Type = QuestionType.Sent;
-                    foundQuestion.SentNumber = config.QotdCounter + 1;
+                    foundQuestion.SentNumber = sentQuestionsCount + 1;
                     foundQuestion.SentTimestamp = DateTime.UtcNow;
                 }
 

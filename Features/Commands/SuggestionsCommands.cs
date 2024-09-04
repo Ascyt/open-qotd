@@ -499,7 +499,7 @@ namespace CustomQotd.Features.Commands
                 userSendMessage.AddEmbed(MessageHelpers.GenericEmbed($"{guild.Name}: QOTD Suggestion Denied",
                         $"Your QOTD Suggestion:\n" +
                         $"> \"**{question.Text}**\"\n\n" +
-                        $"Has been :x: **DENIED** :x:{(reason != null ? ($"for the following reason:\n" +
+                        $"Has been :x: **DENIED** :x: {(reason != null ? ($"for the following reason:\n" +
                         $"> *{reason}*") : "")}",
                         color: "#ff2020"
                     ).WithFooter($"Server ID: {guild.Id}"));

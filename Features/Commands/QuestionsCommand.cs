@@ -73,6 +73,9 @@ namespace CustomQotd.Features.Commands
             if (!await CommandRequirements.IsConfigInitialized(context) || !await CommandRequirements.UserIsAdmin(context))
                 return;
 
+            if (!await Question.CheckTextValidity(question, context))
+                return;
+
             ulong guildId = context.Guild!.Id;
             ulong submittedByUserId = context.User.Id;
 
@@ -182,6 +185,12 @@ namespace CustomQotd.Features.Commands
             if (!await CommandRequirements.IsConfigInitialized(context) || !await CommandRequirements.UserIsAdmin(context))
                 return;
 
+            await ListQuestionsNoPermcheckAsync(context, type, page);
+        }
+        public static async Task ListQuestionsNoPermcheckAsync(CommandContext context,
+            [Description("The type of questions to show.")] QuestionType type,
+            [Description("The page of the listing (default 1).")] int page = 1)
+        {
             const int itemsPerPage = 10;
 
             if (page < 1)

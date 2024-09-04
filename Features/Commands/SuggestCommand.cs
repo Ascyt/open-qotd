@@ -38,6 +38,9 @@ namespace CustomQotd.Features.Commands
                 }
             }
 
+            if (!await Question.CheckTextValidity(question, context))
+                return;
+
             ulong guildId = context.Guild!.Id;
             ulong userId = context.User.Id;
 
@@ -158,7 +161,7 @@ namespace CustomQotd.Features.Commands
 
             InteractivityResult<ComponentInteractionCreatedEventArgs>? resultNullable = null;
             // Generally timeouts after one minute, so a TTL of 15 means 15 minutes
-            int timeToLive = 15;
+            int timeToLive = 120;
             do
             {
                 if (timeToLive <= 0)
@@ -226,6 +229,8 @@ namespace CustomQotd.Features.Commands
 
                     await message.ModifyAsync(editMessage);
 
+                    int denyTimeToLive = 10;
+
                     DiscordMessageBuilder denyMessageBuilder = new();
                     denyMessageBuilder.WithContent(result.Result.User.Mention);
                     denyMessageBuilder.WithAllowedMention(new UserMention(result.Result.User));
@@ -235,16 +240,30 @@ namespace CustomQotd.Features.Commands
                         "To continue, type the reason for the denial into this channel.\n" +
                         "This will be sent to the user whose suggestion is denied.\n\n" +
                         $"*The first message sent into this channel by user {result.Result.User.Mention} will be provided as reason.*\n" +
-                        $"*Respond with \"qotd:cancel\" to cancel.*"));
+                        $"*Respond with \"qotd:cancel\" to cancel.*\n" +
+                        $"*Expires {DSharpPlus.Formatter.Timestamp(DateTime.UtcNow.Add(TimeSpan.FromMinutes(denyTimeToLive)), DSharpPlus.TimestampFormat.RelativeTime)}.*"));
 
                     DiscordMessage denyMessage = await channel.SendMessageAsync(denyMessageBuilder);
-
-                    var reasonResult = await denyMessage.Channel!.GetNextMessageAsync(m =>
+                    bool timeout = false;
+                    InteractivityResult<DiscordMessage>? reasonResultNullable = null;
+                    do
                     {
-                        return (m.Author!.Id == result.Result.User.Id || m.Content == "qotd:cancel");
-                    });
+                        if (denyTimeToLive <= 0)
+                        {
+                            timeout = true;
+                            break;
+                        }
 
-                    if (reasonResult.TimedOut || reasonResult.Result == null)
+                        reasonResultNullable = await denyMessage.Channel!.GetNextMessageAsync(m =>
+                        {
+                            return (m.Author!.Id == result.Result.User.Id || m.Content == "qotd:cancel");
+                        });
+
+                        denyTimeToLive--;
+                    }
+                    while (reasonResultNullable.Value.TimedOut);
+
+                    if (timeout || reasonResultNullable.Value.Result == null)
                     {
                         DiscordMessageBuilder timeoutDenyMessageBuilder = new();
 
@@ -252,8 +271,8 @@ namespace CustomQotd.Features.Commands
                         timeoutDenyMessageBuilder.WithAllowedMention(new UserMention(result.Result.User));
                         timeoutDenyMessageBuilder.WithReply(message.Id);
                         timeoutDenyMessageBuilder.AddEmbed(
-                            MessageHelpers.GenericErrorEmbed(title: "Denial Reason Required: Error (timeout)", message:
-                            "This action has timed out, and the suggestion has not been denied."));
+                            MessageHelpers.GenericErrorEmbed(title: "Denial Reason Required: Error (expired)", message:
+                            "This action has expired, and the suggestion has not been denied."));
 
                         await denyMessage.ModifyAsync(timeoutDenyMessageBuilder);
 
@@ -262,18 +281,18 @@ namespace CustomQotd.Features.Commands
                         return;
                     }
 
-                    if (reasonResult.Result.Content == "qotd:cancel")
+                    if (reasonResultNullable.Value.Result.Content == "qotd:cancel")
                     {
                         DiscordMessageBuilder timeoutDenyMessageBuilder = new();
 
                         timeoutDenyMessageBuilder.WithReply(message.Id);
                         timeoutDenyMessageBuilder.AddEmbed(
                             MessageHelpers.GenericErrorEmbed(title: "Denial Reason Required: Cancelled", message:
-                            "This action has been cancelled."));
+                            "This action has been cancelled, and the suggestion has not been denied."));
 
                         await denyMessage.ModifyAsync(timeoutDenyMessageBuilder);
 
-                        await reasonResult.Result.DeleteAsync();
+                        await reasonResultNullable.Value.Result.DeleteAsync();
 
                         await OnTimeoutAsync();
 
@@ -289,7 +308,7 @@ namespace CustomQotd.Features.Commands
                         alteredDenyBuilder.WithReply(message.Id);
                         alteredDenyBuilder.AddEmbed(
                             MessageHelpers.GenericErrorEmbed(title: "Denial Reason Required: Error (modified)", message:
-                            "This the question could not be denied because it had been denied or accept from another source."));
+                            "The question could not be denied because it had been denied or accept from another source."));
 
                         await denyMessage.ModifyAsync(alteredDenyBuilder);
 
@@ -298,9 +317,9 @@ namespace CustomQotd.Features.Commands
 
                     await denyMessage.DeleteAsync();
 
-                    string reason = reasonResult.Result.Content;
+                    string reason = reasonResultNullable.Value.Result.Content;
 
-                    await reasonResult.Result.DeleteAsync();
+                    await reasonResultNullable.Value.Result.DeleteAsync();
 
                     await SuggestionsCommands.DenySuggestionNoContextAsync(newQuestion, message, result, null, embedBody, reason);
 
