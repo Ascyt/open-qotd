@@ -216,7 +216,7 @@ namespace CustomQotd.Features.Commands
             await FetchDb();
 
             await context.RespondAsync(
-                MessageHelpers.GetListMessage(questions, $"{type} Questions List", page, totalPages)
+                MessageHelpers.GetListMessage(questions, $"{type} Questions List", page, totalPages, totalQuestions)
                 );
 
             if (totalPages == 0)
@@ -254,13 +254,13 @@ namespace CustomQotd.Features.Commands
                 if (messageDelete)
                 {
                     await message.DeleteAsync();
-                    var newMessageContent = MessageHelpers.GetListMessage(questions, $"{type} Questions List", page, totalPages);
+                    var newMessageContent = MessageHelpers.GetListMessage(questions, $"{type} Questions List", page, totalPages, totalQuestions);
                     message = await context.Channel.SendMessageAsync(newMessageContent);
                 }
                 else
                 {
                     DiscordInteractionResponseBuilder builder = new DiscordInteractionResponseBuilder();
-                    MessageHelpers.EditListMessage(questions, $"{type} Questions List", page, totalPages, builder);
+                    MessageHelpers.EditListMessage(questions, $"{type} Questions List", page, totalPages, totalQuestions, builder);
                     
                     await result.Result.Interaction.CreateResponseAsync(DiscordInteractionResponseType.UpdateMessage, builder);
                 }
@@ -268,7 +268,7 @@ namespace CustomQotd.Features.Commands
                 result = await message.WaitForButtonAsync();
             }
 
-            await message.ModifyAsync(MessageHelpers.GetListMessage(questions, $"{type} Questions List", page, totalPages, includeButtons:false));
+            await message.ModifyAsync(MessageHelpers.GetListMessage(questions, $"{type} Questions List", page, totalPages, totalQuestions, includeButtons:false));
         }
 
         [Command("search")]
@@ -319,7 +319,7 @@ namespace CustomQotd.Features.Commands
             string title = $"{(type != null ? $"{type} " : "")}Questions Search for \"{query}\"";
 
             await context.RespondAsync(
-                MessageHelpers.GetListMessage(questions, title, page, totalPages)
+                MessageHelpers.GetListMessage(questions, title, page, totalPages, totalQuestions)
                 );
 
             if (totalPages == 0)
@@ -357,13 +357,13 @@ namespace CustomQotd.Features.Commands
                 if (messageDelete)
                 {
                     await message.DeleteAsync();
-                    var newMessageContent = MessageHelpers.GetListMessage(questions, title, page, totalPages);
+                    var newMessageContent = MessageHelpers.GetListMessage(questions, title, page, totalPages, totalQuestions);
                     message = await context.Channel.SendMessageAsync(newMessageContent);
                 }
                 else
                 {
                     DiscordInteractionResponseBuilder builder = new DiscordInteractionResponseBuilder();
-                    MessageHelpers.EditListMessage(questions, title, page, totalPages, builder);
+                    MessageHelpers.EditListMessage(questions, title, page, totalPages, totalQuestions, builder);
 
                     await result.Result.Interaction.CreateResponseAsync(DiscordInteractionResponseType.UpdateMessage, builder);
                 }
@@ -371,7 +371,7 @@ namespace CustomQotd.Features.Commands
                 result = await message.WaitForButtonAsync();
             }
 
-            await message.ModifyAsync(MessageHelpers.GetListMessage(questions, title, page, totalPages, includeButtons: false));
+            await message.ModifyAsync(MessageHelpers.GetListMessage(questions, title, page, totalPages, totalQuestions, includeButtons: false));
         }
     }
 }

@@ -28,7 +28,7 @@ namespace CustomQotd.Features.Helpers
         /// <summary>
         /// Get a message for a list of elements. Assumes it is already filtered by page
         /// </summary>
-        public static DiscordMessageBuilder GetListMessage<T>(T[] elements, string title, int page, int totalPages, bool includeButtons = true)
+        public static DiscordMessageBuilder GetListMessage<T>(T[] elements, string title, int page, int totalPages, int totalElements, bool includeButtons = true)
         {
             DiscordMessageBuilder message = new();
 
@@ -60,7 +60,7 @@ namespace CustomQotd.Features.Helpers
 
             message.AddEmbed(
                 GenericEmbed(message: sb.ToString(), title: title)
-                .WithFooter($"Page {page} of {totalPages}")); // TODO: Add elements in total
+                .WithFooter($"Page {page} of {totalPages} \x2022 {totalElements} elements")); // TODO: Add elements in total
 
             if (totalPages < 2)
                 return message;
@@ -80,7 +80,7 @@ namespace CustomQotd.Features.Helpers
         /// <summary>
         /// Edit a message for a list of elements. Assumes it is already filtered by page
         /// </summary>
-        public static void EditListMessage<T>(T[] elements, string title, int page, int totalPages, DiscordInteractionResponseBuilder message, bool includeButtons = true)
+        public static void EditListMessage<T>(T[] elements, string title, int page, int totalPages, int totalElements, DiscordInteractionResponseBuilder message, bool includeButtons = true)
         {
             if (totalPages == 0)
             {
@@ -110,7 +110,7 @@ namespace CustomQotd.Features.Helpers
 
             message.AddEmbed(
                 GenericEmbed(message:sb.ToString(), title:title)
-                .WithFooter($"Page {page} of {totalPages}"));
+                .WithFooter($"Page {page} of {totalPages} \x2022 {totalElements} elements"));
 
             if (totalPages < 2)
                 return;
