@@ -191,6 +191,8 @@ namespace CustomQotd.Features.Commands
 
             DiscordMessage message = await context.Channel!.SendMessageAsync($"Now intercepting messages from {context.User.Mention}");
 
+            StringBuilder response = new StringBuilder();
+
             while (true)
             {
                 var result = await message.Channel!.GetNextMessageAsync(m =>
@@ -234,8 +236,10 @@ namespace CustomQotd.Features.Commands
                         await dbContext.SaveChangesAsync();
                     }
 
-                    await context.Channel.SendMessageAsync($"> Added question: {newQuestion.ToString()}");
+                    response.AppendLine($"> Added question: {newQuestion.ToString()}");
                 }
+
+                await context.Channel!.SendMessageAsync(MessageHelpers.GenericEmbed(title: "Added Questions", message: response.ToString()));
             }
         }
 
