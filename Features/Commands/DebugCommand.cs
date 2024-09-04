@@ -191,10 +191,10 @@ namespace CustomQotd.Features.Commands
 
             DiscordMessage message = await context.Channel!.SendMessageAsync($"Now intercepting messages from {context.User.Mention}");
 
-            StringBuilder response = new StringBuilder();
-
             while (true)
             {
+                StringBuilder response = new StringBuilder();
+
                 var result = await message.Channel!.GetNextMessageAsync(m =>
                 {
                     return (m.Author!.Id == context.User.Id);
