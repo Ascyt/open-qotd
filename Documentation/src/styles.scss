@@ -1,0 +1,218 @@
+@import '../node_modules/bootstrap/dist/css/bootstrap.css';
+
+:root {
+    --back: #080808;
+    --back-high: #101010;
+    --back-mid: #303030;
+    --back-low: #505050;
+    --mid: #808080;
+    --front-low: #a0a0a0;
+    --front-mid: #c0c0c0;
+    --front-high: #e0e0e0;
+    --front: #ffffff;
+    --link: #0078d7;
+    --link-hover: #005299;
+}
+
+.dark-theme {
+    --back: #080808;
+    --back-high: #101010;
+    --back-mid: #303030;
+    --back-low: #505050;
+    --mid: #808080;
+    --front-low: #a0a0a0;
+    --front-mid: #c0c0c0;
+    --front-high: #e0e0e0;
+    --front: #ffffff;
+    --link: #0078d7;
+    --link-hover: #005299;
+    transition: 0.2s;
+}
+.light-theme {
+    --back: #ffffff;
+    --back-high: #e0e0e0;
+    --back-mid: #c0c0c0;
+    --back-low: #a0a0a0;
+    --mid: #808080;
+    --front-low: #606060;
+    --front-mid: #404040;
+    --front-high: #202020;
+    --front: #000000;
+    --link: #0d6efd;
+    --link-hover: #0a58ca;
+    transition: 0.2s;
+}
+.what { // ignore this
+    --back: #ff0000;
+    --back-high: #ff8000;
+    --back-mid: #ffff00;
+    --back-low: #00ff00;
+    --mid: #00ffff;
+    --front-low: #0080ff;
+    --front-mid: #0000ff;
+    --front-high: #8000ff;
+    --front: #ff00ff;
+    p {
+        transform: rotate(180deg);
+    }
+    * {
+        border: 1px dotted white;
+        filter:contrast(10);
+        
+        transform: rotate(1deg);
+        transform: translate3d(100px, 100px, 100px);
+        transform: rotate3d(1, 1, 1, -1deg);
+
+        &::after {
+            content: '?';
+        }
+    }
+    img {
+        transform: rotate3d(1, 1, 1, 180deg);
+    }
+}
+
+body {
+    background-color: var(--back);
+    color: var(--front);
+}
+
+a {
+    color: var(--link);
+    transition: 0.2s;
+
+    &:hover {
+        color: var(--link-hover);
+        transition: 0.3s;
+    }
+}
+
+.list-group-item, .list-group-item-action {
+    background-color: var(--back-high);
+    color: var(--front);
+    border: 1px solid var(--back-mid);
+    border-radius: 0;
+
+    transition: 0.2s;
+}
+.list-group-item-action:hover {
+    background-color: var(--back-mid);
+    color: var(--front);
+    transition: 0.2s;
+}
+.list-group-item-action:active, .list-group-item-action:focus {
+    background-color: var(--back-low);
+    color: var(--front);
+    transition: 0.2s;
+}
+
+.tooltip {
+    .tooltip-arrow {
+        display: none;
+    }
+    
+    color: var(--front);
+
+    .tooltip-inner {
+        background-color: var(--back-high);
+        color: var(--front);
+        max-width: fit-content;
+    }
+}
+
+.hidden-text {
+    color: var(--back);
+    font-size: small;
+}
+
+.modal-header {
+    background-color: var(--back-high);
+    color: var(--front);
+    border-bottom: 1px solid var(--back-mid);
+}
+
+.modal-body {
+    background-color: var(--back-high);
+    color: var(--front);
+}
+
+.modal-footer {
+    background-color: var(--back-high);
+    color: var(--front);
+    border-top: 1px solid var(--back-mid);
+}
+
+.modal-content {
+    background-color: var(--back-mid);
+    color: var(--front);
+    border: 1px solid var(--back-mid);
+}
+
+
+.close {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    background: none;
+    border: none;
+    font-size: 1.5rem;
+    font-weight: bold;
+    color: var(--mid);
+    cursor: pointer;
+    transition: color 0.2s ease;
+  
+    &:hover {
+      color: var(--front);
+    }
+  
+    &:focus {
+      outline: none;
+    }
+  
+    span {
+      display: block;
+    }
+}
+
+.accordion {
+    background-color: var(--back-high);
+    outline: 0px !important;
+    border: 0px !important;
+}
+
+.accordion-item {
+    background-color: var(--back-high);
+    border-color: var(--back-mid);
+}
+
+.accordion-button {
+    background-color: var(--back-high);
+    color: var(--front);
+    border-color: var(--back-mid);
+    
+    // When the accordion item is active
+    &:not(.collapsed) {
+        background-color: var(--back-mid);
+        color: var(--front);
+    }
+    
+    // Arrow icon
+    &::after {
+        filter:contrast(0);
+    }
+    
+    // Remove the blue outline when focused
+    &:focus {
+        outline: none;
+        box-shadow: none;
+    }
+    &:hover {
+        background-color: var(--back-mid);
+    }
+ 
+    box-shadow: none !important; /* Remove box shadow */  
+}
+
+.accordion-body {
+    color: var(--front-mid);
+}

@@ -1,0 +1,24 @@
+<nav class="navbar navbar-expand-md">
+  <div class="container-fluid">
+    <a class="navbar-brand" href="/home">
+      <img class="logo d-inline-block align-text-top" src="assets/images/logo.png" alt="Logo" />
+    </a>
+    <button class="navbar-toggler" [ngClass]="themeSwitcher.isLightTheme ? 'dark' : 'light'" type="button" (click)="isCollapsed = !isCollapsed" [attr.aria-expanded]="!isCollapsed" aria-controls="navbarNav">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+    <div [ngbCollapse]="isCollapsed" class="collapse navbar-collapse" id="navbarNav">
+      <ul class="navbar-nav">
+        <li class="nav-item" routerLinkActive="active">
+          <a routerLink="/home" class="nav-link">Home</a>
+        </li>
+      </ul>
+    </div>
+    <div *ngIf="!isCollapsed">
+      <app-theme-switcher (themeChanged)="toggleTheme()" />
+    </div>
+  </div>
+</nav>
+<div class="container">
+  <router-outlet />
+  <p class="text-left notice">Licensed under <a href="/license" target="_blank" ngbTooltip="https://github.com/Ascyt/www/blob/main/LICENSE">GPL-3.0</a>.</p>
+</div>

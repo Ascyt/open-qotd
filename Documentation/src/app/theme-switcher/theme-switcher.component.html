@@ -1,0 +1,13 @@
+<div class="theme-switcher d-flex align-items-center">
+    <label class="mb-1" style="margin-right:0.5rem">Light</label>
+    <div class="form-check form-switch">
+        <input
+            class="form-check-input"
+            type="checkbox"
+            id="themeSwitch"
+            (change)="toggleTheme()"
+            [checked]="!themeSwitcher.isLightTheme"
+        />
+    </div>
+    <label class="mb-1">Dark</label>
+</div>
