@@ -236,7 +236,7 @@ namespace CustomQotd.Features.Commands
                         await dbContext.SaveChangesAsync();
                     }
 
-                    response.AppendLine($"> Added question: {newQuestion.ToString()}");
+                    response.AppendLine(newQuestion.ToString());
                 }
 
                 await context.Channel!.SendMessageAsync(MessageHelpers.GenericEmbed(title: "Added Questions", message: response.ToString()));

@@ -10,7 +10,7 @@ namespace CustomQotd.Features
     public static class CommandRequirements
     {
         /// <summary>
-        /// Check if the config has been initialized using /initialize for the current guild. This function also handles sending error messages, so it's recommended to end the function if it retuns false.
+        /// Check if the config has been initialized using /config initialize for the current guild. This function also handles sending error messages, so it's recommended to end the function if it retuns false.
         /// </summary>
         public static async Task<bool> IsConfigInitialized(CommandContext context)
         {
@@ -23,7 +23,7 @@ namespace CustomQotd.Features
             }
 
             await context.RespondAsync(
-                MessageHelpers.GenericErrorEmbed($"The QOTD bot configuration has not been initialized yet. Use `/initialize` to initialize."));
+                MessageHelpers.GenericErrorEmbed($"The QOTD bot configuration has not been initialized yet. Use `/config initialize` to initialize."));
             return false;
         }
 

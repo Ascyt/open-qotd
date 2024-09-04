@@ -26,11 +26,13 @@ namespace CustomQotd.Features.QotdSending
                 await QotdSender.SendNextQotd(guildIds[i]);
             }
 
-            await Console.Out.WriteLineAsync($"{DateTime.UtcNow}: Sent {guildIds.Length}");
+            if (guildIds.Length > 0)
+                await Console.Out.WriteLineAsync($"{DateTime.UtcNow}: Sent {guildIds.Length}");
         }
 
         public static async Task FetchLoopAsync()
         {
+            Console.WriteLine("Started fetch loop");
             while (true)
             {
                 await Task.Delay(1_000); 

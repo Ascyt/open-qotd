@@ -60,7 +60,7 @@ namespace CustomQotd.Features.Helpers
 
             message.AddEmbed(
                 GenericEmbed(message: sb.ToString(), title: title)
-                .WithFooter($"Page {page} of {totalPages}"));
+                .WithFooter($"Page {page} of {totalPages}")); // TODO: Add elements in total
 
             if (totalPages < 2)
                 return message;
