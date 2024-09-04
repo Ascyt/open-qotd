@@ -61,7 +61,6 @@ namespace CustomQotd
                 },
                 new CommandsConfiguration()
                 {
-                    DebugGuildId = 1275463112073543750,
                     // The default value, however it's shown here for clarity
                     RegisterDefaultCommandProcessors = true,
                     UseDefaultCommandErrorHandler = false
