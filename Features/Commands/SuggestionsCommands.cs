@@ -9,6 +9,7 @@ using DSharpPlus.Exceptions;
 using DSharpPlus.Interactivity;
 using Microsoft.EntityFrameworkCore;
 using System.ComponentModel;
+using System.Text;
 using System.Threading.Channels;
 
 namespace CustomQotd.Features.Commands
@@ -16,6 +17,8 @@ namespace CustomQotd.Features.Commands
     [Command("suggestions")]
     public class SuggestionsCommands
     {
+        // TODO: List using QuestionsCommands
+
         private static async Task<DiscordMessage?> GetSuggestionMessage(Question question, DiscordGuild guild)
         {
             if (question.SuggestionMessageId is null)
@@ -56,13 +59,21 @@ namespace CustomQotd.Features.Commands
             }
 
             return suggestionMessage;
-        }  
+        }
+
+        public static string GetEmbedBody(Question question)
+            => $"> \"**{question.Text}**\"\n" +
+                $"By: <@!{question.SubmittedByUserId}> (`{question.SubmittedByUserId}`)\n" +
+                $"ID: `{question.GuildDependentId}`";
 
         [Command("accept")]
         [Description("Accept a suggestion.")]
         public static async Task AcceptSuggestionAsync(CommandContext context,
         [Description("The ID of the suggestion.")] int suggestionId)
         {
+            if (!await CommandRequirements.IsConfigInitialized(context) || !await CommandRequirements.UserIsAdmin(context))
+                return;
+
             Question? question;
             using (var dbContext = new AppDbContext())
             {
@@ -87,9 +98,7 @@ namespace CustomQotd.Features.Commands
 
             DiscordMessage? suggestionMessage = await GetSuggestionMessage(question, context.Guild!);
 
-            string embedBody = $"> \"**{question.Text}**\"\n" +
-                $"By: <@!{question.SubmittedByUserId}> (`{question.SubmittedByUserId}`)\n" +
-                $"ID: `{question.GuildDependentId}`";
+            string embedBody = GetEmbedBody(question);
 
             await AcceptSuggestionNoContextAsync(question, suggestionMessage, null, context, embedBody:embedBody);
 
@@ -103,6 +112,9 @@ namespace CustomQotd.Features.Commands
         [Description("The ID of the suggestion.")] int suggestionId,
         [Description("The reason why the suggestion is denied, which will be sent to the user.")] string reason)
         {
+            if (!await CommandRequirements.IsConfigInitialized(context) || !await CommandRequirements.UserIsAdmin(context))
+                return;
+
             Question? question;
             using (var dbContext = new AppDbContext())
             {
@@ -127,9 +139,7 @@ namespace CustomQotd.Features.Commands
 
             DiscordMessage? suggestionMessage = await GetSuggestionMessage(question, context.Guild!);
 
-            string embedBody = $"> \"**{question.Text}**\"\n" +
-                $"By: <@!{question.SubmittedByUserId}> (`{question.SubmittedByUserId}`)\n" +
-                $"ID: `{question.GuildDependentId}`";
+            string embedBody = GetEmbedBody(question);
 
             await DenySuggestionNoContextAsync(question, suggestionMessage, null, context, embedBody: embedBody, reason);
 
@@ -137,7 +147,220 @@ namespace CustomQotd.Features.Commands
                 MessageHelpers.GenericSuccessEmbed("Suggestion Denied", $"Successfully denied suggestion with ID `{question.GuildDependentId}`."));
         }
 
-        public static async Task AcceptSuggestionNoContextAsync(Question question, DiscordMessage? suggestionMessage, InteractivityResult<ComponentInteractionCreatedEventArgs>? result, CommandContext? context, string embedBody)
+        [Command("acceptall")]
+        [Description("Accept all suggestions.")]
+        public static async Task AcceptAllSuggestionsAsync(CommandContext context)
+        {
+            if (!await CommandRequirements.IsConfigInitialized(context) || !await CommandRequirements.UserIsAdmin(context))
+                return;
+
+            await context.DeferResponseAsync();
+
+            Question[] questions;
+            using (var dbContext = new AppDbContext())
+            {
+                questions = await dbContext.Questions.Where(q => q.GuildId == context.Guild!.Id && q.Type == QuestionType.Suggested).ToArrayAsync();
+            }
+
+            Dictionary<ulong, List<Question>> questionsByUsers = new();
+
+            foreach (var question in questions)
+            {
+                DiscordMessage? suggestionMessage = await GetSuggestionMessage(question, context.Guild!);
+
+                await AcceptSuggestionNoContextAsync(question, suggestionMessage, null, context, GetEmbedBody(question), false);
+
+                await Task.Delay(100); // Prevent rate-limit
+
+                if (!questionsByUsers.ContainsKey(question.SubmittedByUserId))
+                    questionsByUsers.Add(question.SubmittedByUserId, new List<Question>());
+
+                questionsByUsers[question.SubmittedByUserId].Add(question);
+            }
+
+            foreach (KeyValuePair<ulong, List<Question>> pair in questionsByUsers)
+            {
+                DiscordUser? suggester;
+                try
+                {
+                    suggester = await Program.Client.GetUserAsync(pair.Key);
+                }
+                catch (NotFoundException)
+                {
+                    suggester = null;
+                }
+                if (suggester is not null)
+                {
+                    DiscordMessageBuilder userSendMessage = new();
+
+                    if (pair.Value.Count == 1)
+                    {
+                        userSendMessage.AddEmbed(MessageHelpers.GenericEmbed($"{context.Guild!.Name}: QOTD Suggestion Accepted",
+                                $"Your QOTD Suggestion:\n" +
+                                $"> \"**{pair.Value[0].Text}**\"\n\n" +
+                                $"Has been :white_check_mark: **ACCEPTED** :white_check_mark:!\n" +
+                                $"It is now qualified to appear as **Question Of The Day** in {context.Guild!.Name}!",
+                                color: "#20ff20"
+                            ).WithFooter($"Server ID: {context.Guild!.Id}"));
+                    }
+                    else
+                    {
+                        StringBuilder sb = new StringBuilder($"{pair.Value.Count} of your QOTD Suggestions:\n");
+
+                        int index = 0;
+                        foreach (Question question in pair.Value)
+                        {
+                            if (index >= 10)
+                            {
+                                sb.AppendLine($"> *+ {pair.Value.Count - 10} more*");
+                                break;
+                            }
+
+                            sb.AppendLine($"> - \"**{question.Text}**\"");
+                            index++;
+                        }
+
+                        sb.Append($"\nHave been :white_check_mark: **ACCEPTED** :white_check_mark:!\n" +
+                            $"They are now qualified to appear as **Question Of The Day** in **{context.Guild!.Name}**!");
+
+                        userSendMessage.AddEmbed(MessageHelpers.GenericEmbed($"{context.Guild!.Name}: QOTD Suggestions Accepted", sb.ToString(), color: "#20ff20"));
+                    }
+                    await suggester.SendMessageAsync(
+                        userSendMessage
+                        );
+
+                    await Task.Delay(100); // Prevent rate-limit
+                }
+            }
+
+            int count = questions.Count();
+
+            StringBuilder logSb = new StringBuilder();
+            int index1 = 0;
+            foreach (Question question in questions)
+            {
+                if (index1 >= 10)
+                {
+                    logSb.AppendLine($"> *+ {count - 10} more*");
+                    break;
+                }
+
+                logSb.AppendLine($"> - \"**{question.Text}**\" (ID: `{question.GuildDependentId}`)");
+                index1++;
+            }
+
+            await Logging.LogUserAction(context, $"Accepted all {count} Suggestions", logSb.ToString());
+
+            await context.FollowupAsync(MessageHelpers.GenericSuccessEmbed("Suggestions Accepted", $"Successfully accepted {count} suggestion{(count == 1 ? "" : "s")}."));
+        }
+
+        [Command("denyall")]
+        [Description("Deny all suggestions.")]
+        public static async Task DenyAllSuggestionsAsync(CommandContext context)
+        {
+            if (!await CommandRequirements.IsConfigInitialized(context) || !await CommandRequirements.UserIsAdmin(context))
+                return;
+
+            await context.DeferResponseAsync();
+
+            Question[] questions;
+            using (var dbContext = new AppDbContext())
+            {
+                questions = await dbContext.Questions.Where(q => q.GuildId == context.Guild!.Id && q.Type == QuestionType.Suggested).ToArrayAsync();
+            }
+
+            Dictionary<ulong, List<Question>> questionsByUsers = new();
+
+            foreach (var question in questions)
+            {
+                DiscordMessage? suggestionMessage = await GetSuggestionMessage(question, context.Guild!);
+
+                await DenySuggestionNoContextAsync(question, suggestionMessage, null, context, GetEmbedBody(question), null, false);
+
+                await Task.Delay(100); // Prevent rate-limit
+
+                if (!questionsByUsers.ContainsKey(question.SubmittedByUserId))
+                    questionsByUsers.Add(question.SubmittedByUserId, new List<Question>());
+
+                questionsByUsers[question.SubmittedByUserId].Add(question);
+            }
+
+            foreach (KeyValuePair<ulong, List<Question>> pair in questionsByUsers)
+            {
+                DiscordUser? suggester;
+                try
+                {
+                    suggester = await Program.Client.GetUserAsync(pair.Key);
+                }
+                catch (NotFoundException)
+                {
+                    suggester = null;
+                }
+                if (suggester is not null)
+                {
+                    DiscordMessageBuilder userSendMessage = new();
+
+                    if (pair.Value.Count == 1)
+                    {
+                        userSendMessage.AddEmbed(MessageHelpers.GenericEmbed($"{context.Guild!.Name}: QOTD Suggestion Denied",
+                                $"Your QOTD Suggestion:\n" +
+                                $"> \"**{pair.Value[0].Text}**\"\n\n" +
+                                $"Has been :x: **DENIED** :x:.",
+                                color: "#ff2020"
+                            ).WithFooter($"Server ID: {context.Guild!.Id}"));
+                    }
+                    else
+                    {
+                        StringBuilder sb = new StringBuilder($"{pair.Value.Count} of your QOTD Suggestions:\n");
+
+                        int index = 0;
+                        foreach (Question question in pair.Value)
+                        {
+                            if (index >= 10)
+                            {
+                                sb.AppendLine($"> *+ {pair.Value.Count - 10} more*");
+                                break;
+                            }
+
+                            sb.AppendLine($"> - \"**{question.Text}**\"");
+                            index++;
+                        }
+
+                        sb.Append($"\nHave been :x: **DENIED** :x:.");
+
+                        userSendMessage.AddEmbed(MessageHelpers.GenericEmbed($"{context.Guild!.Name}: QOTD Suggestions Denied", sb.ToString(), color: "#ff2020"));
+                    }
+                    await suggester.SendMessageAsync(
+                        userSendMessage
+                        );
+
+                    await Task.Delay(100); // Prevent rate-limit
+                }
+            }
+
+            int count = questions.Count();
+
+            StringBuilder logSb = new StringBuilder();
+            int index1 = 0;
+            foreach (Question question in questions)
+            {
+                if (index1 >= 10)
+                {
+                    logSb.AppendLine($"> *+ {count - 10} more*");
+                    break;
+                }
+
+                logSb.AppendLine($"> - \"**{question.Text}**\" (ID: `{question.GuildDependentId}`)");
+                index1++;
+            }
+
+            await Logging.LogUserAction(context, $"Denied all {count} Suggestions", logSb.ToString());
+
+            await context.FollowupAsync(MessageHelpers.GenericSuccessEmbed("Suggestions Denied", $"Successfully denied {count} suggestion{(count == 1 ? "" : "s")}."));
+        }
+
+
+        public static async Task AcceptSuggestionNoContextAsync(Question question, DiscordMessage? suggestionMessage, InteractivityResult<ComponentInteractionCreatedEventArgs>? result, CommandContext? context, string embedBody, bool logAndNotify=true)
         {
             if (result == null && context == null)
             {
@@ -182,6 +405,9 @@ namespace CustomQotd.Features.Commands
                 await suggestionMessage.ModifyAsync(messageBuilder);
             }
 
+            if (!logAndNotify)
+                return;
+
             DiscordUser? suggester;
             try
             {
@@ -198,7 +424,7 @@ namespace CustomQotd.Features.Commands
                         $"Your QOTD Suggestion:\n" +
                         $"> \"**{question.Text}**\"\n\n" +
                         $"Has been :white_check_mark: **ACCEPTED** :white_check_mark:!\n" +
-                        $"It is now qualified to appear as **Question Of The Day** in {guild.Name}!",
+                        $"It is now qualified to appear as **Question Of The Day** in **{guild.Name}**!",
                         color: "#20ff20"
                     ).WithFooter($"Server ID: {guild.Id}"));
 
@@ -213,7 +439,7 @@ namespace CustomQotd.Features.Commands
                 await Logging.LogUserAction(context, "Accepted Suggestion", question.ToString());
         }
 
-        public static async Task DenySuggestionNoContextAsync(Question question, DiscordMessage? suggestionMessage, InteractivityResult<ComponentInteractionCreatedEventArgs>? result, CommandContext? context, string embedBody, string reason)
+        public static async Task DenySuggestionNoContextAsync(Question question, DiscordMessage? suggestionMessage, InteractivityResult<ComponentInteractionCreatedEventArgs>? result, CommandContext? context, string embedBody, string? reason, bool logAndNotify = true)
         {
             if (result == null && context == null)
             {
@@ -249,10 +475,13 @@ namespace CustomQotd.Features.Commands
                 DiscordMessageBuilder messageBuilder = new();
 
                 messageBuilder.AddEmbed(MessageHelpers.GenericEmbed($"QOTD Suggestion Denied", embedBody +
-                    $"\n\nDenied by: {user.Mention}\nReason: \"**{reason}**\"", color: "#ff2020"));
+                    $"\n\nDenied by: {user.Mention}{(reason != null ? $"\nReason: \"**{reason}**\"" : "")}", color: "#ff2020"));
 
                 await suggestionMessage.ModifyAsync(messageBuilder);
             }
+
+            if (!logAndNotify)
+                return;
 
             DiscordUser? suggester;
             try
@@ -270,8 +499,8 @@ namespace CustomQotd.Features.Commands
                 userSendMessage.AddEmbed(MessageHelpers.GenericEmbed($"{guild.Name}: QOTD Suggestion Denied",
                         $"Your QOTD Suggestion:\n" +
                         $"> \"**{question.Text}**\"\n\n" +
-                        $"Has been :x: **DENIED** :x: for the following reason:\n" +
-                        $"> *{reason}*",
+                        $"Has been :x: **DENIED** :x:{(reason != null ? ($"for the following reason:\n" +
+                        $"> *{reason}*") : "")}",
                         color: "#ff2020"
                     ).WithFooter($"Server ID: {guild.Id}"));
 

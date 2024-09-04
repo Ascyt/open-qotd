@@ -66,7 +66,8 @@ namespace CustomQotd.Features.Commands
                     $"Your Question Of The Day:\n" +
                     $"> \"**{newQuestion.Text}**\"\n" +
                     $"\n" +
-                    $"Has successfully been suggested! You'll be notified when it gets accepted or denied.");
+                    $"Has successfully been suggested!\n" +
+                    $"You will be notified when it gets accepted or denied.");
 
             if (context is SlashCommandContext)
             {
