@@ -2,4 +2,4 @@
 bin
 obj
 appsettings.json
-*.db
+Migrations
