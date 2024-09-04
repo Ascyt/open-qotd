@@ -26,7 +26,7 @@ namespace CustomQotd
                 dotnet ef database update
             Replace [MIGRATION_NAME] with a name that describes the migration.
             Then set it back to `false` and you're good to go. */
-            #if true
+            #if false
             Console.WriteLine("Applying database migrations...");
                 return; // The reason that doing this is important, is because otherwise attempting to migrate would start the bot which would run indefinitely
             #endif
