@@ -6,3 +6,6 @@ appsettings.json
 *.db-shm
 *.db-wal
 *.db-*
+
+Migrations/*.cs
+!Migrations/AppDbContextModelSnapshot.cs
