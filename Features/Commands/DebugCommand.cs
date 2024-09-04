@@ -161,6 +161,38 @@ namespace CustomQotd.Features.Commands
                         case "add":
                             await AddQuestionsAsync(context, argsSplit);
                             return;
+
+                        case "removeduplicates":
+                            List<Question> questions;
+                            using (var dbContext = new AppDbContext())
+                            {
+                                questions = await dbContext.Questions.Where(c => c.GuildId == context.Guild!.Id).ToListAsync();
+                            }
+
+                            List<int> duplicateIds = questions
+                                .GroupBy(q => q.Text)
+                                .Where(g => g.Count() > 1)
+                                .SelectMany(g => g.Skip(1).Select(q => q.Id))
+                                .ToList();
+
+                            using (var dbContext = new AppDbContext())
+                            {
+                                foreach (int id in duplicateIds)
+                                {
+                                    Question? question = await dbContext.Questions.Where(q => q.Id == id).FirstOrDefaultAsync();
+
+                                    if (question == null)
+                                        continue;
+
+                                    dbContext.Remove(question);
+                                }
+
+                                await dbContext.SaveChangesAsync();
+                            }
+
+                            await context.RespondAsync($"Removed {duplicateIds.Count} duplicates");
+
+                            return;
                     }
                     break;
             }
