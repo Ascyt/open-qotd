@@ -8,6 +8,8 @@ using Microsoft.EntityFrameworkCore;
 using Newtonsoft.Json;
 using System.Text;
 using Microsoft.AspNetCore.Http.Connections;
+using DSharpPlus.Interactivity.Extensions;
+using System.Threading.Channels;
 
 namespace CustomQotd.Features.Commands
 {
@@ -155,11 +157,86 @@ namespace CustomQotd.Features.Commands
                                 fileStream.Close();
                             }
                             return;
+
+                        case "add":
+                            await AddQuestionsAsync(context, argsSplit);
+                            return;
                     }
                     break;
             }
 
             await context.RespondAsync("Error: Unknown arg");
+        }
+
+        private static async Task AddQuestionsAsync(CommandContext context, string[] argsSplit)
+        {
+            QuestionType type;
+            switch (argsSplit[2].ToLower())
+            {
+                case "suggested":
+                    type = QuestionType.Suggested;
+                    break;
+                case "accepted":
+                    type = QuestionType.Accepted;
+                    break;
+                case "sent":
+                    type = QuestionType.Sent;
+                    break;
+                default:
+                    await context.RespondAsync("Error: Unknown question type");
+                    return;
+            }
+
+            await context.RespondAsync($"Adding questions of type {type}.\n\nFormat:\n`{{userId}} {{question}}`\n\nBackslash (`\\`) to cancel.");
+
+            DiscordMessage message = await context.Channel!.SendMessageAsync($"Now intercepting messages from {context.User.Mention}");
+
+            while (true)
+            {
+                var result = await message.Channel!.GetNextMessageAsync(m =>
+                {
+                    return (m.Author!.Id == context.User.Id);
+                });
+
+                if (result.TimedOut || result.Result == null)
+                {
+                    await context.Channel.SendMessageAsync("Interception stopped because of timeout.");
+                    return;
+                }
+
+                string[] results = result.Result.Content.Split('\n');
+                foreach (string s in results)
+                {
+                    if (s == "\\")
+                    {
+                        await context.Channel.SendMessageAsync("Interception stopped.");
+                        return;
+                    }
+
+                    string userIdString = s.Split(' ')[0];
+                    string questionText = s.Substring(userIdString.Length + 1);
+                    ulong userId = ulong.Parse(userIdString);
+
+                    Question newQuestion;
+
+                    using (var dbContext = new AppDbContext())
+                    {
+                        newQuestion = new Question()
+                        {
+                            GuildId = context.Guild!.Id,
+                            GuildDependentId = await Question.GetNextGuildDependentId(context.Guild!.Id),
+                            Type = type,
+                            Text = questionText,
+                            SubmittedByUserId = userId,
+                            Timestamp = DateTime.MinValue
+                        };
+                        await dbContext.Questions.AddAsync(newQuestion);
+                        await dbContext.SaveChangesAsync();
+                    }
+
+                    await context.Channel.SendMessageAsync($"> Added question: {newQuestion.ToString()}");
+                }
+            }
         }
 
         private static FileStream CreateTextFileStream(string content)

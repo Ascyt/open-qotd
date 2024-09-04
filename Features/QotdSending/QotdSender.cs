@@ -81,7 +81,7 @@ namespace CustomQotd.Features.QotdSending
 
                     await AddPingRoleIfExistent(noQuestionMessage, guild, config, qotdChannel);
                     noQuestionMessage.AddEmbed(
-                        MessageHelpers.GenericWarningEmbed(title: "No QOTD Available", message: "There is currently no Question Of The Day available.\n\n*Suggest some using `/qotd`!*"));
+                        MessageHelpers.GenericEmbed(title: "No QOTD Available", message: "There is currently no Question Of The Day available.\n\n*Suggest some using `/qotd`!*", color: "#dc5051"));
 
                     await qotdChannel.SendMessageAsync(noQuestionMessage);
                 }
