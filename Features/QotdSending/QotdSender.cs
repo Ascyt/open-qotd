@@ -120,11 +120,9 @@ namespace CustomQotd.Features.QotdSending
             await AddPingRoleIfExistent(qotdMessageBuilder, guild, config, qotdChannel);
 
             int sentQuestionsCount;
-            int acceptedQuestionsCount;
             using (var dbContext = new AppDbContext())
             {
-                sentQuestionsCount = await dbContext.Questions.Where(q => q.GuildId == guildId && q.Type == QuestionType.Sent).CountAsync();
-                acceptedQuestionsCount = await dbContext.Questions.Where(q => q.GuildId == guildId && q.Type == QuestionType.Accepted).CountAsync();
+                sentQuestionsCount = await dbContext.Questions.Where(q => q.GuildId == guildId && q.Type == QuestionType.Sent).CountAsync(); 
             }
 
             qotdMessageBuilder.AddEmbed(

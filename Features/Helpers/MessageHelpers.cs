@@ -22,8 +22,7 @@ namespace CustomQotd.Features.Helpers
         public static DiscordEmbedBuilder GenericEmbed(string title, string message, string color = "#5865f2") => new DiscordEmbedBuilder()
                 .WithTitle(title)
                 .WithColor(new DiscordColor(color))
-                .WithDescription(message)
-                .WithTimestamp(DateTime.UtcNow);
+                .WithDescription(message);
 
         /// <summary>
         /// Get a message for a list of elements. Assumes it is already filtered by page
