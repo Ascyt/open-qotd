@@ -120,10 +120,15 @@ namespace CustomQotd.Features.QotdSending
 
             await AddPingRoleIfExistent(qotdMessageBuilder, guild, config, qotdChannel);
 
+            int acceptedQuestionsCount;
+            using (var dbContext = new AppDbContext())
+            {
+                acceptedQuestionsCount = await dbContext.Questions.Where(q => q.GuildId == guildId && q.Type == QuestionType.Accepted).CountAsync();
+            }
             int sentQuestionsCount;
             using (var dbContext = new AppDbContext())
             {
-                sentQuestionsCount = await dbContext.Questions.Where(q => q.GuildId == guildId && q.Type == QuestionType.Accepted).CountAsync(); 
+                sentQuestionsCount = await dbContext.Questions.Where(q => q.GuildId == guildId && q.Type == QuestionType.Sent).CountAsync();
             }
 
             qotdMessageBuilder.AddEmbed(
@@ -132,7 +137,7 @@ namespace CustomQotd.Features.QotdSending
                 $"\n" +
                 $"*Submitted by {(user is not null ? $"{user.Mention}" : $"user with ID `{question.SubmittedByUserId}`")}*",
                 color: "#8acfac")
-                .WithFooter($"{sentQuestionsCount} question{(sentQuestionsCount == 1 ? "" : "s")} left{(config.EnableSuggestions ? $", /qotd to suggest" : "")} \x2022 Question ID: {question.GuildDependentId}")
+                .WithFooter($"{acceptedQuestionsCount} question{(acceptedQuestionsCount == 1 ? "" : "s")} left{(config.EnableSuggestions ? $", /qotd to suggest" : "")} \x2022 Question ID: {question.GuildDependentId}")
                 );
 
             DiscordMessage qotdMessage = await qotdChannel.SendMessageAsync(qotdMessageBuilder);
@@ -172,7 +177,7 @@ namespace CustomQotd.Features.QotdSending
                 if (foundQuestion != null)
                 {
                     foundQuestion.Type = QuestionType.Sent;
-                    foundQuestion.SentNumber = sentQuestionsCount + 1;
+                    foundQuestion.SentNumber = acceptedQuestionsCount + 1;
                     foundQuestion.SentTimestamp = DateTime.UtcNow;
                 }
 
