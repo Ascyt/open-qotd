@@ -118,7 +118,7 @@ namespace CustomQotd.Features.Commands
                                 count = await dbContext.Questions.CountAsync();
                             }
 
-                            await context.RespondAsync($"`{count}` questions in total");
+                            await context.RespondAsync($"`{count}` questions in total.");
                             return;
 
                         case "getall":
@@ -190,14 +190,34 @@ namespace CustomQotd.Features.Commands
                                 await dbContext.SaveChangesAsync();
                             }
 
-                            await context.RespondAsync($"Removed {duplicateIds.Count} duplicates");
+                            await context.RespondAsync($"Removed {duplicateIds.Count} duplicates.");
 
+                            return;
+                    }
+                    break;
+                case "f": 
+                    switch (argsSplit[1])
+                    {
+                        case "get":
+                            DiscordMessageBuilder builder1 = new();
+                            using (FileStream fileStream = CreateTextFileStream(await File.ReadAllTextAsync("feedback.txt"), "debug_output.txt"))
+                            {
+                                builder1.AddFile(fileStream);
+
+                                await context.RespondAsync(builder1);
+
+                                fileStream.Close();
+                            }
+                            return;
+                        case "reset":
+                            await File.WriteAllTextAsync("feedback.txt", "");
+                            await context.RespondAsync("Successfully resetted feedback.");
                             return;
                     }
                     break;
             }
 
-            await context.RespondAsync("Error: Unknown arg");
+            await context.RespondAsync("Error: Unknown arg.");
         }
 
         private static async Task AddQuestionsAsync(CommandContext context, string[] argsSplit)
@@ -275,10 +295,8 @@ namespace CustomQotd.Features.Commands
             }
         }
 
-        private static FileStream CreateTextFileStream(string content)
+        private static FileStream CreateTextFileStream(string content, string path="debug_output.json")
         {
-            string path = "debug_output.json";
-
             // Write the content to the temporary file
             File.WriteAllText(path, content);
 
