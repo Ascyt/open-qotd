@@ -27,7 +27,11 @@ namespace CustomQotd.Features.Commands
             if (!await CommandRequirements.IsConfigInitialized(context) || !await CommandRequirements.UserIsBasic(context))
                 return;
 
-            await File.AppendAllTextAsync("feedback.txt", $"@{context!.User.Username} ({context!.User.Id}):\n\t{feedback}\n\n");
+            string contents = $"[FEEDBACK] @{context!.User.Username} ({context!.User.Id}):\n\t{feedback}\n\n";
+
+            await File.AppendAllTextAsync("feedback.txt", contents);
+
+            await Console.Out.WriteAsync(contents);
 
             DiscordEmbed responseEmbed = MessageHelpers.GenericSuccessEmbed("CustomQOTD feedback sent!",
                     $"> \"**{feedback}**\"");
