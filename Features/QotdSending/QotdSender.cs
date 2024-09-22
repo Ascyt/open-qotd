@@ -123,7 +123,7 @@ namespace CustomQotd.Features.QotdSending
             int sentQuestionsCount;
             using (var dbContext = new AppDbContext())
             {
-                sentQuestionsCount = await dbContext.Questions.Where(q => q.GuildId == guildId && q.Type == QuestionType.Sent).CountAsync(); 
+                sentQuestionsCount = await dbContext.Questions.Where(q => q.GuildId == guildId && q.Type == QuestionType.Accepted).CountAsync(); 
             }
 
             qotdMessageBuilder.AddEmbed(

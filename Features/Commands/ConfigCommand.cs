@@ -29,6 +29,7 @@ namespace CustomQotd.Features.Commands
             [Description("The UTC minute of the day the QOTDs should get sent (0-59).")] int QotdTimeMinuteUtc,
             [Description("The role a user needs to have to execute any basic commands (allows anyone by default).")] DiscordRole? BasicRole = null,
             [Description("The role that will get pinged when a new QOTD is sent.")] DiscordRole? QotdPingRole = null,
+            [Description("Whether to send a QOTD daily automatically, if disabled `/trigger` is needed (true by default).")] bool EnableAutomaticQotd = true,
             [Description("Whether to pin the most recent QOTD to the channel or not (true by default).")] bool EnableQotdPinMessage = true,
             [Description("Whether to send a \"not available\" message when there is no QOTD available (true by default).")] bool EnableQotdUnvailableMessage = true,
             [Description("Whether to allow users with the BasicRole to suggest QOTDs (true by default).")] bool EnableSuggestions = true,
@@ -53,6 +54,7 @@ namespace CustomQotd.Features.Commands
                 AdminRoleId = AdminRole.Id,
                 QotdChannelId = QotdChannel.Id,
                 QotdPingRoleId = QotdPingRole?.Id,
+                EnableAutomaticQotd = EnableAutomaticQotd,
                 EnableQotdPinMessage = EnableQotdPinMessage,
                 EnableQotdUnavailableMessage = EnableQotdUnvailableMessage,
                 QotdTimeHourUtc = QotdTimeHourUtc,
@@ -122,6 +124,7 @@ namespace CustomQotd.Features.Commands
             [Description("The UTC hour of the day the QOTDs should get sent (0-23).")] int? QotdTimeHourUtc = null,
             [Description("The UTC minute of the day the QOTDs should get sent (0-59).")] int? QotdTimeMinuteUtc = null,
             [Description("The role that will get pinged when a new QOTD is sent.")] DiscordRole? QotdPingRole = null,
+            [Description("Whether to send a QOTD daily automatically, if disabled `/trigger` is needed (true by default).")] bool? EnableAutomaticQotd = null,
             [Description("Whether to pin the most recent QOTD to the channel or not (true by default).")] bool? EnableQotdPinMessage = null,
             [Description("Whether to send a \"not available\" message when there is no QOTD available (true by default).")] bool? EnableQotdUnavailableMessage = null,
             [Description("Whether to allow users with the BasicRole to suggest QOTDs (true by default).")] bool? EnableSuggestions = null,
@@ -148,12 +151,25 @@ namespace CustomQotd.Features.Commands
             {
                 config = dbContext.Configs.Where(c => c.GuildId == context.Guild!.Id).FirstOrDefault()!;
 
+                if ((QotdTimeMinuteUtc is not null || QotdTimeHourUtc is not null))
+                {
+                    int currentDay = DateTime.UtcNow.Day;
+
+                    if (config.LastSentDay == currentDay)
+                    {
+                        await context.Channel!.SendMessageAsync(MessageHelpers.GenericWarningEmbed("Since a QOTD has already been sent today, the next one will be sent tomorrow at the specified time.\n\n" +
+                            "*Use `/trigger` to send a QOTD anyways!*"));
+                    }
+                }
+
                 if (BasicRole is not null) 
                     config.BasicRoleId = BasicRole.Id;
                 if (AdminRole is not null)
                     config.AdminRoleId = AdminRole.Id;
                 if (QotdChannel is not null)
                     config.QotdChannelId = QotdChannel.Id;
+                if (EnableAutomaticQotd is not null)
+                    config.EnableAutomaticQotd = EnableAutomaticQotd.Value;
                 if (EnableQotdPinMessage is not null)
                     config.EnableQotdPinMessage = EnableQotdPinMessage.Value;
                 if (EnableQotdUnavailableMessage is not null)

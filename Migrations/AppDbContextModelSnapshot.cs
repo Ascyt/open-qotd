@@ -35,6 +35,9 @@ namespace CustomQotd.Migrations
                     b.Property<ulong?>("CurrentSuggestStreakUserId")
                         .HasColumnType("INTEGER");
 
+                    b.Property<bool>("EnableAutomaticQotd")
+                        .HasColumnType("INTEGER");
+
                     b.Property<bool>("EnableQotdPinMessage")
                         .HasColumnType("INTEGER");
 

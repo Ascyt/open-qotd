@@ -15,6 +15,7 @@ namespace CustomQotd.Database.Entities
 
         public ulong QotdChannelId { get; set; }
         public ulong? QotdPingRoleId { get; set; }
+        public bool EnableAutomaticQotd { get; set; } = true;
         public bool EnableQotdPinMessage { get; set; } = true;
         public bool EnableQotdUnavailableMessage { get; set; } = true;
 
@@ -51,6 +52,7 @@ namespace CustomQotd.Database.Entities
                 $"- admin_role: {await RoleIdToString(AdminRoleId, guild)}\n" +
                 $"- qotd_channel: {await ChannelIdToString(QotdChannelId, guild)}\n" +
                 $"- qotd_ping_role: {await RoleIdToString(QotdPingRoleId, guild)}\n" +
+                $"- enable_automatic_qotd: **{EnableAutomaticQotd}**\n" +
                 $"- enable_qotd_pin_message: **{EnableQotdPinMessage}**\n" +
                 $"- enable_qotd_unavailable_message: **{EnableQotdUnavailableMessage}**\n" +
                 $"- qotd_time_hour_utc: **{QotdTimeHourUtc}**\n" +
