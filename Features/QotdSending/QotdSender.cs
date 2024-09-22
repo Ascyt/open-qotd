@@ -177,7 +177,7 @@ namespace CustomQotd.Features.QotdSending
                 if (foundQuestion != null)
                 {
                     foundQuestion.Type = QuestionType.Sent;
-                    foundQuestion.SentNumber = acceptedQuestionsCount + 1;
+                    foundQuestion.SentNumber = sentQuestionsCount + 1;
                     foundQuestion.SentTimestamp = DateTime.UtcNow;
                 }
 
