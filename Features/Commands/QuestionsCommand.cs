@@ -193,15 +193,7 @@ namespace CustomQotd.Features.Commands
         {
             const int itemsPerPage = 10;
 
-            if (page < 1)
-            {
-                page = 1;
-            }
-
-            Question[] questions = null;
-            int totalQuestions = -1;
-            int totalPages = -1;
-            async Task FetchDb()
+            await MessageHelpers.ListMessageComplete<Question>(context, page, $"{type} Questions List", async Task<(Question[], int, int)> (int page) =>
             {
                 using (var dbContext = new AppDbContext())
                 {
@@ -209,75 +201,20 @@ namespace CustomQotd.Features.Commands
                         .Where(q => q.GuildId == context.Guild!.Id && q.Type == type);
 
                     // Get the total number of questions
-                    totalQuestions = await sqlQuery
+                    int totalElements = await sqlQuery
                         .CountAsync();
 
                     // Calculate the total number of pages
-                    totalPages = (int)Math.Ceiling(totalQuestions / (double)itemsPerPage);
+                    int totalPages = (int)Math.Ceiling(totalElements / (double)itemsPerPage);
 
                     // Fetch the questions for the current page
-                    questions = await sqlQuery
+                    return (await sqlQuery
                         .Skip((page - 1) * itemsPerPage)
                         .Take(itemsPerPage)
-                        .ToArrayAsync();
+                        .ToArrayAsync(),
+                        totalElements, totalPages);
                 }
-            }
-            await FetchDb();
-
-            await context.RespondAsync(
-                MessageHelpers.GetListMessage(questions, $"{type} Questions List", page, totalPages, totalQuestions)
-                );
-
-            if (totalPages == 0)
-                return;
-
-            DiscordMessage message = await context.GetResponseAsync();
-
-            var result = await message.WaitForButtonAsync();
-
-            while (!result.TimedOut && result.Result?.Id != null)
-            {
-                bool messageDelete = false;
-                switch (result.Result.Id)
-                {
-                    case "first":
-                        page = 1;
-                        break;
-                    case "backward":
-                        page--;
-                        break;
-                    case "forward":
-                        page++;
-                        break;
-                    case "last":
-                        page = totalPages;
-                        break;
-                    case "redirect":
-                        page = totalPages;
-                        messageDelete = true;
-                        break;
-                }
-
-                await FetchDb();
-
-                if (messageDelete)
-                {
-                    await message.DeleteAsync();
-                    var newMessageContent = MessageHelpers.GetListMessage(questions, $"{type} Questions List", page, totalPages, totalQuestions);
-                    message = await context.Channel.SendMessageAsync(newMessageContent);
-                }
-                else
-                {
-                    DiscordInteractionResponseBuilder builder = new DiscordInteractionResponseBuilder();
-                    MessageHelpers.EditListMessage(questions, $"{type} Questions List", page, totalPages, totalQuestions, builder);
-                    
-                    await result.Result.Interaction.CreateResponseAsync(DiscordInteractionResponseType.UpdateMessage, builder);
-                }
-
-                result = await message.WaitForButtonAsync();
-            }
-
-            await message.ModifyAsync(MessageHelpers.GetListMessage(questions, $"{type} Questions List", page, totalPages, totalQuestions, includeButtons:false));
+            });
         }
 
         [Command("search")]
@@ -291,18 +228,9 @@ namespace CustomQotd.Features.Commands
                 return;
 
             const int itemsPerPage = 10;
-
-            if (page < 1)
+            await MessageHelpers.ListMessageComplete<Question>(context, page, $"{(type != null ? $"{type} " : "")}Questions Search for \"{query}\"", async Task<(Question[], int, int)> (int page) =>
             {
-                page = 1;
-            }
-            query = query.ToLower();
 
-            Question[] questions = null;
-            int totalQuestions = -1;
-            int totalPages = -1;
-            async Task FetchDb()
-            {
                 using (var dbContext = new AppDbContext())
                 {
                     // Build the base query
@@ -311,76 +239,20 @@ namespace CustomQotd.Features.Commands
                         .Where(q => EF.Functions.Like(q.Text, $"%{query}%"));
 
                     // Get the total number of questions
-                    totalQuestions = await sqlQuery.CountAsync();
+                    int totalQuestions = await sqlQuery.CountAsync();
 
                     // Calculate the total number of pages
-                    totalPages = (int)Math.Ceiling(totalQuestions / (double)itemsPerPage);
+                    int totalPages = (int)Math.Ceiling(totalQuestions / (double)itemsPerPage);
 
                     // Fetch the questions for the current page
-                    questions = await sqlQuery
+                    Question[] questions = await sqlQuery
                         .Skip((page - 1) * itemsPerPage)
                         .Take(itemsPerPage)
                         .ToArrayAsync();
+
+                    return (questions, totalQuestions, totalPages);
                 }
-            }
-            await FetchDb();
-
-            string title = $"{(type != null ? $"{type} " : "")}Questions Search for \"{query}\"";
-
-            await context.RespondAsync(
-                MessageHelpers.GetListMessage(questions, title, page, totalPages, totalQuestions)
-                );
-
-            if (totalPages == 0)
-                return;
-
-            DiscordMessage message = await context.GetResponseAsync();
-
-            var result = await message.WaitForButtonAsync();
-
-            while (!result.TimedOut && result.Result?.Id != null)
-            {
-                bool messageDelete = false;
-                switch (result.Result.Id)
-                {
-                    case "first":
-                        page = 1;
-                        break;
-                    case "backward":
-                        page--;
-                        break;
-                    case "forward":
-                        page++;
-                        break;
-                    case "last":
-                        page = totalPages;
-                        break;
-                    case "redirect":
-                        page = totalPages;
-                        messageDelete = true;
-                        break;
-                }
-
-                await FetchDb();
-
-                if (messageDelete)
-                {
-                    await message.DeleteAsync();
-                    var newMessageContent = MessageHelpers.GetListMessage(questions, title, page, totalPages, totalQuestions);
-                    message = await context.Channel.SendMessageAsync(newMessageContent);
-                }
-                else
-                {
-                    DiscordInteractionResponseBuilder builder = new DiscordInteractionResponseBuilder();
-                    MessageHelpers.EditListMessage(questions, title, page, totalPages, totalQuestions, builder);
-
-                    await result.Result.Interaction.CreateResponseAsync(DiscordInteractionResponseType.UpdateMessage, builder);
-                }
-
-                result = await message.WaitForButtonAsync();
-            }
-
-            await message.ModifyAsync(MessageHelpers.GetListMessage(questions, title, page, totalPages, totalQuestions, includeButtons: false));
+            });
         }
     }
 }

@@ -31,6 +31,7 @@ namespace CustomQotd.Features.Commands
             [Description("The role that will get pinged when a new QOTD is sent.")] DiscordRole? QotdPingRole = null,
             [Description("Whether to send a QOTD daily automatically, if disabled `/trigger` is needed (true by default).")] bool EnableAutomaticQotd = true,
             [Description("Whether to pin the most recent QOTD to the channel or not (true by default).")] bool EnableQotdPinMessage = true,
+            [Description("Whether to send a random preset when there is no Accepted QOTD available (true by default).")] bool EnableQotdAutomaticPresets = true,
             [Description("Whether to send a \"not available\" message when there is no QOTD available (true by default).")] bool EnableQotdUnvailableMessage = true,
             [Description("Whether to allow users with the BasicRole to suggest QOTDs (true by default).")] bool EnableSuggestions = true,
             [Description("The channel new QOTD suggestions get announced in.")] DiscordChannel? SuggestionsChannel = null,
@@ -56,6 +57,7 @@ namespace CustomQotd.Features.Commands
                 QotdPingRoleId = QotdPingRole?.Id,
                 EnableAutomaticQotd = EnableAutomaticQotd,
                 EnableQotdPinMessage = EnableQotdPinMessage,
+                EnableQotdAutomaticPresets = EnableQotdAutomaticPresets,
                 EnableQotdUnavailableMessage = EnableQotdUnvailableMessage,
                 QotdTimeHourUtc = QotdTimeHourUtc,
                 QotdTimeMinuteUtc = QotdTimeMinuteUtc,
@@ -126,6 +128,7 @@ namespace CustomQotd.Features.Commands
             [Description("The role that will get pinged when a new QOTD is sent.")] DiscordRole? QotdPingRole = null,
             [Description("Whether to send a QOTD daily automatically, if disabled `/trigger` is needed (true by default).")] bool? EnableAutomaticQotd = null,
             [Description("Whether to pin the most recent QOTD to the channel or not (true by default).")] bool? EnableQotdPinMessage = null,
+            [Description("Whether to send a random preset when there is no Accepted QOTD available (true by default).")] bool? EnableQotdAutomaticPresets = null,
             [Description("Whether to send a \"not available\" message when there is no QOTD available (true by default).")] bool? EnableQotdUnavailableMessage = null,
             [Description("Whether to allow users with the BasicRole to suggest QOTDs (true by default).")] bool? EnableSuggestions = null,
             [Description("The channel new QOTD suggestions get announced in.")] DiscordChannel? SuggestionsChannel = null,
@@ -172,6 +175,8 @@ namespace CustomQotd.Features.Commands
                     config.EnableAutomaticQotd = EnableAutomaticQotd.Value;
                 if (EnableQotdPinMessage is not null)
                     config.EnableQotdPinMessage = EnableQotdPinMessage.Value;
+                if (EnableQotdAutomaticPresets is not null)
+                    config.EnableQotdAutomaticPresets = EnableQotdAutomaticPresets.Value;
                 if (EnableQotdUnavailableMessage is not null)
                     config.EnableQotdUnavailableMessage = EnableQotdUnavailableMessage.Value;
                 if (QotdTimeHourUtc is not null)

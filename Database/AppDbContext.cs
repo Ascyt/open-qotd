@@ -7,6 +7,7 @@ namespace CustomQotd.Database
     {
         public DbSet<Config> Configs { get; set; }
         public DbSet<Question> Questions { get; set; }
+        public DbSet<PresetSent> PresetSents { get; set; }
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {

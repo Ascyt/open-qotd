@@ -1,5 +1,8 @@
-﻿using CustomQotd.Database.Entities;
+﻿using CustomQotd.Database;
+using CustomQotd.Database.Entities;
+using DSharpPlus.Commands;
 using DSharpPlus.Entities;
+using DSharpPlus.Interactivity.Extensions;
 using System.Collections.Generic;
 using System.Text;
 using System.Threading.Channels;
@@ -23,6 +26,80 @@ namespace CustomQotd.Features.Helpers
                 .WithTitle(title)
                 .WithColor(new DiscordColor(color))
                 .WithDescription(message);
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="page"></param>
+        /// <returns>Elements, total elements, total pages</returns>
+        public delegate Task<(T[], int, int)> ListMessageCompleteFetchDb<T>(int page);
+        public static async Task ListMessageComplete<T>(CommandContext context, int initialPage, string title, ListMessageCompleteFetchDb<T> fetchDb)
+        {
+            int page = initialPage;
+
+            if (page < 1)
+            {
+                page = 1;
+            }
+
+            (T[] elements, int totalElements, int totalPages) = await fetchDb(page);
+
+            await context.RespondAsync(
+                MessageHelpers.GetListMessage(elements, title, page, totalPages, totalElements)
+                );
+
+            if (totalPages == 0)
+                return;
+
+            DiscordMessage message = await context.GetResponseAsync();
+
+            var result = await message.WaitForButtonAsync();
+
+            while (!result.TimedOut && result.Result?.Id != null)
+            {
+                bool messageDelete = false;
+                switch (result.Result.Id)
+                {
+                    case "first":
+                        page = 1;
+                        break;
+                    case "backward":
+                        page--;
+                        break;
+                    case "forward":
+                        page++;
+                        break;
+                    case "last":
+                        page = totalPages;
+                        break;
+                    case "redirect":
+                        page = totalPages;
+                        messageDelete = true;
+                        break;
+                }
+
+                (elements, totalElements, totalPages) = await fetchDb(page);
+
+                if (messageDelete)
+                {
+                    await message.DeleteAsync();
+                    var newMessageContent = MessageHelpers.GetListMessage(elements, title, page, totalPages, totalElements);
+                    message = await context.Channel.SendMessageAsync(newMessageContent);
+                }
+                else
+                {
+                    DiscordInteractionResponseBuilder builder = new DiscordInteractionResponseBuilder();
+                    MessageHelpers.EditListMessage(elements, title, page, totalPages, totalElements, builder);
+
+                    await result.Result.Interaction.CreateResponseAsync(DiscordInteractionResponseType.UpdateMessage, builder);
+                }
+
+                result = await message.WaitForButtonAsync();
+            }
+
+            await message.ModifyAsync(MessageHelpers.GetListMessage(elements, title, page, totalPages, totalElements, includeButtons: false));
+        }
 
         /// <summary>
         /// Get a message for a list of elements. Assumes it is already filtered by page

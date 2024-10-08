@@ -1,7 +1,6 @@
 ﻿using CustomQotd.Database;
 using CustomQotd.Database.Entities;
 using CustomQotd.Features.Helpers;
-using CustomQotd.Migrations;
 using DSharpPlus.Commands;
 using DSharpPlus.Entities;
 using DSharpPlus.EventArgs;
@@ -10,7 +9,6 @@ using DSharpPlus.Interactivity;
 using Microsoft.EntityFrameworkCore;
 using System.ComponentModel;
 using System.Text;
-using System.Threading.Channels;
 
 namespace CustomQotd.Features.Commands
 {

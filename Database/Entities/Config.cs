@@ -5,7 +5,7 @@ using System.ComponentModel.DataAnnotations;
 
 namespace CustomQotd.Database.Entities
 {
-    public class Config()
+    public class Config
     {
         [Key]
         public ulong GuildId { get; set; }
@@ -17,6 +17,7 @@ namespace CustomQotd.Database.Entities
         public ulong? QotdPingRoleId { get; set; }
         public bool EnableAutomaticQotd { get; set; } = true;
         public bool EnableQotdPinMessage { get; set; } = true;
+        public bool EnableQotdAutomaticPresets { get; set; } = true;
         public bool EnableQotdUnavailableMessage { get; set; } = true;
 
         public int QotdTimeHourUtc { get; set; }

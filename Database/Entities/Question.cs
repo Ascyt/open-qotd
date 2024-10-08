@@ -9,7 +9,7 @@ namespace CustomQotd.Database.Entities
         Suggested, Accepted, Sent
     }
 
-    public class Question()
+    public class Question
     {
         public int Id { get; set; }
         public ulong GuildId { get; set; }

@@ -11,8 +11,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace CustomQotd.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20240827220359_SuggestionMessageId")]
-    partial class SuggestionMessageId
+    [Migration("20241008085904_InitialCreate")]
+    partial class InitialCreate
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -30,6 +30,30 @@ namespace CustomQotd.Migrations
                         .HasColumnType("INTEGER");
 
                     b.Property<ulong?>("BasicRoleId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int?>("CurrentSuggestStreak")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<ulong?>("CurrentSuggestStreakUserId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<bool>("EnableAutomaticQotd")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<bool>("EnableQotdPinMessage")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<bool>("EnableQotdUnavailableMessage")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<bool>("EnableSuggestions")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<ulong?>("LastQotdMessageId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int?>("LastSentDay")
                         .HasColumnType("INTEGER");
 
                     b.Property<ulong?>("LogsChannelId")
