@@ -26,6 +26,33 @@ namespace CustomQotd.Features.QotdSending
 
             return questions[random.Next(questions.Length)];
         }
+        public static async Task<int> GetRandomPreset(ulong guildId)
+        {
+            HashSet<PresetSent> presetSents;
+            using (var dbContext = new AppDbContext())
+            {
+                presetSents = (await dbContext.PresetSents
+                    .Where(ps => ps.GuildId == guildId)
+                    .ToListAsync())
+                    .ToHashSet();
+            }
+
+            int index = -1;
+            int timeToLive = 100_000;
+
+            while ((index == -1 || presetSents.Any(ps => ps.GuildId == guildId && ps.PresetIndex == index)) && timeToLive > 0)
+            {
+                index = random.Next(Presets.Values.Length);
+                timeToLive--;
+            }
+
+            if (timeToLive == 0)
+            {
+                throw new Exception("Time to live has expired (endless loop?)");
+            }
+
+            return index;
+        }
 
         public static async Task SendNextQotd(ulong guildId)
         {
@@ -91,7 +118,42 @@ namespace CustomQotd.Features.QotdSending
 
             if (question == null)
             {
-                if (config.EnableQotdUnavailableMessage)
+                int presetsAvailable = 0;
+                if (config.EnableQotdAutomaticPresets)
+                {
+                    using (var dbContext = new AppDbContext())
+                    {
+                        presetsAvailable = Presets.Values.Length -
+                            await dbContext.PresetSents.Where(ps => ps.GuildId == guildId).CountAsync();
+                    }
+                }
+                if (presetsAvailable > 0)
+                {
+                    int presetIndex = await GetRandomPreset(guildId);
+
+                    DiscordMessageBuilder presetMessageBuilder = new();
+
+                    await AddPingRoleIfExistent(presetMessageBuilder, guild, config, qotdChannel);
+                    presetMessageBuilder.AddEmbed(
+                        MessageHelpers.GenericEmbed($"Question Of The Day",
+                        $"> **{Presets.Values[presetIndex]}**\n" +
+                        $"\n" +
+                        $"*Preset Question*",
+                        color: "#8acfac")
+                        .WithFooter($"{presetsAvailable - 1} preset{((presetsAvailable - 1) == 1 ? "" : "s")} left{(config.EnableSuggestions ? $", /qotd to suggest" : "")} \x2022 Preset ID: {presetIndex}")
+                        );
+
+                    DiscordMessage presetMessage = await qotdChannel.SendMessageAsync(presetMessageBuilder);
+
+                    await PinMessage(config, qotdChannel, presetMessage);
+
+                    using (var dbContext = new AppDbContext())
+                    {
+                        await dbContext.PresetSents.AddAsync(new PresetSent() { GuildId = guildId, PresetIndex = presetIndex });
+                        await dbContext.SaveChangesAsync(); 
+                    }
+                }
+                else if (config.EnableQotdUnavailableMessage)
                 {
                     DiscordMessageBuilder noQuestionMessage = new();
 
@@ -161,6 +223,32 @@ namespace CustomQotd.Features.QotdSending
                 await qotdChannel.SendMessageAsync(lastQuestionWarning);
             }
 
+            await PinMessage(config, qotdChannel, qotdMessage);
+
+            using (var dbContext = new AppDbContext())
+            {
+                Config? foundConfig = await dbContext.Configs.Where(c => c.GuildId == guildId).FirstOrDefaultAsync();
+                if (foundConfig != null)
+                {
+                    foundConfig.LastQotdMessageId = qotdMessage.Id;
+                }
+
+                Question? foundQuestion = await dbContext.Questions.Where(q => q.Id == question.Id).FirstOrDefaultAsync();
+
+                if (foundQuestion != null)
+                {
+                    foundQuestion.Type = QuestionType.Sent;
+                    foundQuestion.SentNumber = sentQuestionsCount + 1;
+                    foundQuestion.SentTimestamp = DateTime.UtcNow;
+                }
+
+                await dbContext.SaveChangesAsync();
+            }
+
+            return true;
+        }
+        private static async Task PinMessage(Config config, DiscordChannel qotdChannel, DiscordMessage qotdMessage)
+        {
             if (config.EnableQotdPinMessage)
             {
                 DiscordMessage? oldQotdMessage = null;
@@ -183,27 +271,6 @@ namespace CustomQotd.Features.QotdSending
 
                 await qotdMessage.PinAsync();
             }
-            using (var dbContext = new AppDbContext())
-            {
-                Config? foundConfig = await dbContext.Configs.Where(c => c.GuildId == guildId).FirstOrDefaultAsync();
-                if (foundConfig != null)
-                {
-                    foundConfig.LastQotdMessageId = qotdMessage.Id;
-                }
-
-                Question? foundQuestion = await dbContext.Questions.Where(q => q.Id == question.Id).FirstOrDefaultAsync();
-
-                if (foundQuestion != null)
-                {
-                    foundQuestion.Type = QuestionType.Sent;
-                    foundQuestion.SentNumber = sentQuestionsCount + 1;
-                    foundQuestion.SentTimestamp = DateTime.UtcNow;
-                }
-
-                await dbContext.SaveChangesAsync();
-            }
-
-            return true;
         }
 
         private static async Task AddPingRoleIfExistent(DiscordMessageBuilder builder, DiscordGuild guild, Config config, DiscordChannel onErrorChannel)
