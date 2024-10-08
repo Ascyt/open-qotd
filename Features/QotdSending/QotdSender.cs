@@ -121,18 +121,17 @@ namespace CustomQotd.Features.QotdSending
             await AddPingRoleIfExistent(qotdMessageBuilder, guild, config, qotdChannel);
 
             int acceptedQuestionsCount;
-            using (var dbContext = new AppDbContext())
-            {
-                acceptedQuestionsCount = await dbContext.Questions.Where(q => q.GuildId == guildId && q.Type == QuestionType.Accepted).CountAsync();
-            }
             int sentQuestionsCount;
             using (var dbContext = new AppDbContext())
             {
-                sentQuestionsCount = await dbContext.Questions.Where(q => q.GuildId == guildId && q.Type == QuestionType.Sent).CountAsync();
+                acceptedQuestionsCount = await dbContext.Questions.Where(q => q.GuildId == guildId && q.Type == QuestionType.Accepted).CountAsync()
+                    - 1;
+                sentQuestionsCount = await dbContext.Questions.Where(q => q.GuildId == guildId && q.Type == QuestionType.Sent).CountAsync()
+                    + 1;
             }
 
             qotdMessageBuilder.AddEmbed(
-                MessageHelpers.GenericEmbed($"Question Of The Day #{sentQuestionsCount + 1}",
+                MessageHelpers.GenericEmbed($"Question Of The Day #{sentQuestionsCount}",
                 $"> **{question.Text}**\n" +
                 $"\n" +
                 $"*Submitted by {(user is not null ? $"{user.Mention}" : $"user with ID `{question.SubmittedByUserId}`")}*",
@@ -141,6 +140,26 @@ namespace CustomQotd.Features.QotdSending
                 );
 
             DiscordMessage qotdMessage = await qotdChannel.SendMessageAsync(qotdMessageBuilder);
+
+            if (acceptedQuestionsCount == 0)
+            {
+                DiscordMessageBuilder lastQuestionWarning = new();
+
+                int presetsSent;
+                using (var dbContext = new AppDbContext())
+                {
+                    presetsSent = await dbContext.PresetSents.Where(ps => ps.GuildId == guildId).CountAsync();
+                }
+                int presetsLeft = Presets.Values.Length - presetsSent;
+
+                lastQuestionWarning.AddEmbed(
+                    MessageHelpers.GenericWarningEmbed(title: "Warning: Last QOTD", message:
+                    "There is no more Accepted QOTD of this server left." +
+                    (presetsLeft > 0 && config.EnableQotdAutomaticPresets ? $"\nIf none are added, one of **{presetsLeft} Presets** will start to be used instead." : "") +
+                    (config.EnableSuggestions ? $"\n\n*More can be suggested using `/qotd`!*" : "")));
+
+                await qotdChannel.SendMessageAsync(lastQuestionWarning);
+            }
 
             if (config.EnableQotdPinMessage)
             {
