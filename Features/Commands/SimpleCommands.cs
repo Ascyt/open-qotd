@@ -21,8 +21,8 @@ namespace CustomQotd.Features.Commands
 
         [Command("feedback")]
         [Description("Leave feedback, suggestions or bugs for the developers of CustomQOTD.")]
-        public static async Task FeedbackAsync(CommandContext context,
-            [Description("The feedback, suggestion or bug.")] string feedback)
+            public static async Task FeedbackAsync(CommandContext context,
+                [Description("The feedback, suggestion or bug.")] string feedback)
         {
             if (!await CommandRequirements.IsConfigInitialized(context) || !await CommandRequirements.UserIsBasic(context))
                 return;

@@ -33,6 +33,9 @@ namespace CustomQotd
 
             Console.WriteLine("Starting bot...");
 
+            Console.WriteLine("Loading presets...");
+            await Presets.LoadPresets();
+
             string? discordToken = Environment.GetEnvironmentVariable("CUSTOMQOTD_TOKEN");
             if (string.IsNullOrWhiteSpace(discordToken))
             {
@@ -48,7 +51,15 @@ namespace CustomQotd
                 // we register our commands here
                 extension =>
                 {
-                    extension.AddCommands([typeof(ConfigCommand), typeof(QuestionsCommand), typeof(SuggestCommand), typeof(SuggestionsCommands), typeof(TriggerCommand), typeof(DebugCommand), typeof(SimpleCommands)]);
+                    extension.AddCommands([
+                        typeof(ConfigCommand), 
+                        typeof(QuestionsCommand), 
+                        typeof(SuggestCommand), 
+                        typeof(SuggestionsCommands), 
+                        typeof(PresetsCommand),
+                        typeof(TriggerCommand), 
+                        typeof(DebugCommand), 
+                        typeof(SimpleCommands)]);
                     TextCommandProcessor textCommandProcessor = new(new()
                     {
                         PrefixResolver = new DefaultPrefixResolver(true, "qotd:").ResolvePrefixAsync
