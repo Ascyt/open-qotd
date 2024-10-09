@@ -1,45 +1,46 @@
 @import '../node_modules/bootstrap/dist/css/bootstrap.css';
 
-:root {
-    --back: #080808;
-    --back-high: #101010;
-    --back-mid: #303030;
-    --back-low: #505050;
-    --mid: #808080;
-    --front-low: #a0a0a0;
-    --front-mid: #c0c0c0;
-    --front-high: #e0e0e0;
-    --front: #ffffff;
+.dark-theme {
+    --back: #1a1f1f;
+    --back-high: #272c2c;
+    --back-mid: #404747;
+    --back-low: #4d5858;
+    --mid: #808080; 
+    --front-low: #bc8430;
+    --front-mid: #c89b58;
+    --front-high: #f1bc6c;
+    --front: #ffd9a0;
     --link: #0078d7;
     --link-hover: #005299;
+    transition: 0.2s;
 }
 
 .dark-theme {
-    --back: #080808;
-    --back-high: #101010;
-    --back-mid: #303030;
-    --back-low: #505050;
-    --mid: #808080;
-    --front-low: #a0a0a0;
-    --front-mid: #c0c0c0;
-    --front-high: #e0e0e0;
-    --front: #ffffff;
+    --back: #1a1f1f;
+    --back-high: #272c2c;
+    --back-mid: #404747;
+    --back-low: #4d5858;
+    --mid: #808080; 
+    --front-low: #c89b58;
+    --front-mid: #f1bc6c;
+    --front-high: #ffd9a0;
+    --front: #fff3e2;
     --link: #0078d7;
     --link-hover: #005299;
     transition: 0.2s;
 }
 .light-theme {
-    --back: #ffffff;
-    --back-high: #e0e0e0;
-    --back-mid: #c0c0c0;
-    --back-low: #a0a0a0;
-    --mid: #808080;
-    --front-low: #606060;
-    --front-mid: #404040;
-    --front-high: #202020;
-    --front: #000000;
-    --link: #0d6efd;
-    --link-hover: #0a58ca;
+    --back: #fff3e2;
+    --back-high: #ffd9a0;
+    --back-mid: #f1bc6c;
+    --back-low: #c89b58;
+    --mid: #808080; 
+    --front-low: #4d5858;
+    --front-mid: #404747;
+    --front-high: #272c2c;
+    --front: #1a1f1f;
+    --link: #0078d7;
+    --link-hover: #005299;
     transition: 0.2s;
 }
 .what { // ignore this

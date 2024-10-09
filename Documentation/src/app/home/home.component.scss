@@ -1,0 +1,28 @@
+.title {
+    text-align: center;
+
+    .main {
+        font-weight: bold;
+    }
+    .subtitle {
+        font-style: italic;
+    }
+}
+
+.underlined-heading {
+    text-decoration: underline;
+}
+
+.description {
+    font-style: italic;
+    color: var(--front-high);
+    font-size: small;
+}
+
+h3 {
+    font-size: x-large;
+}
+
+h1, h2, h3, h4, h5, h6 {
+    font-weight: bold;
+}
