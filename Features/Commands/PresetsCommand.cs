@@ -155,7 +155,7 @@ namespace CustomQotd.Features.Commands
                     .First();
             }
 
-            if (!enableQotdAutomaticPresets)
+            if (enableQotdAutomaticPresets)
                 return;
 
             await context.Channel.SendMessageAsync(
