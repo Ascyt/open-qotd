@@ -52,7 +52,15 @@ namespace CustomQotd.Features.Helpers
             if (totalPages == 0)
                 return;
 
-            DiscordMessage message = await context.GetResponseAsync();
+            DiscordMessage? message = await context.GetResponseAsync();
+            if (message == null)
+            {
+                var enumerable = context.Channel.GetMessagesAsync(limit: 1);
+                await foreach (var item in enumerable)
+                {
+                    message = item;
+                }
+            }
 
             var result = await message.WaitForButtonAsync();
 

@@ -58,7 +58,8 @@ namespace CustomQotd
                         typeof(SuggestionsCommands), 
                         typeof(PresetsCommand),
                         typeof(TriggerCommand), 
-                        typeof(DebugCommand), 
+                        typeof(DebugCommand),
+                        typeof(LeaderboardCommand),
                         typeof(SimpleCommands)]);
                     TextCommandProcessor textCommandProcessor = new(new()
                     {
