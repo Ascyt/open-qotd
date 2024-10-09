@@ -29,7 +29,7 @@ namespace CustomQotd.Features.Commands
 
             const int itemsPerPage = 10;
             await MessageHelpers.ListMessageComplete(context, page, $"{(type != null ? $"{type} " : "")}Presets List", 
-                async Task<(Presets.PresetBySent[], int, int)> (int page) =>
+                async Task<(Presets.PresetBySent[], int, int, int)> (int page) =>
             {
                 HashSet<PresetSent> presetSents;
 
@@ -50,7 +50,7 @@ namespace CustomQotd.Features.Commands
                     .Take(itemsPerPage)
                     .ToArray();
 
-                return (presetsInPage, totalPresets, totalPages);
+                return (presetsInPage, totalPresets, totalPages, itemsPerPage);
             });
         }
 

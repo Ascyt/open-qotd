@@ -193,7 +193,7 @@ namespace CustomQotd.Features.Commands
         {
             const int itemsPerPage = 10;
 
-            await MessageHelpers.ListMessageComplete<Question>(context, page, $"{type} Questions List", async Task<(Question[], int, int)> (int page) =>
+            await MessageHelpers.ListMessageComplete<Question>(context, page, $"{type} Questions List", async Task<(Question[], int, int, int)> (int page) =>
             {
                 using (var dbContext = new AppDbContext())
                 {
@@ -212,7 +212,7 @@ namespace CustomQotd.Features.Commands
                         .Skip((page - 1) * itemsPerPage)
                         .Take(itemsPerPage)
                         .ToArrayAsync(),
-                        totalElements, totalPages);
+                        totalElements, totalPages, itemsPerPage);
                 }
             });
         }
@@ -228,7 +228,7 @@ namespace CustomQotd.Features.Commands
                 return;
 
             const int itemsPerPage = 10;
-            await MessageHelpers.ListMessageComplete<Question>(context, page, $"{(type != null ? $"{type} " : "")}Questions Search for \"{query}\"", async Task<(Question[], int, int)> (int page) =>
+            await MessageHelpers.ListMessageComplete<Question>(context, page, $"{(type != null ? $"{type} " : "")}Questions Search for \"{query}\"", async Task<(Question[], int, int, int)> (int page) =>
             {
 
                 using (var dbContext = new AppDbContext())
@@ -250,7 +250,7 @@ namespace CustomQotd.Features.Commands
                         .Take(itemsPerPage)
                         .ToArrayAsync();
 
-                    return (questions, totalQuestions, totalPages);
+                    return (questions, totalQuestions, totalPages, itemsPerPage);
                 }
             });
         }

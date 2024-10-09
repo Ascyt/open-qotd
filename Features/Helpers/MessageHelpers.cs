@@ -32,8 +32,8 @@ namespace CustomQotd.Features.Helpers
         /// </summary>
         /// <typeparam name="T"></typeparam>
         /// <param name="page"></param>
-        /// <returns>Elements, total elements, total pages</returns>
-        public delegate Task<(T[], int, int)> ListMessageCompleteFetchDb<T>(int page);
+        /// <returns>Elements, total elements, total pages, elements per page</returns>
+        public delegate Task<(T[], int, int, int)> ListMessageCompleteFetchDb<T>(int page);
         public static async Task ListMessageComplete<T>(CommandContext context, int initialPage, string title, ListMessageCompleteFetchDb<T> fetchDb)
         {
             int page = initialPage;
@@ -43,10 +43,10 @@ namespace CustomQotd.Features.Helpers
                 page = 1;
             }
 
-            (T[] elements, int totalElements, int totalPages) = await fetchDb(page);
+            (T[] elements, int totalElements, int totalPages, int elementsPerPage) = await fetchDb(page);
 
             await context.RespondAsync(
-                MessageHelpers.GetListMessage(elements, title, page, totalPages, totalElements)
+                MessageHelpers.GetListMessage(elements, title, page, totalPages, totalElements, elementsPerPage)
                 );
 
             if (totalPages == 0)
@@ -87,18 +87,18 @@ namespace CustomQotd.Features.Helpers
                         break;
                 }
 
-                (elements, totalElements, totalPages) = await fetchDb(page);
+                (elements, totalElements, totalPages, elementsPerPage) = await fetchDb(page);
 
                 if (messageDelete)
                 {
                     await message.DeleteAsync();
-                    var newMessageContent = MessageHelpers.GetListMessage(elements, title, page, totalPages, totalElements);
+                    var newMessageContent = MessageHelpers.GetListMessage(elements, title, page, totalPages, totalElements, elementsPerPage);
                     message = await context.Channel.SendMessageAsync(newMessageContent);
                 }
                 else
                 {
                     DiscordInteractionResponseBuilder builder = new DiscordInteractionResponseBuilder();
-                    MessageHelpers.EditListMessage(elements, title, page, totalPages, totalElements, builder);
+                    MessageHelpers.EditListMessage(elements, title, page, totalPages, totalElements, elementsPerPage, builder);
 
                     await result.Result.Interaction.CreateResponseAsync(DiscordInteractionResponseType.UpdateMessage, builder);
                 }
@@ -106,13 +106,13 @@ namespace CustomQotd.Features.Helpers
                 result = await message.WaitForButtonAsync();
             }
 
-            await message.ModifyAsync(MessageHelpers.GetListMessage(elements, title, page, totalPages, totalElements, includeButtons: false));
+            await message.ModifyAsync(MessageHelpers.GetListMessage(elements, title, page, totalPages, totalElements, elementsPerPage, includeButtons: false));
         }
 
         /// <summary>
         /// Get a message for a list of elements. Assumes it is already filtered by page
         /// </summary>
-        public static DiscordMessageBuilder GetListMessage<T>(T[] elements, string title, int page, int totalPages, int totalElements, bool includeButtons = true)
+        public static DiscordMessageBuilder GetListMessage<T>(T[] elements, string title, int page, int totalPages, int totalElements, int elementsPerPage, bool includeButtons = true)
         {
             DiscordMessageBuilder message = new();
 
@@ -139,7 +139,7 @@ namespace CustomQotd.Features.Helpers
             for (int i = 0; i < elements.Length; i++)
             {
                 T element = elements[i];
-                sb.AppendLine(element!.ToString());
+                sb.AppendLine(element!.ToString()!.Replace("%index%", ((page - 1) * elementsPerPage + i + 1).ToString()));
             }
 
             message.AddEmbed(
@@ -164,7 +164,7 @@ namespace CustomQotd.Features.Helpers
         /// <summary>
         /// Edit a message for a list of elements. Assumes it is already filtered by page
         /// </summary>
-        public static void EditListMessage<T>(T[] elements, string title, int page, int totalPages, int totalElements, DiscordInteractionResponseBuilder message, bool includeButtons = true)
+        public static void EditListMessage<T>(T[] elements, string title, int page, int totalPages, int totalElements, int elementsPerPage, DiscordInteractionResponseBuilder message, bool includeButtons = true)
         {
             if (totalPages == 0)
             {
@@ -189,7 +189,7 @@ namespace CustomQotd.Features.Helpers
             for (int i = 0; i < elements.Length; i++)
             {
                 T element = elements[i];
-                sb.AppendLine(element!.ToString());
+                sb.AppendLine(element!.ToString()!.Replace("%index%", ((page - 1) * elementsPerPage + i + 1).ToString()));
             }
 
             message.AddEmbed(

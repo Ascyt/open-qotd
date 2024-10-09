@@ -15,7 +15,7 @@ namespace CustomQotd.Features.Commands
             public int Count { get; set; }
 
             public override string ToString()
-                => $"- <@!{UserId}>: {Count}";
+                => $"%index%. <@!{UserId}>: **{Count}**";
         }
         [Command("lb")]
         [Description("View a leaderboard of who wrote the most sent QOTDs.")]
@@ -60,18 +60,18 @@ namespace CustomQotd.Features.Commands
 
             const int itemsPerPage = 10;
             await MessageHelpers.ListMessageComplete(context, page, "QOTD Leaderboard",
-                async Task<(LeaderboardEntry[], int, int)> (int page) =>
+                async Task<(LeaderboardEntry[], int, int, int)> (int page) =>
                 {
                     LeaderboardEntry[] filteredEntries = sortedEntries
                         .Skip((page - 1) * itemsPerPage)
                         .Take(itemsPerPage)
                         .ToArray();
 
-                    int totalEntries = filteredEntries.Length;
+                    int totalEntries = sortedEntries.Count;
 
                     int totalPages = (int)Math.Ceiling(totalEntries / (double)itemsPerPage);
 
-                    return (filteredEntries, totalEntries, totalPages);
+                    return (filteredEntries, totalEntries, totalPages, itemsPerPage);
                 });
         }
     }
