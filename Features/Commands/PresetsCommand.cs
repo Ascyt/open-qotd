@@ -25,6 +25,8 @@ namespace CustomQotd.Features.Commands
             if (!await CommandRequirements.IsConfigInitialized(context) || !await CommandRequirements.UserIsAdmin(context))
                 return;
 
+            await PrintPresetDisabledWarningIfRequired(context);
+
             const int itemsPerPage = 10;
             await MessageHelpers.ListMessageComplete(context, page, $"{(type != null ? $"{type} " : "")}Presets List", 
                 async Task<(Presets.PresetBySent[], int, int)> (int page) =>
@@ -61,6 +63,8 @@ namespace CustomQotd.Features.Commands
         {
             if (!await CommandRequirements.IsConfigInitialized(context) || !await CommandRequirements.UserIsAdmin(context))
                 return;
+
+            await PrintPresetDisabledWarningIfRequired(context);
 
             if (id < 0 || id >= Presets.Values.Length)
             {
@@ -118,6 +122,8 @@ namespace CustomQotd.Features.Commands
             if (!await CommandRequirements.IsConfigInitialized(context) || !await CommandRequirements.UserIsAdmin(context))
                 return;
 
+            await PrintPresetDisabledWarningIfRequired(context);
+
             using (var dbContext = new AppDbContext())
             {
                 List<PresetSent> toRemove = await dbContext.PresetSents.Where(ps => ps.GuildId == context.Guild!.Id).ToListAsync();
@@ -137,5 +143,25 @@ namespace CustomQotd.Features.Commands
         public static async Task SuggestPresetAsync(CommandContext context,
             [Description("The QOTD question text to be suggested.")] string question)
             => await SimpleCommands.FeedbackAsync(context, $"Preset Suggestion: {question}");
+
+        private static async Task PrintPresetDisabledWarningIfRequired(CommandContext context)
+        {
+            bool enableQotdAutomaticPresets;
+            using (var dbContext = new AppDbContext())
+            {
+                enableQotdAutomaticPresets = dbContext.Configs
+                    .Where(c => c.GuildId == context.Guild!.Id)
+                    .Select(c => c.EnableQotdAutomaticPresets)
+                    .First();
+            }
+
+            if (!enableQotdAutomaticPresets)
+                return;
+
+            await context.Channel.SendMessageAsync(
+                MessageHelpers.GenericWarningEmbed("Presets are currently disabled and will not be automatically sent.\n\n" +
+                "*They can be enabled with `/config set enable_qotd_automatic_presets True`.*")
+                );
+        }
     }
 }
