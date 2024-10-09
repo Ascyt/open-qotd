@@ -55,6 +55,7 @@ namespace CustomQotd.Database.Entities
                 $"- qotd_ping_role: {await RoleIdToString(QotdPingRoleId, guild)}\n" +
                 $"- enable_automatic_qotd: **{EnableAutomaticQotd}**\n" +
                 $"- enable_qotd_pin_message: **{EnableQotdPinMessage}**\n" +
+                $"- enable_qotd_automatic_presets: **{EnableQotdAutomaticPresets}**\n" +
                 $"- enable_qotd_unavailable_message: **{EnableQotdUnavailableMessage}**\n" +
                 $"- qotd_time_hour_utc: **{QotdTimeHourUtc}**\n" +
                 $"- qotd_time_minute_utc: **{QotdTimeMinuteUtc}**\n" +
