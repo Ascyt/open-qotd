@@ -17,6 +17,15 @@
     font-style: italic;
     color: var(--front-high);
     font-size: small;
+
+    a {
+        color: var(--front-high);
+        text-decoration: underline;
+    }
+}
+.add-button {
+    margin-top: 10px;
+    margin-bottom: 10px;
 }
 
 h3 {
