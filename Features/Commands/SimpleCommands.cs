@@ -24,9 +24,6 @@ namespace CustomQotd.Features.Commands
             public static async Task FeedbackAsync(CommandContext context,
                 [Description("The feedback, suggestion or bug.")] string feedback)
         {
-            if (!await CommandRequirements.UserIsBasic(context))
-                return;
-
             string contents = $"[FEEDBACK] @{context!.User.Username} ({context!.User.Id}):\n\t{feedback}\n\n";
 
             await File.AppendAllTextAsync("feedback.txt", contents);

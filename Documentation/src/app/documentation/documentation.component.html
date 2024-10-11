@@ -1,1 +1,37 @@
-<p>documentation works!</p>
+<h2 class="mb-2">Documentation</h2>
+
+<p>
+    Welcome to the documentation of OpenQOTD! Here you can find all the information you need to get started with the bot, as well as some more advanced topics.
+</p>
+
+<section id="general">
+    <h3 class="mb-2">General Usage</h3>
+    <p>
+        The main way to interact with OpenQOTD is using <a href="https://support-apps.discord.com/hc/en-us/articles/26501837786775-Slash-Commands-FAQ" target="_blank">Slash Commands</a>.<br />
+        It's also possible to use the the chat prefix <code>qotd:</code> (as in <code>qotd:questions search "hello"</code>), however this only has limited support and may lead to issues.
+    </p>
+</section>
+
+<section id="config">
+    <h3 class="mb-2">Configuration</h3>
+    <p>
+        OpenQOTD must be configured initially using <code>/config initialize</code>.<br />
+        Afterwards, <code>/config set</code> and <code>/config reset</code> can be used to set the config,
+        and <code>/config get</code> can be used to view it.
+    </p>
+
+    <h4>Values</h4>
+    <p>
+        The following values can be set using <code>/config initialize</code> or <code>/config set</code>:
+    </p>
+    <ul>
+        <li>
+            <code>basic_role</code> (optional): This is the role that is required to run non-administrative commands, which includes:
+            <ul>
+                <li><code>/suggest</code> (if suggestions are enabled)</li>
+                <li><code>/leaderboard</code></li>
+                <li><code></code></li>
+            </ul>
+        </li>
+    </ul>
+</section>
