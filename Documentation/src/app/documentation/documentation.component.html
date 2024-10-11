@@ -19,19 +19,37 @@
         Afterwards, <code>/config set</code> and <code>/config reset</code> can be used to set the config,
         and <code>/config get</code> can be used to view it.
     </p>
-
-    <h4>Values</h4>
     <p>
-        The following values can be set using <code>/config initialize</code> or <code>/config set</code>:
+        <code>/config</code> can <b>only</b> be run by users with the "Administrator" server permission.
+    </p>
+    <h4>Variables</h4>
+    <p>
+        The following config variables can be set using <code>/config initialize</code> or <code>/config set</code>:
     </p>
     <ul>
-        <li>
-            <code>basic_role</code> (optional): This is the role that is required to run non-administrative commands, which includes:
+        <li class="mb-2">
+            <code>basic_role</code>&nbsp;<i>(optional)</i>: This is the role that is required to run non-administrative commands, which includes:
             <ul>
                 <li><code>/suggest</code> (if suggestions are enabled)</li>
                 <li><code>/leaderboard</code></li>
-                <li><code></code></li>
+                <li><code>/sentquestions</code></li>
             </ul>
+            If this variable is unset, anyone is able to run these commands.
+        </li>
+        <li class="mb-2">
+            <code>admin_role</code>: This is the role that is required to run administrative and potentially destructive commands, which includes:
+            <ul>
+                <li><code>/questions</code></li>
+                <li><code>/suggestions</code></li>
+                <li><code>/presets</code></li>
+                <li><code>/trigger</code></li>
+            </ul>
+            The "Administrator" server permission overrides this role, and anyone with this permission can run every command regardless of what roles they have.<br />
+            
+            <p class="text-warning">
+                <b>⚠️ Warning</b>: While people without this role cannot run <code>/suggestions</code>, they <b>can</b> accept or deny suggestions using the buttons of the messages,
+                so make sure to have your <code>suggestions_channel</code> set to a channel that is only viewable by people you trust!
+            </p>
         </li>
     </ul>
 </section>
