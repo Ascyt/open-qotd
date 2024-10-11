@@ -17,5 +17,8 @@ export const routes: Routes = [
     {path: 'privacy-policy', component: PrivacyPolicyComponent},
     {path: 'terms-of-service', component:TermsOfServiceComponent},
 
+    {path: 'community', component: RedirectingComponent, canActivate: [RedirectGuard], data: {externalUrl: 'https://discord.gg/85TtrwuKn8'}},
+    {path: 'add', component: RedirectingComponent, canActivate: [RedirectGuard], data: {externalUrl: 'https://discord.com/oauth2/authorize?client_id=1275472589375930418&permissions=141312&integration_type=0&scope=applications.commands+bot'}},
+
     {path: '**', component: NotFoundComponent}
 ];

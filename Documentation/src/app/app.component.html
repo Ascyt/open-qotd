@@ -13,6 +13,12 @@
         </li>
       </ul>
     </div>
+    <a *ngIf="!isCollapsed" class="navbar-brand" href="/community" target="_blank">
+      <img class="logo d-inline-block align-text-top" src="/assets/images/community.png" ngbTooltip="Community Server" alt="Add" />
+    </a>
+    <a *ngIf="!isCollapsed" class="navbar-brand" href="/add" target="_blank">
+      <img class="logo d-inline-block align-text-top" src="/assets/images/add.png" ngbTooltip="Add OpenQOTD to your server!" alt="Add" />
+    </a>
     <div *ngIf="!isCollapsed">
       <app-theme-switcher (themeChanged)="toggleTheme()" />
     </div>
