@@ -24,11 +24,13 @@
     </p>
     <h4>Variables</h4>
     <p>
-        The following config variables can be set using <code>/config initialize</code> or <code>/config set</code>:
+        The following config variables can be set using <code>/config initialize</code> or <code>/config set</code>:<br />
+        <i>Required fields are marked with "</i><code class="required">field</code><i>", and default values are shown using "<code><span class="default-value">value</span></code>".</i>
     </p>
     <ul>
         <li class="mb-2">
-            <code>basic_role</code>&nbsp;<i>(optional)</i>: This is the role that is required to run non-administrative commands, which includes:
+            <code>basic_role</code>: 
+            This is the role that is required to run non-administrative commands, which includes:
             <ul>
                 <li><code>/suggest</code> (if suggestions are enabled)</li>
                 <li><code>/leaderboard</code></li>
@@ -37,7 +39,8 @@
             If this variable is unset, anyone is able to run these commands.
         </li>
         <li class="mb-2">
-            <code>admin_role</code>: This is the role that is required to run administrative and potentially destructive commands, which includes:
+            <code class="required">admin_role</code>: 
+            This is the role that is required to run administrative and potentially destructive commands, which includes:
             <ul>
                 <li><code>/questions</code></li>
                 <li><code>/suggestions</code></li>
@@ -46,10 +49,74 @@
             </ul>
             The "Administrator" server permission overrides this role, and anyone with this permission can run every command regardless of what roles they have.<br />
             
-            <p class="text-warning">
+            <p [ngClass]="{'text-warning': true, 'light-theme': themeSwitcherService.isLightTheme}">
                 <b>⚠️ Warning</b>: While people without this role cannot run <code>/suggestions</code>, they <b>can</b> accept or deny suggestions using the buttons of the messages,
                 so make sure to have your <code>suggestions_channel</code> set to a channel that is only viewable by people you trust!
             </p>
+        </li>
+        <li class="mb-2">
+            <code class="required">qotd_channel</code>: 
+            This is the channel that QOTDs are sent to, which includes the daily QOTD and the QOTDs that are triggered manually using <code>/trigger</code>.
+        </li>
+        <li class="mb-2">
+            <code>qotd_ping_role</code>: 
+            This is the role that gets pinged when a QOTD is sent manually or using <code>/trigger</code>, even if it is a preset or there is no QOTD available.<br />
+            If this variable is unset, no role is pinged.
+        </li>
+        <li class="mb-2">
+            <code>enable_automatic_qotd<span class="default-value">true</span></code>: 
+            Determines whether the QOTD is sent automatically every day at the set time.<br />
+            If this variable is set to <code>false</code>, the QOTD has to be triggered manually using <code>/trigger</code>.
+        </li>
+        <li class="mb-2">
+            <code>enable_qotd_pin_message<span class="default-value">true</span></code>:
+            Determines whether the old QOTD is unpinned and the new QOTD is pinned automatically after it is sent manually or using <code>/trigger</code>.<br /> 
+        </li>
+        <li class="mb-2">
+            <code>enable_qotd_automatic_presets<span class="default-value">true</span></code>:
+            Determines whether Presets are sent if there are no custom questions available.<br />
+            See <a href="todo">Presets</a> for more information.
+        </li>
+        <li class="mb-2">
+            <code>enable_qotd_unavailable_message<span class="default-value">true</span></code>:
+            Determines whether a message is sent if there are no QOTDs available, which happens if there are no custom questions available and presets are disabled or exhausted.<br />
+        </li>
+        <li class="mb-2">
+            <code class="required">qotd_time_hour_utc</code> & <code class="required">qotd_time_minute_utc</code>: 
+            The hour and minute at which the QOTDs are sent (if <code>enable_automatic_qotd</code> is enabled), in UTC time.<br />
+            The hour must be between 0 and 23, and the minute must be between 0 and 59.<br />
+            For example, if you want the QOTD to be sent at 3:47 PM UTC, you would set <code>qotd_time_hour_utc</code> to 15 and <code>qotd_time_minute_utc</code> to 47.<br />
+            You can use <a href="https://dateful.com/convert/utc" target="_blank">this tool</a> to convert your local time to UTC, and keep in mind that it might change due to daylight saving time.
+        </li>
+        <li class="mb-2">
+            <code>enable_suggestions<span class="default-value">true</span></code>:
+            Determines whether suggestions are enabled.<br />
+            If suggestions are disabled, the <code>/suggest</code> and <code>/qotd</code> commands are not available.
+        </li>
+        <li class="mb-2">
+            <code>suggestions_channel</code>:
+            The channel where new suggestions are sent to, with buttons to accept/deny them.<br />
+            If this variable is unset, suggestions are not sent anywhere and can only be viewed using <code>/suggestions</code>.<br />
+            See <a href="todo">Suggestions</a> for more information.<br />
+            <span [ngClass]="{'text-warning': true, 'light-theme': themeSwitcherService.isLightTheme}">
+                <b>⚠️ Warning</b>: Make sure to have this set to a channel that is only viewable by people you trust, as anyone can accept or deny suggestions using the buttons of the messages!<br />
+            </span>
+            <b>It is recommended to use this if you have suggestions enabled, as it makes them much easier to manage.</b>
+        </li>
+        <li class="mb-2">
+            <code>suggestions_ping_role</code>:
+            The role that gets pinged alongside with the message in the <code>suggestions_channel</code> when a new suggestion is received.<br />
+            If this variable is unset, no role is pinged.
+        </li>
+        <li class="mb-2">
+            <code>logs_channel</code>:
+            The channel where logs are sent to, which includes changes being made to the config, questions or suggestions. <br />
+            
+            <span [ngClass]="{'text-warning': true, 'light-theme': themeSwitcherService.isLightTheme}">
+                <b>⚠️ Warning</b>: This currently does not log QOTDs being sent automatically or using <code>/trigger</code>,
+                or the config getting re-initialized using <code>/config initialize</code>.<br />
+                I'm working to fix this in a future update, but for now, keep this in mind.
+            </span>
         </li>
     </ul>
 </section>
