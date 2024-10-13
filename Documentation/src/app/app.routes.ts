@@ -6,12 +6,14 @@ import { NotFoundComponent } from './not-found/not-found.component';
 import { PrivacyPolicyComponent } from './privacy-policy/privacy-policy.component';
 import { TermsOfServiceComponent } from './terms-of-service/terms-of-service.component';
 import { DocumentationComponent } from './documentation/documentation.component';
+import { AboutComponent } from './about/about.component';
 
 export const routes: Routes = [
     {path: '', redirectTo: '/home', pathMatch: 'full'},
 
     {path: 'home', component: HomeComponent},
     {path: 'documentation', component: DocumentationComponent},
+    {path: 'about', component: AboutComponent},
 
     {path: 'source', component: RedirectingComponent, canActivate: [RedirectGuard], data: {externalUrl: 'https://github.com/Ascyt/open-qotd'}},
     {path: 'license', component: RedirectingComponent, canActivate: [RedirectGuard], data: {externalUrl: 'https://github.com/Ascyt/open-qotd/blob/main/LICENSE'}},
