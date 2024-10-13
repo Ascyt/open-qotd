@@ -120,3 +120,172 @@
         </li>
     </ul>
 </section>
+
+<section id="questions">
+    <h3 class="mb-2">Questions</h3>
+    <p>
+        Questions are the main feature of OpenQOTD, and they are what the bot sends every day.<br />
+        They can be added by staff members or suggested by users (if suggestions are enabled). 
+        Presets work a little differently, to learn more about them see <a href="todo">Presets</a>.
+    </p>
+    <h4>Types</h4>
+    <p>
+        Each question has one of three types, <b>Suggested</b>, <b>Accepted</b> or <b>Sent</b>:
+    </p>    
+    <ul>
+        <li><b>Suggested</b> questions are questions that have been suggested by users, and have to be accepted or denied by staff members to be sendable.
+        In listings, they are denoted using a <b>red square</b> (🟥)</li>
+        <li><b>Accepted</b> questions are questions that have been accepted or added by staff members, and are sendable.
+        In listings, they are denoted using a <b>blue diamond</b> (🔷)</li>
+        <li><b>Sent</b> questions are questions that have been sent already, and are not sendable again.
+        In listings, they are denoted using a <b>green circle</b> (🟢)</li>
+    </ul>
+    <p>
+        As you can see, the only questions that are sendable are <b>Accepted</b> questions, and they are prioritized over Presets if they are available.<br />
+        If a QOTD is triggered either daily automatically or using <code>/trigger</code>, a random <b>Accepted</b> question is sent, and that question is marked as <b>Sent</b>.
+    </p>
+    <h4>Commands</h4>
+    <p>
+        The following commands are available to manage questions and are only available to Administrators or users with the <code>admin_role</code> set in the config:<br />
+        <i>Required parameters are shown in square brackets (<code>[required]</code>) and optional in angled brackets (<code>&lt;required&gt;</code>), and default values are shown using "<code><span class="default-value">value</span></code>".</i>
+    </p>
+    <ul>
+        <li class="mb-2">
+            <code>/questions view [question_id]</code>: View all available information about a question, including its type, content, author, the date it was added, the person who accepted it, and more. 
+        </li>
+        <li class="mb-2">
+            <code>/questions list [type] &lt;page<span class="default-value">1</span>&gt;</code>: List all question of a certain type, which can be <code>Suggested</code>, <code>Accepted</code> or <code>Sent</code>.
+        </li>
+        <li class="mb-2">
+            <code>/questions search [query] &lt;page<span class="default-value">1</span>&gt;</code>: 
+            Search for questions using a query. All questions that contain the query in their content are shown, no matter the type. This is case-insensitive.
+        </li>
+        <li class="mb-2">
+            <code>/questions add [question] [type]</code>: 
+            Add a question to the bot with a certain type, which can be <code>Suggested</code>, <code>Accepted</code> or <code>Sent</code>.
+        </li>
+        <li class="mb-2">
+            <code>/questions changetype [question_id] [type]</code>: 
+            Change the type of a question to <code>Suggested</code>, <code>Accepted</code> or <code>Sent</code>.
+            Note that setting a question from <code>Suggest</code> to <code>Accepted</code> works, but it is recommended to use <code>/suggestions accept</code> instead.
+        </li>
+        <li class="mb-2">
+            <code>/questions remove [question_id]</code>: 
+            Remove a question from the bot. This is irreversible, and the question is removed from all listings.
+        </li>
+    </ul>
+</section>
+
+<section id="suggestions">
+    <h3 class="mb-2">Suggestions</h3>
+    <p>
+        If suggestions are enabled, users can suggest questions using <code>/suggest</code> or <code>/qotd</code>.<br />
+        These suggestions (=questions with type <code>Suggested</code>) have to be accepted or denied by staff members in order to be sendable, and they are sent to the <code>suggestions_channel</code> with buttons to accept or deny them.<br />
+        Note that anyone can accept or deny suggestions using the buttons of the messages, so make sure to have your <code>suggestions_channel</code> set to a channel that is only viewable by people you trust!<br />
+        Also, for technical limitations, the buttons are only available for 2 hours after a suggestion is sent, otherwise <code>/suggestions</code> must be used instead.
+    </p>
+    <h4>Commands</h4>
+    <p>
+        The following commands are available to manage suggestions and are only available to Administrators or users with the <code>admin_role</code> set in the config:<br />
+        <i>Required parameters are shown in square brackets (<code>[required]</code>) and optional in angled brackets (<code>&lt;required&gt;</code>), and default values are shown using "<code><span class="default-value">value</span></code>".</i>
+    </p>
+    <ul>
+        <li class="mb-2">
+            <code>/suggestions accept [suggestion_id]</code>: 
+            Accepts a suggestion. This changes the type of the question to <code>Accepted</code> and notifies the suggester in private messages.
+        </li>
+        <li class="mb-2">
+            <code>/suggestions deny [suggestion_id] [reason]</code>: 
+            Denies a suggestion with a reason. This permanentlyremoves the suggestion from the bot and notifies the suggester with the denial reason in private messages.<br />
+        </li>
+        <li class="mb-2">
+            <code>/suggestions acceptall</code>: 
+            Accepts all suggestions. This changes the type of all suggestions to <code>Accepted</code> and notifies the suggesters in private messages.
+        </li>
+        <li class="mb-2">
+            <code>/suggestions denyall</code>: 
+            Denies all suggestions without reason. This permanently removes all suggestions from the bot and notifies the suggesters in private messages.<br />
+        </li>
+    </ul>
+    <p>
+        Note that if you want to list all suggestions, you can use <code>/questions list type:Suggested</code>.<br />
+    </p>
+    <p>
+        Also, if the "Deny" button on a suggestion is pressed, the next message sent by that user is taken as the reason, and only afterwards the suggestion is denied with that reason.<br />
+    </p>
+</section>
+
+<section id="presets">
+    <h3 class="mb-2">Presets</h3>
+    <p>
+        Presets are a special type of questions that are sent if they are enabled and there are no custom questions available.<br />
+        Once a preset is sent, it is marked as completed, and is not sendable unless it is manually enabled again.
+        They do NOT show in the <code>/questions</code> or <code>/suggestions</code> listings, and they are not editable, however
+        it is possible to disable them individually by manually marking them as completed using <code>/presets setactive</code>.<br />
+        Just like questions, they get sent in a random order and not as a queue.
+    </p>
+    <h4>Commands</h4>
+    <ul>
+        <li class="mb-2">
+            <code>/presets list &lt;type&gt; &lt;page<span class="default-value">1</span>&gt;</code>: 
+            List all presets of a certain type, which can be <code>Active</code> or <code>Completed</code>.<br />
+            If no type is specified, all presets are shown.
+        </li>
+        <li class="mb-2">
+            <code>/presets setactive [preset_id] [active]</code>: 
+            Set a preset to be <code>Active</code> or <code>Completed</code>. If a preset is active, it is sent if there are no custom questions available.<br />
+        </li>
+        <li class="mb-2">
+            <code>/presets reset</code>: 
+            Reset all presets to be active. This makes all presets sendable if there are no custom questions available.
+        </li>
+        <li class="mb-2">
+            <code>/presets suggest</code>: 
+            Suggest a preset to be added to the bot globally. This is similar to <code>/feedback</code>, only that it is specifically for suggesting presets.
+        </li>
+    </ul>
+</section>
+
+<section id="commands">
+    <h3 class="mb-2">Other Commands</h3>
+    <p>
+        The following commands are other commands, most of which are available to everyone with the <code>basic_role</code> role (with a notable exception being <code>/trigger</code> being admin-only):<br />
+        <i>Required parameters are shown in square brackets (<code>[required]</code>) and optional in angled brackets (<code>&lt;required&gt;</code>), and default values are shown using "<code><span class="default-value">value</span></code>".</i>
+    </p>
+    <ul>
+        <li class="mb-2">
+            <code>/help</code>: Print general help information about the bot and its commands. [todo]
+        </li>
+        <li class="mb-2">
+            <code>/leaderboard &lt;page<span class="default-value">1</span>&gt;</code>: 
+            View the leaderboard of the server, which shows the top users by the amount of <code>Sent</code> questions they have added
+            (questions that have been accepted and sent as QOTD).<br />
+            This is the same as <code>/lb</code>.
+        </li>
+        <li class="mb-2">
+            <code>/sentquestions &lt;page<span class="default-value">1</span>&gt;</code>: 
+            List all questions that have been sent as QOTD.<br />
+            This is the same as <code>/questions list type:Sent</code>, except that it is available to all users with the <code>basic_role</code> (not just admins).
+        </li>
+        <li class="mb-2">
+            <code>/suggest [question]</code>: 
+            Suggest a question to be added to the server, which will create a <code>Suggested</code> question that has to be accepted or denied by staff members to be sendable.<br />
+            This is the same as <code>/qotd</code>.
+        </li>
+        <li class="mb-2">
+            <code>/trigger</code>: 
+            Trigger a QOTD manually. This sends a random available QOTD, as if it was sent automatically.<br />
+            This command is only available to Administrators or users with the <code>admin_role</code> set in the config.
+        </li>
+        <li class="mb-2">
+            <code>/feedback [message]</code>: 
+            Send feedback to the bot's developer. <br />
+            This is available to all users globally, even if they don't have the <code>basic_role</code>.
+        </li>
+    </ul>
+</section>
+
+<p>
+    &gt; OpenQOTD is looking for contributors! If you want to help out with making the bot or this website better, you can take a look at the <a href="/source" target="_blank">source code</a> on GitHub or <a href="https://ascyt.com/contact">send me a message</a>!<br />
+    &gt;&gt; Have any questions, suggestions, or want to report a bug? Please let us know in our <a href="community" target="_blank">community server</a>!
+</p>
