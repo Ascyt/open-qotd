@@ -15,7 +15,12 @@ namespace CustomQotd.Features.Commands
     [Command("suggestions")]
     public class SuggestionsCommands
     {
-        // TODO: List using QuestionsCommands
+        // TODO: Make all of these available to all users if they are run in the set suggestions_channel.
+        // Why? admin_role should only be used for things like questions or triggers, and suggestions should be a separate thing.
+        // Currently, everyone can accept/deny suggestions with access to the suggestion channel using the buttons on the messages, and that's intentional.
+        // However, the technical limitation makes it impossible (afaik) for the buttons to last indefinitely, because (again, afaik) it would require an endless loop, which I don't want to risk.
+        // So the buttons shouldn't be necessary in some way, the /suggestions command with the ID should always be an alternative.
+        // Also add this sort of explanation to documentation.
 
         private static async Task<DiscordMessage?> GetSuggestionMessage(Question question, DiscordGuild guild)
         {
