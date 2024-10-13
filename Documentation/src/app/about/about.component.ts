@@ -1,9 +1,10 @@
 import { Component } from '@angular/core';
+import { NgbModule } from '@ng-bootstrap/ng-bootstrap';
 
 @Component({
   selector: 'app-about',
   standalone: true,
-  imports: [],
+  imports: [NgbModule],
   templateUrl: './about.component.html',
   styleUrl: './about.component.scss'
 })
