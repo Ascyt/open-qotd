@@ -88,6 +88,7 @@ namespace CustomQotd.Features.Commands
                 $"# Useful Links\n" +
                 $"- :heart: [Donate](https://ascyt.com/donate/)\n" +
                 $"- [Documentation & About](https://open-qotd.ascyt.com/)\n" +
+                $"- [Community & Support Server](https://open-qotd.ascyt.com/community)\n" +
                 $"\n" +
                 $"- [Source Code (GitHub)](https://github.com/Ascyt/open-qotd)\n" +
                 $"- [About the Creator](https://ascyt.com/)\n" +
