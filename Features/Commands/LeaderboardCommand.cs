@@ -67,7 +67,7 @@ namespace CustomQotd.Features.Commands
                         .Take(itemsPerPage)
                         .ToArray();
 
-                    int totalEntries = sortedEntries.Count;
+                    int totalEntries = sortedEntries.Count  ;
 
                     int totalPages = (int)Math.Ceiling(totalEntries / (double)itemsPerPage);
 

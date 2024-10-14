@@ -1,7 +1,10 @@
-﻿using CustomQotd.Features.Helpers;
+﻿using CustomQotd.Database;
+using CustomQotd.Database.Entities;
+using CustomQotd.Features.Helpers;
 using DSharpPlus.Commands;
 using DSharpPlus.Commands.Processors.SlashCommands;
 using DSharpPlus.Entities;
+using Microsoft.EntityFrameworkCore;
 using System.ComponentModel;
 
 namespace CustomQotd.Features.Commands
@@ -20,9 +23,9 @@ namespace CustomQotd.Features.Commands
         }
 
         [Command("feedback")]
-        [Description("Leave feedback, suggestions or bugs for the developers of CustomQOTD.")]
-            public static async Task FeedbackAsync(CommandContext context,
-                [Description("The feedback, suggestion or bug.")] string feedback)
+        [Description("Leave feedback or suggestions or report bugs for the developers of OpenQOTD.")]
+        public static async Task FeedbackAsync(CommandContext context,
+            [Description("The feedback, suggestion or bug.")] string feedback)
         {
             string contents = $"[FEEDBACK] @{context!.User.Username} ({context!.User.Id}):\n\t{feedback}\n\n";
 
@@ -32,6 +35,66 @@ namespace CustomQotd.Features.Commands
 
             DiscordEmbed responseEmbed = MessageHelpers.GenericSuccessEmbed("CustomQOTD feedback sent!",
                     $"> \"**{feedback}**\"");
+
+            if (context is SlashCommandContext)
+            {
+                SlashCommandContext slashCommandcontext = context as SlashCommandContext;
+
+                await slashCommandcontext.RespondAsync(responseEmbed, ephemeral: true);
+            }
+            else
+            {
+                await context.RespondAsync(responseEmbed);
+            }
+        }
+
+        [Command("help")]
+        [Description("Print general information about OpenQOTD")]
+        public static async Task HelpAsync(CommandContext context)
+        {
+            if (await CommandRequirements.IsConfigInitialized(context) && !await CommandRequirements.UserIsBasic(context))
+                return;
+
+            Config? config;
+            using (var dbContext = new AppDbContext())
+            {
+                config = await dbContext.Configs
+                    .Where(c => c.GuildId == context.Guild!.Id)
+                    .FirstOrDefaultAsync();
+            }
+
+            string userRole = "Basic User";
+            if (context.Member!.Permissions.HasPermission(DiscordPermissions.Administrator))
+                userRole = "Full Administrator (incl. Config)";
+            else if (await CommandRequirements.UserIsAdmin(context))
+                userRole = "QOTD Administrator (excl. Config)";
+
+            string configValuesDescription = config == null ?
+                $"**:warning: Config not initialized**" :
+                $"- User role: **{userRole}**\n" +
+                $"- QOTD channel: <#{config.QotdChannelId}>\n" +
+                $"- QOTD time: {DSharpPlus.Formatter.Timestamp(DateTime.Today + new TimeSpan(config.QotdTimeHourUtc, config.QotdTimeMinuteUtc, 0), DSharpPlus.TimestampFormat.ShortTime)}\n" +
+                $"- Suggestions enabled: **{config.EnableSuggestions}**";
+
+            DiscordEmbed responseEmbed = MessageHelpers.GenericEmbed("OpenQOTD Help", 
+                $"*OpenQOTD is an open-source Question Of The Day Discord bot with a strong focus on a random sending of QOTDs and custom questions and suggestions.*\n" +
+                $"# Basic Commands\n" +
+                $"- `/qotd` or `/suggest`: Suggest a QOTD to the current server if suggestions are enabled.\n" +
+                $"- `/sentquestions`: View all questions that have been sent.\n" +
+                $"- `/leaderboard` or `/lb`: View a learderboard based on whose questions have been sent the most.\n" +
+                $"- `/feedback`: Submit feedback, suggestions or bug reports to the developers of OpenQOTD.\n" +
+                $"# Server & User values\n" +
+                $"{configValuesDescription}\n" +
+                $"# Useful Links\n" +
+                $"- :heart: [Donate](https://ascyt.com/donate/)\n" +
+                $"- [Documentation & About](https://open-qotd.ascyt.com/)\n" +
+                $"\n" +
+                $"- [Source Code (GitHub)](https://github.com/Ascyt/open-qotd)\n" +
+                $"- [About the Creator](https://ascyt.com/)\n" +
+                $"\n" +
+                $"- [Terms of Service](https://open-qotd.ascyt.com/terms-of-service)\n" +
+                $"- [Privacy Policy](https://open-qotd.ascyt.com/privacy-policy)\n"
+                );
 
             if (context is SlashCommandContext)
             {

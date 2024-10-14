@@ -38,7 +38,7 @@ namespace CustomQotd.Features.Commands
             [Description("The role that will get pinged when a new QOTD is suggested.")] DiscordRole? SuggestionsPingRole = null,
             [Description("The channel where commands, QOTDs and more get logged to.")] DiscordChannel? LogsChannel = null)
         {
-            if (!context.Member.Permissions.HasPermission(DiscordPermissions.Administrator))
+            if (!context.Member!.Permissions.HasPermission(DiscordPermissions.Administrator))
             {
                 await context.RespondAsync(
                     MessageHelpers.GenericErrorEmbed("Server Administrator permission is required to run this command.")

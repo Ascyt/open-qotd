@@ -35,6 +35,7 @@ namespace CustomQotd
 
             Console.WriteLine("Loading presets...");
             await Presets.LoadPresets();
+            Console.WriteLine("Presets loaded.");
 
             string? discordToken = Environment.GetEnvironmentVariable("CUSTOMQOTD_TOKEN");
             if (string.IsNullOrWhiteSpace(discordToken))
