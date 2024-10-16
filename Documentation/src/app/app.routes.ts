@@ -7,6 +7,7 @@ import { PrivacyPolicyComponent } from './privacy-policy/privacy-policy.componen
 import { TermsOfServiceComponent } from './terms-of-service/terms-of-service.component';
 import { DocumentationComponent } from './documentation/documentation.component';
 import { AboutComponent } from './about/about.component';
+import { VoteComponent } from './vote/vote.component';
 
 export const routes: Routes = [
     {path: '', redirectTo: '/home', pathMatch: 'full'},
@@ -14,6 +15,8 @@ export const routes: Routes = [
     {path: 'home', component: HomeComponent},
     {path: 'documentation', component: DocumentationComponent},
     {path: 'about', component: AboutComponent},
+
+    {path: 'vote', component: VoteComponent},
 
     {path: 'source', component: RedirectingComponent, canActivate: [RedirectGuard], data: {externalUrl: 'https://github.com/Ascyt/open-qotd'}},
     {path: 'license', component: RedirectingComponent, canActivate: [RedirectGuard], data: {externalUrl: 'https://github.com/Ascyt/open-qotd/blob/main/LICENSE'}},

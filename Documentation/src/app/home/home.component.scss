@@ -14,7 +14,6 @@
 }
 
 .description {
-    font-style: italic;
     color: var(--front-high);
     font-size: small;
 
@@ -22,6 +21,9 @@
         color: var(--front-high);
         text-decoration: underline;
     }
+}
+.italic {
+    font-style: italic;
 }
 .add-button {
     margin-top: 10px;
