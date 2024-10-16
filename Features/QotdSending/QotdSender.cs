@@ -144,12 +144,19 @@ namespace CustomQotd.Features.QotdSending
                         );
 
                     DiscordMessage presetMessage = await qotdChannel.SendMessageAsync(presetMessageBuilder);
-
+                    
                     await PinMessage(config, qotdChannel, presetMessage);
 
                     using (var dbContext = new AppDbContext())
                     {
+                        Config? foundConfig = await dbContext.Configs.Where(c => c.GuildId == guildId).FirstOrDefaultAsync();
+                        if (foundConfig != null)
+                        {
+                            foundConfig.LastQotdMessageId = presetMessage.Id;
+                        }
+
                         await dbContext.PresetSents.AddAsync(new PresetSent() { GuildId = guildId, PresetIndex = presetIndex });
+
                         await dbContext.SaveChangesAsync(); 
                     }
                 }
