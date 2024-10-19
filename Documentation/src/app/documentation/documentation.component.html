@@ -75,7 +75,7 @@
         <li class="mb-2">
             <code>enable_qotd_automatic_presets<span class="default-value">true</span></code>:
             Determines whether Presets are sent if there are no custom questions available.<br />
-            See <a href="todo">Presets</a> for more information.
+            See <b>Presets</b> for more information.
         </li>
         <li class="mb-2">
             <code>enable_qotd_unavailable_message<span class="default-value">true</span></code>:
@@ -97,7 +97,7 @@
             <code>suggestions_channel</code>:
             The channel where new suggestions are sent to, with buttons to accept/deny them.<br />
             If this variable is unset, suggestions are not sent anywhere and can only be viewed using <code>/suggestions</code>.<br />
-            See <a href="todo">Suggestions</a> for more information.<br />
+            See <b>Suggestions</b> for more information.<br />
             <span [ngClass]="{'text-warning': true, 'light-theme': themeSwitcherService.isLightTheme}">
                 <b>⚠️ Warning</b>: Make sure to have this set to a channel that is only viewable by people you trust, as anyone can accept or deny suggestions using the buttons of the messages!<br />
             </span>
@@ -126,7 +126,7 @@
     <p>
         Questions are the main feature of OpenQOTD, and they are what the bot sends every day.<br />
         They can be added by staff members or suggested by users (if suggestions are enabled). 
-        Presets work a little differently, to learn more about them see <a href="todo">Presets</a>.
+        Presets work a little differently, to learn more about them see <b>Presets</b>.
     </p>
     <h4>Types</h4>
     <p>
@@ -254,7 +254,7 @@
     </p>
     <ul>
         <li class="mb-2">
-            <code>/help</code>: Print general help information about the bot and its commands. [todo]
+            <code>/help</code>: Print general information about the bot.
         </li>
         <li class="mb-2">
             <code>/leaderboard &lt;page<span class="default-value">1</span>&gt;</code>: 
