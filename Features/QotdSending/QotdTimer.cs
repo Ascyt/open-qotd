@@ -35,17 +35,18 @@ namespace CustomQotd.Features.QotdSending
         public static async Task FetchLoopAsync()
         {
             Console.WriteLine("Started fetch loop");
-            try
+            while (true)
             {
-                while (true)
+                try
                 {
                     await Task.Delay(1_000);
+                    await Console.Out.WriteLineAsync($"{DateTime.UtcNow}: Check time");
                     await SendQotdsAsync();
                 }
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"Error in FetchLoopAsync:\n{ex.Message}");
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"Error in FetchLoopAsync:\n{ex.Message}");
+                }
             }
         }
     }
