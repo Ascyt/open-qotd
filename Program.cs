@@ -61,6 +61,7 @@ namespace CustomQotd
                         typeof(TriggerCommand), 
                         typeof(DebugCommand),
                         typeof(LeaderboardCommand),
+                        typeof(TopicCommand),
                         typeof(SimpleCommands)]);
                     TextCommandProcessor textCommandProcessor = new(new()
                     {
