@@ -263,6 +263,13 @@
             This is the same as <code>/lb</code>.
         </li>
         <li class="mb-2">
+            <code>/topic &lt;include_presets<span class="default-value">true</span>&gt;</code>:
+            Send a random question of type <code>Sent</code> to the current channel. <br />
+            This can be used to revive a dead chat and find an interesting topic to talk about.<br />
+            Using a button below the message, the person who ran the command can reroll the question as many times as they want.<br />
+            This command is purely visual, and does not alter the questions in any way, and the same topic can be sent multiple times. 
+        </li>
+        <li class="mb-2">
             <code>/sentquestions &lt;page<span class="default-value">1</span>&gt;</code>: 
             List all questions that have been sent as QOTD.<br />
             This is the same as <code>/questions list type:Sent</code>, except that it is available to all users with the <code>basic_role</code> (not just admins).
