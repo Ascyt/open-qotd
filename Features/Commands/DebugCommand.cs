@@ -215,9 +215,6 @@ namespace CustomQotd.Features.Commands
                             return;
                     }
                     break;
-            }
-
-            await context.RespondAsync("Error: Unknown arg.");
         }
 
         private static async Task AddQuestionsAsync(CommandContext context, string[] argsSplit)

@@ -40,7 +40,7 @@ namespace CustomQotd.Features.QotdSending
                 try
                 {
                     await Task.Delay(1_000);
-                    await Console.Out.WriteLineAsync($"{DateTime.UtcNow}: Check time");
+                    //await Console.Out.WriteLineAsync($"{DateTime.UtcNow}: Check time");
                     await SendQotdsAsync();
                 }
                 catch (Exception ex)
