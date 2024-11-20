@@ -102,7 +102,7 @@ namespace CustomQotd.Features.Commands
                 interactionResponseBuilder.AddEmbed(embed);
                 interactionResponseBuilder.AddComponents(
                     rerollButton
-                    );
+                    );  
 
                 await result.Result.Interaction.CreateResponseAsync(DiscordInteractionResponseType.UpdateMessage, interactionResponseBuilder);
             }

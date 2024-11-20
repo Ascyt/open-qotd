@@ -195,7 +195,7 @@ namespace CustomQotd.Features.Commands
                             return;
                     }
                     break;
-                case "f": 
+                case "f":
                     switch (argsSplit[1])
                     {
                         case "get":
@@ -215,6 +215,7 @@ namespace CustomQotd.Features.Commands
                             return;
                     }
                     break;
+            }
         }
 
         private static async Task AddQuestionsAsync(CommandContext context, string[] argsSplit)
