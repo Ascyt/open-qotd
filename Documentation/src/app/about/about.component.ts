@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, signal } from '@angular/core';
 import { RouterModule } from '@angular/router';
 import { NgbModule } from '@ng-bootstrap/ng-bootstrap';
 
@@ -10,5 +10,4 @@ import { NgbModule } from '@ng-bootstrap/ng-bootstrap';
   styleUrl: './about.component.scss'
 })
 export class AboutComponent {
-
 }

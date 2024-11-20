@@ -24,11 +24,11 @@ What is your favorite food?
 Are you an introvert, an extrovert or an ambivert? Would you change this if you could?
 What kind of music do you listen to?
 What makes you nostalgic?
-You meet a Genie that tells you he can answer you one question about anything. What do you ask him?
+You meet a genie that tells you he can answer you one question about anything. What do you ask him?
 What are your favorite and your least favorite words of the English language?
 What is in your bucket list?
 What is your favorite song?
-What is your favorite movi things to come true, what would they be?
+If you could have any one fictional item be real, what would it be?
 If you were forced to move out of your hometown, which country would you move to?
 What animal best describes you?
 Tell us about a person you look up to!
@@ -148,3 +148,8 @@ What operating system do you use on your phone and desktop computer/laptop?
 How good are your imaginitive abilities?
 What are the biggest problems you're facing in life right now?
 What was the most ill you've ever been?
+What is something you wish you had more time for?
+If you walked into a room with everyone you've ever met, who would you look for first?
+What thing did you waste the most time on?
+What field do you work in, and what advice would you give to anyone looking to start working in your field?
+Imagine you're hired to think of a new species to put on earth. What are you creating?	
