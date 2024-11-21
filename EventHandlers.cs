@@ -1,6 +1,9 @@
 ﻿using CustomQotd.Features.Helpers;
+using DSharpPlus;
 using DSharpPlus.Commands;
 using DSharpPlus.Commands.EventArgs;
+using DSharpPlus.EventArgs;
+using DSharpPlus.Entities;
 using System;
 
 namespace CustomQotd
@@ -15,6 +18,30 @@ namespace CustomQotd
                 message = message.Substring(0, 4096 - 5) + "…";
 
             await e.Context.RespondAsync(MessageHelpers.GenericErrorEmbed(message + "\n```", title: "Error (D#+)"));
+        }
+
+        public static async Task ComponentInteractionCreated(DiscordClient client, ComponentInteractionCreatedEventArgs args)
+        {
+            switch (args.Id)
+            {
+                case "suggest-qotd":
+                    await SuggestQotdButtonClicked(client, args);
+                    return;
+            }
+
+            DiscordMessageBuilder builder = new DiscordMessageBuilder();
+            builder.AddEmbed(
+                MessageHelpers.GenericErrorEmbed($"Unknown event: `{args.Id}`")
+                );
+
+            await args.Interaction.CreateResponseAsync(
+                DiscordInteractionResponseType.UpdateMessage,
+                new DiscordInteractionResponseBuilder(builder));
+        }
+
+        private static async Task SuggestQotdButtonClicked(DiscordClient client, ComponentInteractionCreatedEventArgs args)
+        {
+
         }
     }
 }

@@ -86,10 +86,7 @@ namespace CustomQotd
             });
 
             builder.ConfigureEventHandlers(b => b
-                .HandleGuildMemberAdded((s, e) =>
-                {
-                    return Task.CompletedTask;
-                }));
+                .HandleComponentInteractionCreated(EventHandlers.ComponentInteractionCreated));
 
             DiscordClient client = builder.Build();
             Client = client;
