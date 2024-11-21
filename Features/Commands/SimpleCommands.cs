@@ -52,7 +52,7 @@ namespace CustomQotd.Features.Commands
         [Description("Print general information about OpenQOTD")]
         public static async Task HelpAsync(CommandContext context)
         {
-            if (await CommandRequirements.IsConfigInitialized(context) && !await CommandRequirements.UserIsBasic(context))
+            if (!await CommandRequirements.IsConfigInitialized(context) || !await CommandRequirements.UserIsBasic(context))
                 return;
 
             Config? config;
