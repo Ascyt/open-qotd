@@ -86,7 +86,8 @@ namespace CustomQotd
             });
 
             builder.ConfigureEventHandlers(b => b
-                .HandleComponentInteractionCreated(EventHandlers.ComponentInteractionCreated));
+                .HandleComponentInteractionCreated(EventHandlers.ComponentInteractionCreated)
+                .HandleModalSubmitted(EventHandlers.ModalSubmittedEvent));
 
             DiscordClient client = builder.Build();
             Client = client;
