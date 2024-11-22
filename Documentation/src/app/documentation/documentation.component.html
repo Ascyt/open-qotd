@@ -8,7 +8,7 @@
     <h3 class="mb-2">General Usage</h3>
     <p>
         The main way to interact with OpenQOTD is using <a href="https://support-apps.discord.com/hc/en-us/articles/26501837786775-Slash-Commands-FAQ" target="_blank">Slash Commands</a>.<br />
-        It's also possible to use the the chat prefix <code>qotd:</code> (as in <code>qotd:questions search "hello"</code>), however this only has limited support and may lead to issues.
+        OpenQOTD also only acts once the configuration has been initialized, otherwise it does nothing. 
     </p>
 </section>
 
@@ -34,9 +34,10 @@
             <ul>
                 <li><code>/suggest</code> (if suggestions are enabled)</li>
                 <li><code>/leaderboard</code></li>
+                <li><code>/topic</code></li>
                 <li><code>/sentquestions</code></li>
             </ul>
-            If this variable is unset, anyone is able to run these commands.
+            This is set to everyone by default. That means, if this variable is unset, everyone in your server is able to run these commands.
         </li>
         <li class="mb-2">
             <code class="required">admin_role</code>: 
@@ -51,7 +52,8 @@
             
             <p [ngClass]="{'text-warning': true, 'light-theme': themeSwitcherService.isLightTheme}">
                 <b>⚠️ Warning</b>: While people without this role cannot run <code>/suggestions</code>, they <b>can</b> accept or deny suggestions using the buttons of the messages,
-                so make sure to have your <code>suggestions_channel</code> set to a channel that is only viewable by people you trust!
+                so make sure to have your <code>suggestions_channel</code> set to a channel that is only viewable by people you trust!<br />
+                It's recommended to set it to a staff-only channel, and it can also be within a thread, to make it easier for organization purposes.
             </p>
         </li>
         <li class="mb-2">
@@ -182,7 +184,6 @@
         If suggestions are enabled, users can suggest questions using <code>/suggest</code> or <code>/qotd</code>.<br />
         These suggestions (=questions with type <code>Suggested</code>) have to be accepted or denied by staff members in order to be sendable, and they are sent to the <code>suggestions_channel</code> with buttons to accept or deny them.<br />
         Note that anyone can accept or deny suggestions using the buttons of the messages, so make sure to have your <code>suggestions_channel</code> set to a channel that is only viewable by people you trust!<br />
-        Also, for technical limitations, the buttons are only available for 2 hours after a suggestion is sent, otherwise <code>/suggestions</code> must be used instead.
     </p>
     <h4>Commands</h4>
     <p>
