@@ -66,7 +66,7 @@ namespace CustomQotd.Features.Commands
             string userRole = "Basic User";
             if (context.Member!.Permissions.HasPermission(DiscordPermissions.Administrator))
                 userRole = "Full Administrator (incl. Config)";
-            else if (await CommandRequirements.UserIsAdmin(context))
+            else if (await CommandRequirements.UserIsAdmin(context, responseOnError:false))
                 userRole = "QOTD Administrator (excl. Config)";
 
             string configValuesDescription = config == null ?
