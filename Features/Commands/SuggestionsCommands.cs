@@ -442,15 +442,15 @@ namespace CustomQotd.Features.Commands
                 await Logging.LogUserAction(context, "Accepted Suggestion", question.ToString());
         }
 
-        public static async Task DenySuggestionNoContextAsync(Question question, DiscordMessage? suggestionMessage, InteractivityResult<ComponentInteractionCreatedEventArgs>? result, CommandContext? context, string? reason, bool logAndNotify = true)
+        public static async Task DenySuggestionNoContextAsync(Question question, DiscordMessage? suggestionMessage, ModalSubmittedEventArgs? result, CommandContext? context, string? reason, bool logAndNotify = true)
         {
             if (result == null && context == null)
             {
                 throw new ArgumentNullException(nameof(context));
             }
 
-            DiscordUser user = context?.User ?? result!.Value.Result.User;
-            DiscordGuild guild = context?.Guild ?? result!.Value.Result.Guild;
+            DiscordUser user = context?.User ?? result!.Interaction.User;
+            DiscordGuild guild = context?.Guild ?? result!.Interaction.Guild!;
 
             using (var dbContext = new AppDbContext())
             {
