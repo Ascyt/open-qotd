@@ -8,6 +8,7 @@ using DSharpPlus.Exceptions;
 using DSharpPlus.Interactivity;
 using Microsoft.EntityFrameworkCore;
 using System.ComponentModel;
+using System.Runtime.CompilerServices;
 using System.Text;
 
 namespace CustomQotd.Features.Commands
@@ -405,7 +406,10 @@ namespace CustomQotd.Features.Commands
                 messageBuilder.AddEmbed(MessageHelpers.GenericEmbed($"QOTD Suggestion Accepted", embedBody +
                     $"\n\nAccepted by: {user.Mention}", color: "#20ff20"));
 
-                await suggestionMessage.ModifyAsync(messageBuilder);
+                if (result is null)
+                    await suggestionMessage.ModifyAsync(messageBuilder);
+                else
+                    await result.Interaction.CreateResponseAsync(DiscordInteractionResponseType.UpdateMessage, new DiscordInteractionResponseBuilder(messageBuilder));
             }
 
             if (!logAndNotify)
@@ -482,7 +486,10 @@ namespace CustomQotd.Features.Commands
                 messageBuilder.AddEmbed(MessageHelpers.GenericEmbed($"QOTD Suggestion Denied", embedBody +
                     $"\n\nDenied by: {user.Mention}{(reason != null ? $"\nReason: \"**{reason}**\"" : "")}", color: "#ff2020"));
 
-                await suggestionMessage.ModifyAsync(messageBuilder);
+                if (result is null)
+                    await suggestionMessage.ModifyAsync(messageBuilder);
+                else
+                    await result.Interaction.CreateResponseAsync(DiscordInteractionResponseType.UpdateMessage, new DiscordInteractionResponseBuilder(messageBuilder));
             }
 
             if (!logAndNotify)

@@ -41,6 +41,13 @@ namespace CustomQotd
                 case "suggest-qotd":
                     await SuggestQotdButtonClicked(client, args);
                     return;
+
+                case "forward":
+                case "backward":
+                case "last":
+                case "redirect":
+                case "reroll":
+                    return;
             }
 
             await RespondWithError(args, $"Unknown event: `{args.Id}`");
