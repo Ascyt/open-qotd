@@ -21,6 +21,10 @@
         color: var(--front-high);
         text-decoration: underline;
     }
+    
+    &.smaller {
+        font-size: x-small;
+    }
 }
 .italic {
     font-style: italic;
