@@ -35,5 +35,21 @@ namespace CustomQotd.Features.Helpers
                 return null;
             }
         }
+
+        /// <summary>
+        /// Gets a channel from an ID.
+        /// </summary>
+        /// <returns>The channel, or null if it's not found</returns>
+        public static async Task<DiscordMessage?> GetDiscordMessage(ulong id, DiscordChannel channel)
+        {
+            try
+            {
+                return await channel.GetMessageAsync(id);
+            }
+            catch (NotFoundException)
+            {
+                return null;
+            }
+        }
     }
 }

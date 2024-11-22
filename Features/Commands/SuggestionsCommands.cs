@@ -101,9 +101,7 @@ namespace CustomQotd.Features.Commands
 
             DiscordMessage? suggestionMessage = await GetSuggestionMessage(question, context.Guild!);
 
-            string embedBody = GetEmbedBody(question);
-
-            await AcceptSuggestionNoContextAsync(question, suggestionMessage, null, context, embedBody:embedBody);
+            await AcceptSuggestionNoContextAsync(question, suggestionMessage, null, context);
 
             await context.RespondAsync(
                 MessageHelpers.GenericSuccessEmbed("Suggestion Accepted", $"Successfully accepted suggestion with ID `{question.GuildDependentId}`"));
@@ -144,7 +142,7 @@ namespace CustomQotd.Features.Commands
 
             string embedBody = GetEmbedBody(question);
 
-            await DenySuggestionNoContextAsync(question, suggestionMessage, null, context, embedBody: embedBody, reason);
+            await DenySuggestionNoContextAsync(question, suggestionMessage, null, context, reason);
 
             await context.RespondAsync(
                 MessageHelpers.GenericSuccessEmbed("Suggestion Denied", $"Successfully denied suggestion with ID `{question.GuildDependentId}`."));
@@ -171,7 +169,7 @@ namespace CustomQotd.Features.Commands
             {
                 DiscordMessage? suggestionMessage = await GetSuggestionMessage(question, context.Guild!);
 
-                await AcceptSuggestionNoContextAsync(question, suggestionMessage, null, context, GetEmbedBody(question), false);
+                await AcceptSuggestionNoContextAsync(question, suggestionMessage, null, context, false);
 
                 await Task.Delay(100); // Prevent rate-limit
 
@@ -278,7 +276,7 @@ namespace CustomQotd.Features.Commands
             {
                 DiscordMessage? suggestionMessage = await GetSuggestionMessage(question, context.Guild!);
 
-                await DenySuggestionNoContextAsync(question, suggestionMessage, null, context, GetEmbedBody(question), null, false);
+                await DenySuggestionNoContextAsync(question, suggestionMessage, null, context, null, false);
 
                 await Task.Delay(100); // Prevent rate-limit
 
@@ -363,15 +361,15 @@ namespace CustomQotd.Features.Commands
         }
 
 
-        public static async Task AcceptSuggestionNoContextAsync(Question question, DiscordMessage? suggestionMessage, InteractivityResult<ComponentInteractionCreatedEventArgs>? result, CommandContext? context, string embedBody, bool logAndNotify=true)
+        public static async Task AcceptSuggestionNoContextAsync(Question question, DiscordMessage? suggestionMessage, ComponentInteractionCreatedEventArgs? result, CommandContext? context, bool logAndNotify=true)
         {
             if (result == null && context == null)
             {
                 throw new ArgumentNullException(nameof(context));
             }
 
-            DiscordUser user = context?.User ?? result!.Value.Result.User;
-            DiscordGuild guild = context?.Guild ?? result!.Value.Result.Guild;
+            DiscordUser user = context?.User ?? result!.User;
+            DiscordGuild guild = context?.Guild ?? result!.Guild;
 
             using (var dbContext = new AppDbContext())
             {
@@ -401,6 +399,8 @@ namespace CustomQotd.Features.Commands
             if (suggestionMessage is not null)
             {
                 DiscordMessageBuilder messageBuilder = new();
+
+                string embedBody = GetEmbedBody(question);
 
                 messageBuilder.AddEmbed(MessageHelpers.GenericEmbed($"QOTD Suggestion Accepted", embedBody +
                     $"\n\nAccepted by: {user.Mention}", color: "#20ff20"));
@@ -442,7 +442,7 @@ namespace CustomQotd.Features.Commands
                 await Logging.LogUserAction(context, "Accepted Suggestion", question.ToString());
         }
 
-        public static async Task DenySuggestionNoContextAsync(Question question, DiscordMessage? suggestionMessage, InteractivityResult<ComponentInteractionCreatedEventArgs>? result, CommandContext? context, string embedBody, string? reason, bool logAndNotify = true)
+        public static async Task DenySuggestionNoContextAsync(Question question, DiscordMessage? suggestionMessage, InteractivityResult<ComponentInteractionCreatedEventArgs>? result, CommandContext? context, string? reason, bool logAndNotify = true)
         {
             if (result == null && context == null)
             {
@@ -462,7 +462,7 @@ namespace CustomQotd.Features.Commands
 
                     if (suggestionMessage is null)
                         await context.Channel.SendMessageAsync(embed);
-                    else
+                    else 
                         await suggestionMessage.Channel!.SendMessageAsync(embed
                         );
                     return;
@@ -476,6 +476,8 @@ namespace CustomQotd.Features.Commands
             if (suggestionMessage is not null)
             {
                 DiscordMessageBuilder messageBuilder = new();
+
+                string embedBody = GetEmbedBody(question);
 
                 messageBuilder.AddEmbed(MessageHelpers.GenericEmbed($"QOTD Suggestion Denied", embedBody +
                     $"\n\nDenied by: {user.Mention}{(reason != null ? $"\nReason: \"**{reason}**\"" : "")}", color: "#ff2020"));
