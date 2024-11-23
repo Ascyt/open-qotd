@@ -69,7 +69,7 @@ namespace CustomQotd.Database.Entities
 
         public static async Task<bool> CheckTextValidity(string text, CommandContext context)
         {
-            if (text.Length > 250)
+            if (text.Length > 256)
             {
                 await context.RespondAsync(
                     MessageHelpers.GenericErrorEmbed(title: "Maximum Length Exceeded", message: $"Your question is {text.Length} characters in length, however it must not exceed **250** characters."));

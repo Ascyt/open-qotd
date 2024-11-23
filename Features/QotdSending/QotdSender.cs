@@ -106,6 +106,8 @@ namespace CustomQotd.Features.QotdSending
                 await dbContext.SaveChangesAsync();
             }
 
+            DiscordButtonComponent suggestButton = new(DiscordButtonStyle.Secondary, "suggest-qotd", "Suggest a new QOTD...");
+
             DiscordChannel qotdChannel;
             try
             {
@@ -142,6 +144,11 @@ namespace CustomQotd.Features.QotdSending
                         color: "#8acfac")
                         .WithFooter($"{presetsAvailable - 1} preset{((presetsAvailable - 1) == 1 ? "" : "s")} left{(config.EnableSuggestions ? $", /qotd to suggest" : "")} \x2022 Preset ID: {presetIndex}")
                         );
+                    
+                    if (config.EnableSuggestions)
+                    {
+                        presetMessageBuilder.AddComponents(suggestButton);
+                    }
 
                     DiscordMessage presetMessage = await qotdChannel.SendMessageAsync(presetMessageBuilder);
                     
@@ -168,6 +175,10 @@ namespace CustomQotd.Features.QotdSending
                     noQuestionMessage.AddEmbed(
                         MessageHelpers.GenericEmbed(title: "No QOTD Available", message: $"There is currently no Question Of The Day available." +
                         (config.EnableSuggestions ? $"\n\n*Suggest some using `/qotd`!*" : ""), color: "#dc5051"));
+                    if (config.EnableSuggestions)
+                    {
+                        noQuestionMessage.AddComponents(suggestButton);
+                    }
 
                     await qotdChannel.SendMessageAsync(noQuestionMessage);
                 }
@@ -207,6 +218,11 @@ namespace CustomQotd.Features.QotdSending
                 color: "#8acfac")
                 .WithFooter($"{acceptedQuestionsCount} question{(acceptedQuestionsCount == 1 ? "" : "s")} left{(config.EnableSuggestions ? $", /qotd to suggest" : "")} \x2022 Question ID: {question.GuildDependentId}")
                 );
+
+            if (config.EnableSuggestions)
+            {
+                qotdMessageBuilder.AddComponents(suggestButton);
+            }
 
             DiscordMessage qotdMessage = await qotdChannel.SendMessageAsync(qotdMessageBuilder);
 

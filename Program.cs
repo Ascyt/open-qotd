@@ -12,6 +12,7 @@ using DSharpPlus.Interactivity.Extensions;
 using DSharpPlus.Interactivity.Enums;
 using DSharpPlus.Interactivity;
 using CustomQotd.Features.QotdSending;
+using CustomQotd.Features.EventHandlers;
 
 namespace CustomQotd
 {
