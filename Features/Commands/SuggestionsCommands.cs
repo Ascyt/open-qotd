@@ -231,7 +231,7 @@ namespace CustomQotd.Features.Commands
                         userSendMessage
                         );
 
-                    await Task.Delay(100); // Prevent rate-limit
+                    await Task.Delay(1000); // Prevent rate-limit
                 }
             }
 
@@ -279,7 +279,7 @@ namespace CustomQotd.Features.Commands
 
                 await DenySuggestionNoContextAsync(question, suggestionMessage, null, context, null, false);
 
-                await Task.Delay(100); // Prevent rate-limit
+                await Task.Delay(1000); // Prevent rate-limit
 
                 if (!questionsByUsers.ContainsKey(question.SubmittedByUserId))
                     questionsByUsers.Add(question.SubmittedByUserId, new List<Question>());
@@ -443,7 +443,7 @@ namespace CustomQotd.Features.Commands
             }
 
             if (context == null)
-                await Logging.LogUserAction(suggestionMessage.Channel!.Guild.Id, suggestionMessage.Channel, user, "Accepted Suggestion", question.ToString());
+                await Logging.LogUserAction(suggestionMessage!.Channel!.Guild.Id, suggestionMessage.Channel, user, "Accepted Suggestion", question.ToString());
             else
                 await Logging.LogUserAction(context, "Accepted Suggestion", question.ToString());
         }
@@ -467,7 +467,7 @@ namespace CustomQotd.Features.Commands
                     DiscordEmbed embed = MessageHelpers.GenericErrorEmbed(title: "Suggestion Not Found", message: $"The suggestion with ID `{question.GuildDependentId}` could not be found.");
 
                     if (suggestionMessage is null)
-                        await context.Channel.SendMessageAsync(embed);
+                        await context!.Channel.SendMessageAsync(embed);
                     else 
                         await suggestionMessage.Channel!.SendMessageAsync(embed
                         );
@@ -526,13 +526,11 @@ namespace CustomQotd.Features.Commands
             }
 
             if (context == null)
-                await Logging.LogUserAction(suggestionMessage.Channel!.Guild.Id, suggestionMessage.Channel, user, "Denied Suggestion", $"{question.ToString()}\n\n" +
+                await Logging.LogUserAction(suggestionMessage!.Channel!.Guild.Id, suggestionMessage.Channel, user, "Denied Suggestion", $"{question.ToString()}\n\n" +
                 $"Denial Reason: \"**{reason}**\"");
             else
                 await Logging.LogUserAction(context, "Denied Suggestion", $"{question.ToString()}\n\n" +
                 $"Denial Reason: \"**{reason}**\"");
         }
-
-        // TODO: acceptall, denyall
     }
 }
