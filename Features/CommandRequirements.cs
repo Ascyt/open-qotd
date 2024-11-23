@@ -34,6 +34,7 @@ namespace CustomQotd.Features
                 DiscordInteractionResponseBuilder response = new();
                 response.AddEmbed(
                     MessageHelpers.GenericErrorEmbed(result.Item2!));
+                response.IsEphemeral = true;
 
                 await args.Interaction.CreateResponseAsync(DiscordInteractionResponseType.ChannelMessageWithSource, response);
             }
@@ -124,6 +125,7 @@ namespace CustomQotd.Features
                 DiscordInteractionResponseBuilder response = new();
                 response.AddEmbed(
                     MessageHelpers.GenericErrorEmbed(result.Item2!));
+                response.IsEphemeral = true;
 
                 await args.Interaction.CreateResponseAsync(DiscordInteractionResponseType.ChannelMessageWithSource, response);
             }

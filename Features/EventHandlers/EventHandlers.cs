@@ -87,8 +87,17 @@ namespace CustomQotd.Features.EventHandlers
 
         private static async Task SuggestQotdModalSubmitted(DiscordClient client, ModalSubmittedEventArgs args)
         {
-            
+            string question = args.Values["text"];
 
+            (bool, DiscordEmbed) result = await SuggestCommand.SuggestNoContextAsync(question, args.Interaction.Guild!, args.Interaction.Channel, args.Interaction.User);
+
+            DiscordMessageBuilder messageBuilder = new DiscordMessageBuilder();
+            messageBuilder.AddEmbed(result.Item2);
+            DiscordInteractionResponseBuilder responseBuilder = new DiscordInteractionResponseBuilder(messageBuilder);
+            responseBuilder.IsEphemeral = true;
+
+            await args.Interaction.CreateResponseAsync(DiscordInteractionResponseType.ChannelMessageWithSource, responseBuilder);
+        
         }
     }
 }
