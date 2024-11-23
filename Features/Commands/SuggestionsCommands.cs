@@ -401,6 +401,8 @@ namespace CustomQotd.Features.Commands
             {
                 DiscordMessageBuilder messageBuilder = new();
 
+                messageBuilder.WithContent("");
+
                 string embedBody = GetEmbedBody(question);
 
                 messageBuilder.AddEmbed(MessageHelpers.GenericEmbed($"QOTD Suggestion Accepted", embedBody +
@@ -480,6 +482,8 @@ namespace CustomQotd.Features.Commands
             if (suggestionMessage is not null)
             {
                 DiscordMessageBuilder messageBuilder = new();
+
+                messageBuilder.WithContent("");
 
                 string embedBody = GetEmbedBody(question);
 
