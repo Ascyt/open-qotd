@@ -131,7 +131,7 @@ namespace CustomQotd.Features.Commands
                                     new Question() { Id = 36 },
                                     new Question() { Id = 37 }
                                     );
-                                await dbContext.SaveChangesAsync();
+                                
                                 data = JsonConvert.SerializeObject(await dbContext.Questions.ToArrayAsync(), Formatting.Indented);
                             }
                             DiscordMessageBuilder builder = new();
