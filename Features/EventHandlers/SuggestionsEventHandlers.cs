@@ -157,7 +157,6 @@ namespace CustomQotd.Features.EventHandlers
             string reason = args.Values["reason"];
 
             await SuggestionsCommands.DenySuggestionNoContextAsync(suggestionData.Value.Item2, suggestionData.Value.Item3, args, null, reason);
-
         }
     }
 }

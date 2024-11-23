@@ -62,11 +62,13 @@ namespace CustomQotd.Features.EventHandlers
                 case "suggestions-deny":
                     await SuggestionsEventHandlers.SuggestionsDenyReasonModalSubmitted(client, args, int.Parse(idArgs[1]));
                     return;
+                case "suggest-qotd":
+                    await SuggestQotdModalSubmitted(client, args);
+                    return;
             }
 
             await SuggestionsEventHandlers.RespondWithError(args, $"Unknown event: `{args.Interaction.Data.CustomId}`");
         }
-
 
 
         private static async Task SuggestQotdButtonClicked(DiscordClient client, ComponentInteractionCreatedEventArgs args)
@@ -75,12 +77,18 @@ namespace CustomQotd.Features.EventHandlers
                 return;
 
             DiscordInteractionResponseBuilder modal = new DiscordInteractionResponseBuilder()
-                .WithTitle("Suggest a new QOTD!")
+                .WithTitle("Suggest a new Question Of The Day!")
                 .WithCustomId("suggest-qotd")
                 .AddComponents(new DiscordTextInputComponent(
                     label: "Question", customId: "text", placeholder: $"This will have to be approved by the staff of {args.Guild.Name}.", max_length: 256, required: true, style: DiscordTextInputStyle.Short));
 
             await args.Interaction.CreateResponseAsync(DiscordInteractionResponseType.Modal, modal);
+        }
+
+        private static async Task SuggestQotdModalSubmitted(DiscordClient client, ModalSubmittedEventArgs args)
+        {
+            
+
         }
     }
 }

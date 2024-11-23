@@ -29,7 +29,7 @@ namespace CustomQotd.Features.Commands
             using (var dbContext = new AppDbContext())
             {
                 Config? config = await dbContext.Configs.Where(c => c.GuildId == context.Guild!.Id).FirstOrDefaultAsync();
-                
+
                 if (config != null && !config.EnableSuggestions)
                 {
                     await context.RespondAsync(
@@ -38,11 +38,28 @@ namespace CustomQotd.Features.Commands
                 }
             }
 
-            if (!await Question.CheckTextValidity(question, context))
-                return;
+            (bool, DiscordEmbed) result = await SuggestNoContextAsync(question, context.Guild!, context.Channel, context.User);
 
-            ulong guildId = context.Guild!.Id;
-            ulong userId = context.User.Id;
+            if (context is SlashCommandContext && result.Item1) // Is slash command and not errored
+            {
+                SlashCommandContext? slashCommandcontext = context as SlashCommandContext;
+
+                await slashCommandcontext!.RespondAsync(result.Item2, ephemeral: true);
+            }
+            else
+            {
+                await context.RespondAsync(result.Item2);
+            }
+        }
+
+        /// <returns>(whether or not successful, response message)</returns>
+        public static async Task<(bool, DiscordEmbed)> SuggestNoContextAsync(string question, DiscordGuild guild, DiscordChannel discordChannel, DiscordUser user)
+        {
+            if (!await Question.CheckTextValidity(question, null))
+                return (false, MessageHelpers.GenericErrorEmbed("Text validity check failed"));
+
+            ulong guildId = guild.Id;
+            ulong userId = user.Id;
 
             Question newQuestion;
             ulong? suggestionsChannelId;
@@ -65,34 +82,25 @@ namespace CustomQotd.Features.Commands
                 suggestionsPingRoleId = await dbContext.Configs.Where(c => c.GuildId == guildId).Select(c => c.SuggestionsPingRoleId).FirstOrDefaultAsync();
             }
 
-            DiscordEmbed suggestResponseEmbed = MessageHelpers.GenericSuccessEmbed("QOTD Suggested!",
+            var result = (true, MessageHelpers.GenericSuccessEmbed("QOTD Suggested!",
                     $"Your Question Of The Day:\n" +
                     $"> \"**{newQuestion.Text}**\"\n" +
                     $"\n" +
                     $"Has successfully been suggested!\n" +
-                    $"You will be notified when it gets accepted or denied.");
+                    $"You will be notified when it gets accepted or denied."));
 
-            if (context is SlashCommandContext)
-            {
-                SlashCommandContext slashCommandcontext = context as SlashCommandContext;
 
-                await slashCommandcontext.RespondAsync(suggestResponseEmbed, ephemeral:true);
-            }
-            else
-            {
-                await context.RespondAsync(suggestResponseEmbed);
-            }
-
-            await Logging.LogUserAction(context, "Suggested QOTD", $"> \"**{newQuestion.Text}**\"\nID: `{newQuestion.GuildDependentId}`");
+            await Logging.LogUserAction(guildId, discordChannel, user, "Suggested QOTD", $"> \"**{newQuestion.Text}**\"\nID: `{newQuestion.GuildDependentId}`");
 
             if (suggestionsChannelId == null)
             {
                 if (suggestionsPingRoleId == null)
                 {
-                    await context.Channel.SendMessageAsync("Suggestions ping role is set, but suggestions channel is not.\n\n" +
-                        "*The channel can be set using `/config set suggestions_channel [channel]`, or the ping role can be removed using `/config reset suggestions_ping_role`.*");
+                    await discordChannel.SendMessageAsync(MessageHelpers.GenericWarningEmbed("Suggestions ping role is set, but suggestions channel is not.\n\n" +
+                        "*The channel can be set using `/config set suggestions_channel [channel]`, or the ping role can be removed using `/config reset suggestions_ping_role`.*"));
                 }
-                return;
+                // Qotd suggested but no suggestion channel
+                return result;
             }
 
             DiscordRole? pingRole = null;
@@ -100,11 +108,11 @@ namespace CustomQotd.Features.Commands
             {
                 try
                 {
-                    pingRole = await context.Guild!.GetRoleAsync(suggestionsPingRoleId.Value);
+                    pingRole = await guild.GetRoleAsync(suggestionsPingRoleId.Value);
                 }
                 catch (NotFoundException)
                 {
-                    await context.Channel.SendMessageAsync(
+                    await discordChannel.SendMessageAsync(
                         MessageHelpers.GenericWarningEmbed("Suggestions ping role is set, but not found.\n\n" +
                         "*It can be set using `/config set suggestions_ping_role [channel]`, or unset using `/config reset suggestions_ping_role`.*")
                         );
@@ -114,15 +122,14 @@ namespace CustomQotd.Features.Commands
             DiscordChannel channel;
             try
             {
-                channel = await context.Guild!.GetChannelAsync(suggestionsChannelId.Value);
+                channel = await guild.GetChannelAsync(suggestionsChannelId.Value);
             }
             catch (NotFoundException)
             {
-                await context.Channel.SendMessageAsync(
+                return (false,
                     MessageHelpers.GenericWarningEmbed("Suggestions channel is set, but not found.\n\n" +
                     "*It can be set using `/config set suggestions_channel [channel]`, or unset using `/config reset suggestions_channel`.*")
                     );
-                return;
             }
 
             DiscordMessageBuilder messageBuilder = new();
@@ -130,7 +137,7 @@ namespace CustomQotd.Features.Commands
             AddPingIfAvailable(messageBuilder, pingRole);
 
             string embedBody = $"> \"**{newQuestion.Text}**\"\n" +
-                $"By: {context.Member!.Mention} (`{context.Member!.Id}`)\n" +
+                $"By: {user.Mention} (`{user.Id}`)\n" +
                 $"ID: `{newQuestion.GuildDependentId}`";
 
             messageBuilder.AddEmbed(MessageHelpers.GenericEmbed("A new QOTD Suggestion is available!", embedBody,
@@ -158,6 +165,8 @@ namespace CustomQotd.Features.Commands
                     newQuestion = updateQuestion;
                 }
             }
+
+            return result;
         }
         private static void AddPingIfAvailable(DiscordMessageBuilder messageBuilder, DiscordRole? pingRole)
         {

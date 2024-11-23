@@ -67,20 +67,21 @@ namespace CustomQotd.Database.Entities
             return nextId;
         }
 
-        public static async Task<bool> CheckTextValidity(string text, CommandContext context)
+        public static async Task<bool> CheckTextValidity(string text, CommandContext? context)
         {
             if (text.Length > 256)
             {
-                await context.RespondAsync(
-                    MessageHelpers.GenericErrorEmbed(title: "Maximum Length Exceeded", message: $"Your question is {text.Length} characters in length, however it must not exceed **250** characters."));
+                if (context != null)
+                    await context.RespondAsync(
+                        MessageHelpers.GenericErrorEmbed(title: "Maximum Length Exceeded", message: $"Your question is {text.Length} characters in length, however it must not exceed **250** characters."));
                 return false;
             }
 
             if (text.Contains("\n"))
             {
-                await context.RespondAsync(
-                    MessageHelpers.GenericErrorEmbed(title: "Line-breaks are forbidden", message: "Your question must not contain any line-breaks and must all be written in one line.")
-                    );
+                if (context != null)
+                    await context.RespondAsync(
+                        MessageHelpers.GenericErrorEmbed(title: "Line-breaks are forbidden", message: "Your question must not contain any line-breaks and must all be written in one line."));
                 return false;
             }
 
