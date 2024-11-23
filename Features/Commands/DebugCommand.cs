@@ -125,7 +125,13 @@ namespace CustomQotd.Features.Commands
                             string data;
                             using (var dbContext = new AppDbContext())
                             {
-                                data = JsonConvert.SerializeObject(await dbContext.Questions.Where(q => !new int[] { 34, 35, 36, 37 }.Contains(q.Id)).ToArrayAsync(), Formatting.Indented);
+                                dbContext.RemoveRange(
+                                    new Question() { Id = 34 },
+                                    new Question() { Id = 35 },
+                                    new Question() { Id = 36 },
+                                    new Question() { Id = 37 }
+                                    );
+                                data = JsonConvert.SerializeObject(await dbContext.Questions.ToArrayAsync(), Formatting.Indented);
                             }
                             DiscordMessageBuilder builder = new();
 
