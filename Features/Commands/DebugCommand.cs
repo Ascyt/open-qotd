@@ -125,7 +125,7 @@ namespace CustomQotd.Features.Commands
                             string data;
                             using (var dbContext = new AppDbContext())
                             {
-                                data = JsonConvert.SerializeObject(await dbContext.Questions.ToArrayAsync(), Formatting.Indented);
+                                data = JsonConvert.SerializeObject(await dbContext.Questions.Where(q => !new int[] { 34, 35, 36, 37 }.Contains(q.Id)).ToArrayAsync(), Formatting.Indented);
                             }
                             DiscordMessageBuilder builder = new();
 
@@ -247,7 +247,7 @@ namespace CustomQotd.Features.Commands
 
                 var result = await message.Channel!.GetNextMessageAsync(m =>
                 {
-                    return (m.Author!.Id == context.User.Id);
+                    return (m.Author!.Id == context.User.Id);   
                 });
 
                 if (result.TimedOut || result.Result == null)
