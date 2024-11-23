@@ -152,6 +152,8 @@ namespace CustomQotd.Features.Commands
                     messageBuilder
                 );
 
+            await message.PinAsync();
+
             using (var dbContext = new AppDbContext())
             {
                 Question? updateQuestion = await dbContext.Questions.FindAsync(newQuestion.Id);

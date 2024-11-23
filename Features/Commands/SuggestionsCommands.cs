@@ -412,6 +412,8 @@ namespace CustomQotd.Features.Commands
                     await suggestionMessage.ModifyAsync(messageBuilder);
                 else
                     await result.Interaction.CreateResponseAsync(DiscordInteractionResponseType.UpdateMessage, new DiscordInteractionResponseBuilder(messageBuilder));
+
+                await suggestionMessage.UnpinAsync();
             }
 
             if (!logAndNotify)
@@ -494,6 +496,8 @@ namespace CustomQotd.Features.Commands
                     await suggestionMessage.ModifyAsync(messageBuilder);
                 else
                     await result.Interaction.CreateResponseAsync(DiscordInteractionResponseType.UpdateMessage, new DiscordInteractionResponseBuilder(messageBuilder));
+
+                await suggestionMessage.UnpinAsync();
             }
 
             if (!logAndNotify)
