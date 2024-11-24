@@ -57,7 +57,7 @@ namespace CustomQotd.Features.Commands
             {
                 await feedbackChannel.SendMessageAsync(MessageHelpers.GenericEmbed(title: "New Feedback", message:
                     $"> **{feedback}**\n\n" +
-                    $"*Submitted by {context.User.Mention}*"));
+                    $"*Submitted by {context.User.Mention} in \"{context.Guild!.Name}\"*"));
             }
         }
 
