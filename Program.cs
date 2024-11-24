@@ -45,7 +45,7 @@ namespace CustomQotd
                 Environment.Exit(1);
             }
 
-            DiscordClientBuilder builder = DiscordClientBuilder.CreateDefault(discordToken, TextCommandProcessor.RequiredIntents | SlashCommandProcessor.RequiredIntents);
+            DiscordClientBuilder builder = DiscordClientBuilder.CreateDefault(discordToken, TextCommandProcessor.RequiredIntents | SlashCommandProcessor.RequiredIntents | DiscordIntents.MessageContents);
 
             // Use the commands extension
             builder.UseCommands
