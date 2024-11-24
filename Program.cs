@@ -45,7 +45,7 @@ namespace CustomQotd
                 Environment.Exit(1);
             }
 
-            DiscordClientBuilder builder = DiscordClientBuilder.CreateDefault(discordToken, TextCommandProcessor.RequiredIntents | SlashCommandProcessor.RequiredIntents | DiscordIntents.MessageContents);
+            DiscordClientBuilder builder = DiscordClientBuilder.CreateDefault(discordToken, SlashCommandProcessor.RequiredIntents);
 
             // Use the commands extension
             builder.UseCommands
@@ -64,13 +64,13 @@ namespace CustomQotd
                         typeof(LeaderboardCommand),
                         typeof(TopicCommand),
                         typeof(SimpleCommands)]);
-                    TextCommandProcessor textCommandProcessor = new(new()
+                    /*TextCommandProcessor textCommandProcessor = new(new()
                     {
                         PrefixResolver = new DefaultPrefixResolver(true, "qotd:").ResolvePrefixAsync
                     });
 
                     // Add text commands with a custom prefix 
-                    extension.AddProcessors(textCommandProcessor);
+                    extension.AddProcessors(textCommandProcessor);*/
 
                     extension.CommandErrored += EventHandlers.CommandErrored;
                 },
