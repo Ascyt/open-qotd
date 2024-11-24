@@ -106,7 +106,7 @@ namespace CustomQotd.Features.QotdSending
                 await dbContext.SaveChangesAsync();
             }
 
-            DiscordButtonComponent suggestButton = new(DiscordButtonStyle.Secondary, "suggest-qotd", "Suggest a new QOTD...");
+            DiscordButtonComponent suggestButton = new(DiscordButtonStyle.Secondary, "suggest-qotd", "Suggest a new QOTD");
 
             DiscordChannel qotdChannel;
             try
