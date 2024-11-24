@@ -22,6 +22,8 @@ namespace CustomQotd.Features.Commands
             await QuestionsCommand.ListQuestionsNoPermcheckAsync(context, Database.Entities.QuestionType.Sent, page);
         }
 
+        const ulong FEEDBACK_SERVER_ID = 1281622725223514145;
+        const ulong FEEDBACK_CHANNEL_ID = 1310316617032401018;
         [Command("feedback")]
         [Description("Leave feedback or suggestions or report bugs for the developers of OpenQOTD.")]
         public static async Task FeedbackAsync(CommandContext context,
@@ -45,6 +47,17 @@ namespace CustomQotd.Features.Commands
             else
             {
                 await context.RespondAsync(responseEmbed);
+            }
+
+
+            DiscordChannel? feedbackChannel = await (await Program.Client.GetGuildAsync(FEEDBACK_SERVER_ID))
+                .GetChannelAsync(FEEDBACK_CHANNEL_ID);
+
+            if (feedbackChannel is not null)
+            {
+                await feedbackChannel.SendMessageAsync(MessageHelpers.GenericEmbed(title: "New Feedback", message:
+                    $"> **{feedback}**\n\n" +
+                    $"*Submitted by {context.User.Mention}*"));
             }
         }
 
