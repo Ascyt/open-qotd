@@ -1,4 +1,7 @@
 ﻿using CustomQotd.Database;
+using CustomQotd.Database.Entities;
+using DSharpPlus.Entities;
+using DSharpPlus.Exceptions;
 using Microsoft.EntityFrameworkCore;
 
 namespace CustomQotd.Features.QotdSending
@@ -25,7 +28,35 @@ namespace CustomQotd.Features.QotdSending
 
             for (int i = 0; i < guildIds.Length; i++)
             {
-                await QotdSender.SendNextQotd(guildIds[i]);
+                try
+                {
+                    DiscordGuild guild = await Program.Client.GetGuildAsync(guildIds[i]);
+                }
+                catch (NotFoundException)
+                {
+                    using (var dbContext = new AppDbContext())
+                    {
+                        Config? config = await dbContext.Configs.Where(c => c.GuildId == guildIds[i]).FirstOrDefaultAsync();
+
+                        if (config is null)
+                            continue;
+
+                        dbContext.Configs.Remove(config);
+
+                        await dbContext.SaveChangesAsync();
+                    }
+                    continue;
+                }
+
+                try
+                {
+                    await QotdSender.SendNextQotd(guildIds[i]);
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine("Error in SendQotdAsync:\n" + ex.Message);
+                    continue;
+                }
             }
 
             if (guildIds.Length > 0)
