@@ -44,6 +44,7 @@ namespace CustomQotd.Features.QotdSending
                         dbContext.Configs.Remove(config);
 
                         await dbContext.SaveChangesAsync();
+                        Console.WriteLine($"Removed dead guild with ID {guildIds[i]}");
                     }
                     continue;
                 }
