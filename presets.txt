@@ -56,7 +56,7 @@ Tell us about your odd or unusual interests!
 What is something that you think should be more widely accepted or normalized?
 Do you care about what happens after your passing?
 How has the Coronavirus pandemic and/or the virus itself affected you?
-What was a nightmare you h`ad` that still haunts you to this day?
+What was a nightmare you had that still haunts you to this day?
 If you had a choice between: "Be invicible (you can't die no matter what)" or "die right now", what would you choose?
 You are able to alter a single fact, your objective is to cause as much chaos as possible, what would you choose to change?
 What do you miss the most from your childhood?
@@ -153,3 +153,4 @@ If you walked into a room with everyone you've ever met, who would you look for 
 What thing did you waste the most time on?
 What field do you work in, and what advice would you give to anyone looking to start working in your field?
 Imagine you're hired to think of a new species to put on earth. What are you creating?	
+How do you feel about AI?
