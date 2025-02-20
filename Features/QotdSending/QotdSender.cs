@@ -53,17 +53,18 @@ namespace CustomQotd.Features.QotdSending
 
             return index;
         }
-
-        public static async Task SendNextQotd(ulong guildId)
+        
+        public static async Task SendNextQotd(ulong guildId, Notices.Notice? latestAvaliableNotice)
         {
-            await SendQotd(guildId, await GetRandomQotd(guildId));
+            await SendQotd(guildId, await GetRandomQotd(guildId), latestAvaliableNotice);
+
         }
 
         /// <summary>
         /// Send a QOTD
         /// </summary>
         /// <returns>Whether the QOTD channel has been found or not. Returns true/false regardless whether question is null or not.</returns>
-        public static async Task<bool> SendQotd(ulong guildId, Question? question)
+        public static async Task<bool> SendQotd(ulong guildId, Question? question, Notices.Notice? latestAvailableNotice)
         {
             DiscordGuild guild;
             try
@@ -92,6 +93,7 @@ namespace CustomQotd.Features.QotdSending
             }
 
             Config? config;
+            DateTime? previousLastSentTimestamp;
             using (var dbContext = new AppDbContext())
             {
                 config = await dbContext.Configs
@@ -101,6 +103,7 @@ namespace CustomQotd.Features.QotdSending
                 if (config == null)
                     return false;
 
+                previousLastSentTimestamp = config.LastSentTimestamp;
                 config.LastSentTimestamp = DateTime.UtcNow;
 
                 await dbContext.SaveChangesAsync();
@@ -151,6 +154,7 @@ namespace CustomQotd.Features.QotdSending
                     }
 
                     DiscordMessage presetMessage = await qotdChannel.SendMessageAsync(presetMessageBuilder);
+                    await SendNoticeIfAvailable(qotdChannel, latestAvailableNotice, previousLastSentTimestamp);
                     
                     await PinMessage(config, qotdChannel, presetMessage);
 
@@ -181,6 +185,7 @@ namespace CustomQotd.Features.QotdSending
                     }
 
                     await qotdChannel.SendMessageAsync(noQuestionMessage);
+                    await SendNoticeIfAvailable(qotdChannel, latestAvailableNotice, previousLastSentTimestamp);
                 }
 
                 return true;
@@ -245,6 +250,7 @@ namespace CustomQotd.Features.QotdSending
 
                 await qotdChannel.SendMessageAsync(lastQuestionWarning);
             }
+            await SendNoticeIfAvailable(qotdChannel, latestAvailableNotice, previousLastSentTimestamp);
 
             await PinMessage(config, qotdChannel, qotdMessage);
 
@@ -270,6 +276,16 @@ namespace CustomQotd.Features.QotdSending
 
             return true;
         }
+
+        private static async Task SendNoticeIfAvailable(DiscordChannel qotdChannel, Notices.Notice? latestAvailableNotice, DateTime? previousLastSentTimestamp)
+        {
+            //TODO
+        }
+        private static async Task SendNotice(DiscordChannel qotdChannel, Notices.Notice notice)
+        {
+            //TODO
+        }
+
         private static async Task PinMessage(Config config, DiscordChannel qotdChannel, DiscordMessage qotdMessage)
         {
             if (config.EnableQotdPinMessage)

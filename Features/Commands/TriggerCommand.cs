@@ -11,7 +11,7 @@ namespace CustomQotd.Features.Commands
         [Description("Trigger a QOTD prematurely.")]
         public static async Task TriggerAsync(CommandContext context)
         {
-            await QotdSender.SendNextQotd(context.Guild!.Id);
+            await QotdSender.SendNextQotd(context.Guild!.Id, Notices.GetLatestAvailableNotice());
 
             await context.RespondAsync(
                 MessageHelpers.GenericSuccessEmbed(title:"Successfully triggered QOTD", "QOTD sent to current QOTD channel."));
