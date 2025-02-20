@@ -16,8 +16,8 @@ namespace CustomQotd.Features
             public bool IsImportant { get; set; }
         }
 
-        private static Notice[]? _notices = null;
-        public static Notice[] notices
+        private static List<Notice>? _notices = null;
+        public static List<Notice> notices
         {
             get
             {
@@ -32,7 +32,13 @@ namespace CustomQotd.Features
         {
             string jsonData = await File.ReadAllTextAsync("notices.json");
 
-            _notices = JsonSerializer.Deserialize<Notice[]>(jsonData);
+            _notices = JsonSerializer.Deserialize<List<Notice>>(jsonData);
+        }
+        public static async Task SaveNotices()
+        {
+            string jsonData = JsonSerializer.Serialize<List<Notice>>(notices, new JsonSerializerOptions { WriteIndented = true });
+
+            await File.WriteAllTextAsync("notices.json", jsonData);
         }
 
         /// <summary>
