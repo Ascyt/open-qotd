@@ -11,6 +11,9 @@ namespace CustomQotd.Features.Commands
         [Description("Trigger a QOTD prematurely.")]
         public static async Task TriggerAsync(CommandContext context)
         {
+            if (!await CommandRequirements.IsConfigInitialized(context) || !await CommandRequirements.UserIsAdmin(context))
+                return;
+
             await QotdSender.SendNextQotd(context.Guild!.Id);
 
             await context.RespondAsync(
