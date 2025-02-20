@@ -18,12 +18,21 @@ namespace CustomQotd.Features.EventHandlers
     {
         public static async Task CommandErrored(CommandsExtension s, CommandErroredEventArgs e)
         {
-            string message = $"**{e.Exception.GetType().Name}**\n> {e.Exception.Message}\n\nStack Trace:\n```\n{e.Exception.StackTrace}";
+            string message = $"An uncaught error occurred from the command you have tried to execute.\n" +
+                $"If you're unsure what to do here, please feel free to join the [Support Server](<https://open-qotd.ascyt.com/community>) to reach out for help.\n\n" +
+                $"**{e.Exception.GetType().Name}**\n" +
+                $"> {e.Exception.Message}\n\n" +
+                $"Stack Trace:\n" +
+                $"```\n" +
+                $"{e.Exception.StackTrace}";
 
             if (message.Length > 4096 - 5)
                 message = message.Substring(0, 4096 - 5) + "…";
 
-            await e.Context.RespondAsync(MessageHelpers.GenericErrorEmbed(message + "\n```", title: "Error (D#+)"));
+            DiscordMessageBuilder messageBuilder = new();
+            messageBuilder.AddEmbed(MessageHelpers.GenericErrorEmbed(message + "\n```", title: "Error (internal)"));
+
+            await e.Context.RespondAsync(messageBuilder);
         }
 
         public static async Task ComponentInteractionCreated(DiscordClient client, ComponentInteractionCreatedEventArgs args)
