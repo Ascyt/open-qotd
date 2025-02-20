@@ -19,12 +19,15 @@ namespace CustomQotd.Features.QotdSending
             {
                 guildIds = await dbContext.Configs
                     .Where(c => c.EnableAutomaticQotd && 
-                    c.LastSentDay != currentDay && 
+                    (c.LastSentTimestamp == null ||
+                    c.LastSentTimestamp.Value.Day != currentDay) && 
                     ((currentHour == c.QotdTimeHourUtc && currentMinute >= c.QotdTimeMinuteUtc) || currentHour > c.QotdTimeHourUtc))
                     .Select(c => c.GuildId)
                     // TODO: order by premium members first
                     .ToArrayAsync();
             }
+
+            Notices.Notice? latestAvailableNotice = Notices.GetLatestAvailableNotice();
 
             for (int i = 0; i < guildIds.Length; i++)
             {
@@ -51,7 +54,7 @@ namespace CustomQotd.Features.QotdSending
 
                 try
                 {
-                    await QotdSender.SendNextQotd(guildIds[i]);
+                    await QotdSender.SendNextQotd(guildIds[i], latestAvailableNotice);
                 }
                 catch (Exception ex)
                 {

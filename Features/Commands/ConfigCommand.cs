@@ -36,7 +36,8 @@ namespace CustomQotd.Features.Commands
             [Description("Whether to allow users with the BasicRole to suggest QOTDs (true by default).")] bool EnableSuggestions = true,
             [Description("The channel new QOTD suggestions get announced in.")] DiscordChannel? SuggestionsChannel = null,
             [Description("The role that will get pinged when a new QOTD is suggested.")] DiscordRole? SuggestionsPingRole = null,
-            [Description("The channel where commands, QOTDs and more get logged to.")] DiscordChannel? LogsChannel = null)
+            [Description("The channel where commands, QOTDs and more get logged to.")] DiscordChannel? LogsChannel = null,
+            [Description("Whether all, only important, or no notices should be shown under QOTDs (all by default).")] Config.NoticeLevel NoticesLevel = Config.NoticeLevel.All)
         {
             if (!context.Member!.Permissions.HasPermission(DiscordPermissions.Administrator))
             {
@@ -64,7 +65,8 @@ namespace CustomQotd.Features.Commands
                 EnableSuggestions = EnableSuggestions,
                 SuggestionsChannelId = SuggestionsChannel?.Id,
                 SuggestionsPingRoleId = SuggestionsPingRole?.Id,
-                LogsChannelId = LogsChannel?.Id
+                LogsChannelId = LogsChannel?.Id,
+                NoticesLevel = NoticesLevel
             };
             using (var dbContext = new AppDbContext())
             {
@@ -133,9 +135,10 @@ namespace CustomQotd.Features.Commands
             [Description("Whether to allow users with the BasicRole to suggest QOTDs (true by default).")] bool? EnableSuggestions = null,
             [Description("The channel new QOTD suggestions get announced in.")] DiscordChannel? SuggestionsChannel = null,
             [Description("The role that will get pinged when a new QOTD is suggested.")] DiscordRole? SuggestionsPingRole = null,
-            [Description("The channel where commands, QOTDs and more get logged to.")] DiscordChannel? LogsChannel = null)
+            [Description("The channel where commands, QOTDs and more get logged to.")] DiscordChannel? LogsChannel = null,
+            [Description("Whether all, only important, or no notices should be shown under QOTDs (all by default).")] Config.NoticeLevel? NoticesLevel = null)
         {
-            if (!context.Member.Permissions.HasPermission(DiscordPermissions.Administrator))
+            if (!context.Member!.Permissions.HasPermission(DiscordPermissions.Administrator))
             {
                 await context.RespondAsync(
                     MessageHelpers.GenericErrorEmbed("Server Administrator permission is required to run this command.")
@@ -158,7 +161,7 @@ namespace CustomQotd.Features.Commands
                 {
                     int currentDay = DateTime.UtcNow.Day;
 
-                    if (config.LastSentDay == currentDay)
+                    if (config.LastSentTimestamp?.Day == currentDay)
                     {
                         await context.Channel!.SendMessageAsync(MessageHelpers.GenericWarningEmbed("Since a QOTD has already been sent today, the next one will be sent tomorrow at the specified time.\n\n" +
                             "*Use `/trigger` to send a QOTD anyways!*"));
@@ -193,6 +196,8 @@ namespace CustomQotd.Features.Commands
                     config.SuggestionsPingRoleId = SuggestionsPingRole.Id;
                 if (LogsChannel is not null)
                     config.LogsChannelId = LogsChannel.Id;
+                if (NoticesLevel is not null)
+                    config.NoticesLevel = NoticesLevel.Value;
 
                 await dbContext.SaveChangesAsync();   
             }
