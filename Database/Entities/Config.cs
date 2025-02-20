@@ -32,8 +32,8 @@ namespace CustomQotd.Database.Entities
         public bool EnableSuggestions { get; set; } = true;
         public ulong? SuggestionsChannelId { get; set; }
         public ulong? SuggestionsPingRoleId { get; set; }
-        public ulong? LogsChannelId { get; set; }
         public NoticeLevel NoticesLevel { get; set; } = NoticeLevel.All;
+        public ulong? LogsChannelId { get; set; }
 
         // Variables (not set using /config)
         public DateTime? LastSentTimestamp { get; set; }
