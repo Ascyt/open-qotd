@@ -8,3 +8,5 @@ appsettings.json
 *.db-*
 
 Migrations
+
+notices.json
