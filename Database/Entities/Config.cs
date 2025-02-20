@@ -7,6 +7,13 @@ namespace CustomQotd.Database.Entities
 {
     public class Config
     {
+        public enum NoticeLevel
+        {
+            None = 0,
+            Important = 1,
+            All = 2
+        }
+
         [Key]
         public ulong GuildId { get; set; }
 
@@ -26,6 +33,7 @@ namespace CustomQotd.Database.Entities
         public ulong? SuggestionsChannelId { get; set; }
         public ulong? SuggestionsPingRoleId { get; set; }
         public ulong? LogsChannelId { get; set; }
+        public NoticeLevel NoticesLevel { get; set; } = NoticeLevel.All;
 
         // Variables (not set using /config)
         public int? LastSentDay { get; set; }
@@ -44,6 +52,7 @@ namespace CustomQotd.Database.Entities
             throw new NotImplementedException($"Use ToStringAsync() instead");
         }
 
+        // TODO: Probably change this to just show the the roles with <@&id> and the channels with <#id> for performance reasons
         public async Task<string> ToStringAsync()
         {
             DiscordGuild guild = await Program.Client.GetGuildAsync(GuildId);
@@ -62,7 +71,8 @@ namespace CustomQotd.Database.Entities
                 $"- enable_suggestions: **{EnableSuggestions}**\n" + 
                 $"- suggestions_channel: {await ChannelIdToString(SuggestionsChannelId, guild)}\n" +
                 $"- suggestions_ping_role: {await RoleIdToString(SuggestionsPingRoleId, guild)}\n" +
-                $"- logs_channel: {await ChannelIdToString(LogsChannelId, guild)}";
+                $"- logs_channel: {await ChannelIdToString(LogsChannelId, guild)}\n" +
+                $"- notices_level: **{NoticesLevel}**";
         }
 
         private static async Task<string> RoleIdToString(ulong? roleId, DiscordGuild guild)

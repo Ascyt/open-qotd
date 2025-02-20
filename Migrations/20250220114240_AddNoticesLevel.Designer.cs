@@ -11,8 +11,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace CustomQotd.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20241008085904_InitialCreate")]
-    partial class InitialCreate
+    [Migration("20250220114240_AddNoticesLevel")]
+    partial class AddNoticesLevel
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -41,6 +41,9 @@ namespace CustomQotd.Migrations
                     b.Property<bool>("EnableAutomaticQotd")
                         .HasColumnType("INTEGER");
 
+                    b.Property<bool>("EnableQotdAutomaticPresets")
+                        .HasColumnType("INTEGER");
+
                     b.Property<bool>("EnableQotdPinMessage")
                         .HasColumnType("INTEGER");
 
@@ -57,6 +60,9 @@ namespace CustomQotd.Migrations
                         .HasColumnType("INTEGER");
 
                     b.Property<ulong?>("LogsChannelId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("NoticesLevel")
                         .HasColumnType("INTEGER");
 
                     b.Property<ulong>("QotdChannelId")
@@ -80,6 +86,23 @@ namespace CustomQotd.Migrations
                     b.HasKey("GuildId");
 
                     b.ToTable("Configs");
+                });
+
+            modelBuilder.Entity("CustomQotd.Database.Entities.PresetSent", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<ulong>("GuildId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("PresetIndex")
+                        .HasColumnType("INTEGER");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("PresetSents");
                 });
 
             modelBuilder.Entity("CustomQotd.Database.Entities.Question", b =>

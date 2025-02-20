@@ -5,7 +5,7 @@
 namespace CustomQotd.Migrations
 {
     /// <inheritdoc />
-    public partial class Added_PresetSent : Migration
+    public partial class AddNoticesLevel : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -15,7 +15,14 @@ namespace CustomQotd.Migrations
                 table: "Configs",
                 type: "INTEGER",
                 nullable: false,
-                defaultValue: true);
+                defaultValue: false);
+
+            migrationBuilder.AddColumn<int>(
+                name: "NoticesLevel",
+                table: "Configs",
+                type: "INTEGER",
+                nullable: false,
+                defaultValue: 2);
 
             migrationBuilder.CreateTable(
                 name: "PresetSents",
@@ -40,6 +47,10 @@ namespace CustomQotd.Migrations
 
             migrationBuilder.DropColumn(
                 name: "EnableQotdAutomaticPresets",
+                table: "Configs");
+
+            migrationBuilder.DropColumn(
+                name: "NoticesLevel",
                 table: "Configs");
         }
     }
