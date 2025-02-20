@@ -172,6 +172,11 @@
             Note that setting a question from <code>Suggest</code> to <code>Accepted</code> works, but it is recommended to use <code>/suggestions accept</code> instead.
         </li>
         <li class="mb-2">
+            <code>/questions changetypebulk [from_type] [to_type]</code>:
+            Change the type of all questions of a certain type to another. For example, you can change all <code>Sent</code> questions to <code>Accepted</code>.
+            Unlike <code>/suggestions acceptall</code>, running this command with <code>Suggested</code>→<code>Accepted</code> will not notify the suggesters.
+        </li>
+        <li class="mb-2">
             <code>/questions remove [question_id]</code>: 
             Remove a question from the bot. This is irreversible, and the question is removed from all listings.
         </li>
