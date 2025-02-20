@@ -7,4 +7,4 @@ appsettings.json
 *.db-wal
 *.db-*
 
-Migrations/AppDbContextModelSnapshot.cs
+Migrations
