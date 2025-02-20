@@ -19,7 +19,8 @@ namespace CustomQotd.Features.EventHandlers
         public static async Task CommandErrored(CommandsExtension s, CommandErroredEventArgs e)
         {
             string message = $"An uncaught error occurred from the command you have tried to execute.\n" +
-                $"If you're unsure what to do here, please feel free to join the [Support Server](<https://open-qotd.ascyt.com/community>) to reach out for help.\n\n" +
+                $"If you're unsure what to do here, please feel free to join the [Support Server](<https://open-qotd.ascyt.com/community>) to reach out for help. " +
+                $"Make sure to include the below information when you do.\n\n" +
                 $"**{e.Exception.GetType().Name}**\n" +
                 $"> {e.Exception.Message}\n\n" +
                 $"Stack Trace:\n" +
@@ -30,7 +31,19 @@ namespace CustomQotd.Features.EventHandlers
                 message = message.Substring(0, 4096 - 5) + "…";
 
             DiscordMessageBuilder messageBuilder = new();
-            messageBuilder.AddEmbed(MessageHelpers.GenericErrorEmbed(message + "\n```", title: "Error (internal)"));
+            messageBuilder.AddEmbed(MessageHelpers.GenericEmbed(message: message + "\n```", title: "Error (internal)", color: "#800000"));
+
+            if (e.Exception is DSharpPlus.Exceptions.UnauthorizedException)
+            {
+                messageBuilder.AddEmbed(MessageHelpers.GenericWarningEmbed(title: "Hint", message: 
+                    "This error likely means that the bot is lacking permissions to execute your command.\n" +
+                    "The bot needs three different permissions to function correctly:\n" +
+                    "- Send Messages\n" +
+                    "- Manage Messages\n" +
+                    "- Mention @​everyone, @​here and All Roles\n" +
+                    "If this error keeps happening, try kicking the bot from your server and re-inviting it. " +
+                    "Your data, including the questions you have added, should not be removed by doing this."));
+            }
 
             await e.Context.RespondAsync(messageBuilder);
         }
