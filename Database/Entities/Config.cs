@@ -36,7 +36,7 @@ namespace CustomQotd.Database.Entities
         public NoticeLevel NoticesLevel { get; set; } = NoticeLevel.All;
 
         // Variables (not set using /config)
-        public int? LastSentDay { get; set; }
+        public DateTime? LastSentTimestamp { get; set; }
 
         public int? CurrentSuggestStreak { get; set; }
         public ulong? CurrentSuggestStreakUserId { get; set; }

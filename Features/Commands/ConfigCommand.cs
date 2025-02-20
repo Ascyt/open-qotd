@@ -161,7 +161,7 @@ namespace CustomQotd.Features.Commands
                 {
                     int currentDay = DateTime.UtcNow.Day;
 
-                    if (config.LastSentDay == currentDay)
+                    if (config.LastSentTimestamp?.Day == currentDay)
                     {
                         await context.Channel!.SendMessageAsync(MessageHelpers.GenericWarningEmbed("Since a QOTD has already been sent today, the next one will be sent tomorrow at the specified time.\n\n" +
                             "*Use `/trigger` to send a QOTD anyways!*"));

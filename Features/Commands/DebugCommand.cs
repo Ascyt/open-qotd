@@ -87,7 +87,7 @@ namespace CustomQotd.Features.Commands
                             }
                             return;
 
-                        case "resetlastsentday":
+                        case "resetlastsenttimestamp":
                             ulong guildId1 = argsSplit.Length > 2 ? ulong.Parse(argsSplit[2]) : context.Guild!.Id;
 
                             using (var dbContext = new AppDbContext())
@@ -100,11 +100,11 @@ namespace CustomQotd.Features.Commands
                                     return;
                                 }
 
-                                config.LastSentDay = -1;
+                                config.LastSentTimestamp = null;
                                 await dbContext.SaveChangesAsync();
                             }
 
-                            await context.RespondAsync("Resetted last_sent_day");
+                            await context.RespondAsync("Resetted last_sent_timestamp");
                             return;
                     }
                     break;

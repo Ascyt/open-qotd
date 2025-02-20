@@ -101,7 +101,7 @@ namespace CustomQotd.Features.QotdSending
                 if (config == null)
                     return false;
 
-                config.LastSentDay = DateTime.UtcNow.Day;
+                config.LastSentTimestamp = DateTime.UtcNow;
 
                 await dbContext.SaveChangesAsync();
             }

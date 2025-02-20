@@ -19,7 +19,8 @@ namespace CustomQotd.Features.QotdSending
             {
                 guildIds = await dbContext.Configs
                     .Where(c => c.EnableAutomaticQotd && 
-                    c.LastSentDay != currentDay && 
+                    (c.LastSentTimestamp == null ||
+                    c.LastSentTimestamp.Value.Day != currentDay) && 
                     ((currentHour == c.QotdTimeHourUtc && currentMinute >= c.QotdTimeMinuteUtc) || currentHour > c.QotdTimeHourUtc))
                     .Select(c => c.GuildId)
                     // TODO: order by premium members first
