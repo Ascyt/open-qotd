@@ -154,7 +154,7 @@ namespace CustomQotd.Features.QotdSending
                     }
 
                     DiscordMessage presetMessage = await qotdChannel.SendMessageAsync(presetMessageBuilder);
-                    await SendNoticeIfAvailable(qotdChannel, latestAvailableNotice, previousLastSentTimestamp);
+                    await SendNoticeIfAvailable(config, qotdChannel, latestAvailableNotice, previousLastSentTimestamp);
                     
                     await PinMessage(config, qotdChannel, presetMessage);
 
@@ -185,7 +185,7 @@ namespace CustomQotd.Features.QotdSending
                     }
 
                     await qotdChannel.SendMessageAsync(noQuestionMessage);
-                    await SendNoticeIfAvailable(qotdChannel, latestAvailableNotice, previousLastSentTimestamp);
+                    await SendNoticeIfAvailable(config, qotdChannel, latestAvailableNotice, previousLastSentTimestamp);
                 }
 
                 return true;
@@ -250,7 +250,7 @@ namespace CustomQotd.Features.QotdSending
 
                 await qotdChannel.SendMessageAsync(lastQuestionWarning);
             }
-            await SendNoticeIfAvailable(qotdChannel, latestAvailableNotice, previousLastSentTimestamp);
+            await SendNoticeIfAvailable(config, qotdChannel, latestAvailableNotice, previousLastSentTimestamp);
 
             await PinMessage(config, qotdChannel, qotdMessage);
 
@@ -277,13 +277,34 @@ namespace CustomQotd.Features.QotdSending
             return true;
         }
 
-        private static async Task SendNoticeIfAvailable(DiscordChannel qotdChannel, Notices.Notice? latestAvailableNotice, DateTime? previousLastSentTimestamp)
+        private static async Task SendNoticeIfAvailable(Config config, DiscordChannel qotdChannel, Notices.Notice? latestAvailableNotice, DateTime? previousLastSentTimestamp)
         {
-            //TODO
+            if (latestAvailableNotice is null)
+                return;
+
+            if (config.NoticesLevel == Config.NoticeLevel.None)
+                return;
+
+            if (config.NoticesLevel == Config.NoticeLevel.Important && !latestAvailableNotice.IsImportant)
+                return;
+
+            if (previousLastSentTimestamp is null || (latestAvailableNotice.Date > previousLastSentTimestamp.Value.Date))
+            {
+                await SendNotice(qotdChannel, latestAvailableNotice);
+            }
         }
         private static async Task SendNotice(DiscordChannel qotdChannel, Notices.Notice notice)
         {
-            //TODO
+            DiscordMessageBuilder noticeMessageBuilder = new();
+            DiscordEmbedBuilder noticeEmbed = MessageHelpers.GenericEmbed(
+                notice.IsImportant ? "Important Notice" : "Notice",
+                notice.NoticeText, 
+                color:(notice.IsImportant ? "#ef5658" : "#56efda"));
+
+            noticeEmbed.WithFooter("Authored by the developer \x2022 Configure with /config set notices_level");
+            noticeMessageBuilder.AddEmbed(noticeEmbed);
+
+            await qotdChannel.SendMessageAsync(noticeMessageBuilder);
         }
 
         private static async Task PinMessage(Config config, DiscordChannel qotdChannel, DiscordMessage qotdMessage)

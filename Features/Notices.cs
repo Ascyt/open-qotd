@@ -12,6 +12,8 @@ namespace CustomQotd.Features
 
             [JsonPropertyName("notice")]
             public required string NoticeText { get; set; }
+            [JsonPropertyName("important")]
+            public bool IsImportant { get; set; }
         }
 
         private static Notice[]? _notices = null;
