@@ -73,8 +73,8 @@ namespace CustomQotd.Database.Entities
                 $"- enable_suggestions: **{EnableSuggestions}**\n" + 
                 $"- suggestions_channel: {await ChannelIdToString(SuggestionsChannelId, guild)}\n" +
                 $"- suggestions_ping_role: {await RoleIdToString(SuggestionsPingRoleId, guild)}\n" +
-                $"- logs_channel: {await ChannelIdToString(LogsChannelId, guild)}\n" +
-                $"- notices_level: **{NoticesLevel}**";
+                $"- notices_level: **{NoticesLevel}**" +
+                $"- logs_channel: {await ChannelIdToString(LogsChannelId, guild)}\n";
         }
 
         private static async Task<string> RoleIdToString(ulong? roleId, DiscordGuild guild)
