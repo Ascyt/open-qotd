@@ -73,7 +73,7 @@ namespace CustomQotd.Database.Entities
                 $"- enable_suggestions: **{EnableSuggestions}**\n" + 
                 $"- suggestions_channel: {await ChannelIdToString(SuggestionsChannelId, guild)}\n" +
                 $"- suggestions_ping_role: {await RoleIdToString(SuggestionsPingRoleId, guild)}\n" +
-                $"- notices_level: **{NoticesLevel}**" +
+                $"- notices_level: **{NoticesLevel}**\n" +
                 $"- logs_channel: {await ChannelIdToString(LogsChannelId, guild)}\n";
         }
 
