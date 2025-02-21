@@ -14,7 +14,7 @@ namespace CustomQotd.Features.Commands
             if (!await CommandRequirements.IsConfigInitialized(context) || !await CommandRequirements.UserIsAdmin(context))
                 return;
 
-            await QotdSender.SendNextQotd(context.Guild!.Id);
+            await QotdSender.SendNextQotd(context.Guild!.Id, Notices.GetLatestAvailableNotice());
 
             await context.RespondAsync(
                 MessageHelpers.GenericSuccessEmbed(title:"Successfully triggered QOTD", "QOTD sent to current QOTD channel."));

@@ -7,6 +7,13 @@ namespace CustomQotd.Database.Entities
 {
     public class Config
     {
+        public enum NoticeLevel
+        {
+            None = 0,
+            Important = 1,
+            All = 2
+        }
+
         [Key]
         public ulong GuildId { get; set; }
 
@@ -17,6 +24,7 @@ namespace CustomQotd.Database.Entities
         public ulong? QotdPingRoleId { get; set; }
         public bool EnableAutomaticQotd { get; set; } = true;
         public bool EnableQotdPinMessage { get; set; } = true;
+        public bool EnableQotdCreateThread { get; set; } = true;
         public bool EnableQotdAutomaticPresets { get; set; } = true;
         public bool EnableQotdUnavailableMessage { get; set; } = true;
 
@@ -25,10 +33,11 @@ namespace CustomQotd.Database.Entities
         public bool EnableSuggestions { get; set; } = true;
         public ulong? SuggestionsChannelId { get; set; }
         public ulong? SuggestionsPingRoleId { get; set; }
+        public NoticeLevel NoticesLevel { get; set; } = NoticeLevel.All;
         public ulong? LogsChannelId { get; set; }
 
         // Variables (not set using /config)
-        public int? LastSentDay { get; set; }
+        public DateTime? LastSentTimestamp { get; set; }
 
         public int? CurrentSuggestStreak { get; set; }
         public ulong? CurrentSuggestStreakUserId { get; set; }
@@ -44,6 +53,7 @@ namespace CustomQotd.Database.Entities
             throw new NotImplementedException($"Use ToStringAsync() instead");
         }
 
+        // TODO: Probably change this to just show the the roles with <@&id> and the channels with <#id> for performance reasons
         public async Task<string> ToStringAsync()
         {
             DiscordGuild guild = await Program.Client.GetGuildAsync(GuildId);
@@ -55,6 +65,7 @@ namespace CustomQotd.Database.Entities
                 $"- qotd_ping_role: {await RoleIdToString(QotdPingRoleId, guild)}\n" +
                 $"- enable_automatic_qotd: **{EnableAutomaticQotd}**\n" +
                 $"- enable_qotd_pin_message: **{EnableQotdPinMessage}**\n" +
+                $"- enable_qotd_create_thread: **{EnableQotdCreateThread}**\n" +
                 $"- enable_qotd_automatic_presets: **{EnableQotdAutomaticPresets}**\n" +
                 $"- enable_qotd_unavailable_message: **{EnableQotdUnavailableMessage}**\n" +
                 $"- qotd_time_hour_utc: **{QotdTimeHourUtc}**\n" +
@@ -62,7 +73,8 @@ namespace CustomQotd.Database.Entities
                 $"- enable_suggestions: **{EnableSuggestions}**\n" + 
                 $"- suggestions_channel: {await ChannelIdToString(SuggestionsChannelId, guild)}\n" +
                 $"- suggestions_ping_role: {await RoleIdToString(SuggestionsPingRoleId, guild)}\n" +
-                $"- logs_channel: {await ChannelIdToString(LogsChannelId, guild)}";
+                $"- logs_channel: {await ChannelIdToString(LogsChannelId, guild)}\n" +
+                $"- notices_level: **{NoticesLevel}**";
         }
 
         private static async Task<string> RoleIdToString(ulong? roleId, DiscordGuild guild)

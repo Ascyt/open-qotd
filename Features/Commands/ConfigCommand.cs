@@ -31,11 +31,13 @@ namespace CustomQotd.Features.Commands
             [Description("The role that will get pinged when a new QOTD is sent.")] DiscordRole? QotdPingRole = null,
             [Description("Whether to send a QOTD daily automatically, if disabled `/trigger` is needed (true by default).")] bool EnableAutomaticQotd = true,
             [Description("Whether to pin the most recent QOTD to the channel or not (true by default).")] bool EnableQotdPinMessage = true,
+            [Description("Whether to automatically create a thread for every QOTD that gets sent (true by default).")] bool EnableQotdCreateThread = true,
             [Description("Whether to send a random preset when there is no Accepted QOTD available (true by default).")] bool EnableQotdAutomaticPresets = true,
             [Description("Whether to send a \"not available\" message when there is no QOTD available (true by default).")] bool EnableQotdUnvailableMessage = true,
             [Description("Whether to allow users with the BasicRole to suggest QOTDs (true by default).")] bool EnableSuggestions = true,
             [Description("The channel new QOTD suggestions get announced in.")] DiscordChannel? SuggestionsChannel = null,
             [Description("The role that will get pinged when a new QOTD is suggested.")] DiscordRole? SuggestionsPingRole = null,
+            [Description("Whether all, only important, or no notices should be shown under QOTDs (all by default).")] Config.NoticeLevel NoticesLevel = Config.NoticeLevel.All,
             [Description("The channel where commands, QOTDs and more get logged to.")] DiscordChannel? LogsChannel = null)
         {
             if (!context.Member!.Permissions.HasPermission(DiscordPermissions.Administrator))
@@ -57,6 +59,7 @@ namespace CustomQotd.Features.Commands
                 QotdPingRoleId = QotdPingRole?.Id,
                 EnableAutomaticQotd = EnableAutomaticQotd,
                 EnableQotdPinMessage = EnableQotdPinMessage,
+                EnableQotdCreateThread = EnableQotdCreateThread,
                 EnableQotdAutomaticPresets = EnableQotdAutomaticPresets,
                 EnableQotdUnavailableMessage = EnableQotdUnvailableMessage,
                 QotdTimeHourUtc = QotdTimeHourUtc,
@@ -64,6 +67,7 @@ namespace CustomQotd.Features.Commands
                 EnableSuggestions = EnableSuggestions,
                 SuggestionsChannelId = SuggestionsChannel?.Id,
                 SuggestionsPingRoleId = SuggestionsPingRole?.Id,
+                NoticesLevel = NoticesLevel,
                 LogsChannelId = LogsChannel?.Id
             };
             using (var dbContext = new AppDbContext())
@@ -128,14 +132,16 @@ namespace CustomQotd.Features.Commands
             [Description("The role that will get pinged when a new QOTD is sent.")] DiscordRole? QotdPingRole = null,
             [Description("Whether to send a QOTD daily automatically, if disabled `/trigger` is needed (true by default).")] bool? EnableAutomaticQotd = null,
             [Description("Whether to pin the most recent QOTD to the channel or not (true by default).")] bool? EnableQotdPinMessage = null,
+            [Description("Whether to automatically create a thread for every QOTD that gets sent (true by default).")] bool? EnableQotdCreateThread = null,
             [Description("Whether to send a random preset when there is no Accepted QOTD available (true by default).")] bool? EnableQotdAutomaticPresets = null,
             [Description("Whether to send a \"not available\" message when there is no QOTD available (true by default).")] bool? EnableQotdUnavailableMessage = null,
             [Description("Whether to allow users with the BasicRole to suggest QOTDs (true by default).")] bool? EnableSuggestions = null,
             [Description("The channel new QOTD suggestions get announced in.")] DiscordChannel? SuggestionsChannel = null,
             [Description("The role that will get pinged when a new QOTD is suggested.")] DiscordRole? SuggestionsPingRole = null,
+            [Description("Whether all, only important, or no notices should be shown under QOTDs (all by default).")] Config.NoticeLevel? NoticesLevel = null,
             [Description("The channel where commands, QOTDs and more get logged to.")] DiscordChannel? LogsChannel = null)
         {
-            if (!context.Member.Permissions.HasPermission(DiscordPermissions.Administrator))
+            if (!context.Member!.Permissions.HasPermission(DiscordPermissions.Administrator))
             {
                 await context.RespondAsync(
                     MessageHelpers.GenericErrorEmbed("Server Administrator permission is required to run this command.")
@@ -158,7 +164,7 @@ namespace CustomQotd.Features.Commands
                 {
                     int currentDay = DateTime.UtcNow.Day;
 
-                    if (config.LastSentDay == currentDay)
+                    if (config.LastSentTimestamp?.Day == currentDay)
                     {
                         await context.Channel!.SendMessageAsync(MessageHelpers.GenericWarningEmbed("Since a QOTD has already been sent today, the next one will be sent tomorrow at the specified time.\n\n" +
                             "*Use `/trigger` to send a QOTD anyways!*"));
@@ -175,6 +181,8 @@ namespace CustomQotd.Features.Commands
                     config.EnableAutomaticQotd = EnableAutomaticQotd.Value;
                 if (EnableQotdPinMessage is not null)
                     config.EnableQotdPinMessage = EnableQotdPinMessage.Value;
+                if (EnableQotdCreateThread is not null)
+                    config.EnableQotdCreateThread = EnableQotdCreateThread.Value;
                 if (EnableQotdAutomaticPresets is not null)
                     config.EnableQotdAutomaticPresets = EnableQotdAutomaticPresets.Value;
                 if (EnableQotdUnavailableMessage is not null)
@@ -191,6 +199,8 @@ namespace CustomQotd.Features.Commands
                     config.SuggestionsChannelId = SuggestionsChannel.Id;
                 if (SuggestionsPingRole is not null)
                     config.SuggestionsPingRoleId = SuggestionsPingRole.Id;
+                if (NoticesLevel is not null)
+                    config.NoticesLevel = NoticesLevel.Value;
                 if (LogsChannel is not null)
                     config.LogsChannelId = LogsChannel.Id;
 

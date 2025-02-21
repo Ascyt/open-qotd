@@ -142,6 +142,44 @@ namespace CustomQotd.Features.Commands
             await Logging.LogUserAction(context, "Set Question Type", body);
         }
 
+        [Command("changetypebulk")]
+        [Description("Change the type of all questions of a certain type to another (eg. all Sent questions->Accepted).")]
+        public static async Task ChangeTypeOfQuestionsBulkAsync(CommandContext context,
+            [Description("The type of the questions to change the type of.")] QuestionType fromType,
+            [Description("The type to set all of those questions to.")] QuestionType toType)
+        {
+            if (!await CommandRequirements.IsConfigInitialized(context) || !await CommandRequirements.UserIsAdmin(context))
+                return;
+
+            if (fromType == toType)
+            {
+                await context.RespondAsync(
+                    MessageHelpers.GenericErrorEmbed(message: $"Arguments `from_type` and `to_type` cannot be the same."));
+                return;
+            }
+
+            ulong guildId = context.Guild!.Id;
+
+            List<Question>? questions;
+            using (var dbContext = new AppDbContext())
+            {
+                questions = await dbContext.Questions.Where(q => q.GuildId == guildId && q.Type == fromType).ToListAsync();
+
+                foreach (Question question in questions)
+                {
+                    question.Type = toType;
+                }
+
+                await dbContext.SaveChangesAsync();
+            }
+            string body = $"Changed {questions.Count} question{(questions.Count == 1 ? "" : "s")} from **{fromType}** to **{toType}**.";
+
+            await context.RespondAsync(
+                MessageHelpers.GenericSuccessEmbed("Set Bulk Question Types", body)
+                );
+            await Logging.LogUserAction(context, "Set Bulk Question Types", body);
+        }
+
         [Command("remove")]
         [Description("Irreversably delete a question.")]
         public static async Task RemoveQuestionAsync(CommandContext context,

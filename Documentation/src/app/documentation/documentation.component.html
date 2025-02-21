@@ -72,7 +72,11 @@
         </li>
         <li class="mb-2">
             <code>enable_qotd_pin_message<span class="default-value">true</span></code>:
-            Determines whether the old QOTD is unpinned and the new QOTD is pinned automatically after it is sent manually or using <code>/trigger</code>.<br /> 
+            Determines whether the old QOTD, if existant and pinned, is unpinned and the new QOTD is pinned automatically after it is sent.
+        </li>
+        <li class="mb-2">
+            <code>enable_qotd_create_thread<span class="default-value">true</span></code>:
+            Determines whether to create a thread for the QOTD when it is sent, with the auto-archive duration being 24 hours.
         </li>
         <li class="mb-2">
             <code>enable_qotd_automatic_presets<span class="default-value">true</span></code>:
@@ -109,6 +113,15 @@
             <code>suggestions_ping_role</code>:
             The role that gets pinged alongside with the message in the <code>suggestions_channel</code> when a new suggestion is received.<br />
             If this variable is unset, no role is pinged.
+        </li>
+        <li class="mb-2">
+            <code>notices_level<span class="default-value">All</span></code>: Notices are messages that are sent alongside QOTDs, which are written by the developer and are used to inform users about updates, changes, suggestions and thelike.<br />
+            The following options are available:
+            <ul>
+                <li><code>All</code>: All notices are sent. Keep in mind that some of these notices may include encouraging users to join the community server, donate, contribute, or similar. Consider keeping this enabled to help this free and open-source project work out. Thank you ♡</li>
+                <li><code>Important</code>: Only important announcements are sent, including maintenance times and breaking changes. It is recommended to keep at least this level enabled.</li>
+                <li><code>None</code>: No notices are sent whatsoever.</li>
+            </ul>
         </li>
         <li class="mb-2">
             <code>logs_channel</code>:
@@ -172,6 +185,11 @@
             Note that setting a question from <code>Suggest</code> to <code>Accepted</code> works, but it is recommended to use <code>/suggestions accept</code> instead.
         </li>
         <li class="mb-2">
+            <code>/questions changetypebulk [from_type] [to_type]</code>:
+            Change the type of all questions of a certain type to another. For example, you can change all <code>Sent</code> questions to <code>Accepted</code>.
+            Unlike <code>/suggestions acceptall</code>, running this command with <code>Suggested</code>→<code>Accepted</code> will not notify the suggesters.
+        </li>
+        <li class="mb-2">
             <code>/questions remove [question_id]</code>: 
             Remove a question from the bot. This is irreversible, and the question is removed from all listings.
         </li>
@@ -197,7 +215,7 @@
         </li>
         <li class="mb-2">
             <code>/suggestions deny [suggestion_id] [reason]</code>: 
-            Denies a suggestion with a reason. This permanentlyremoves the suggestion from the bot and notifies the suggester with the denial reason in private messages.<br />
+            Denies a suggestion with a reason. This permanently removes the suggestion from the bot and notifies the suggester with the denial reason in private messages.<br />
         </li>
         <li class="mb-2">
             <code>/suggestions acceptall</code>: 
@@ -210,9 +228,6 @@
     </ul>
     <p>
         Note that if you want to list all suggestions, you can use <code>/questions list type:Suggested</code>.<br />
-    </p>
-    <p>
-        Also, if the "Deny" button on a suggestion is pressed, the next message sent by that user is taken as the reason, and only afterwards the suggestion is denied with that reason.<br />
     </p>
 </section>
 

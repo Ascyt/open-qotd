@@ -10,6 +10,7 @@ using System.Text;
 using Microsoft.AspNetCore.Http.Connections;
 using DSharpPlus.Interactivity.Extensions;
 using System.Threading.Channels;
+using Microsoft.EntityFrameworkCore.Storage.ValueConversion.Internal;
 
 namespace CustomQotd.Features.Commands
 {
@@ -87,7 +88,7 @@ namespace CustomQotd.Features.Commands
                             }
                             return;
 
-                        case "resetlastsentday":
+                        case "resetlastsenttimestamp":
                             ulong guildId1 = argsSplit.Length > 2 ? ulong.Parse(argsSplit[2]) : context.Guild!.Id;
 
                             using (var dbContext = new AppDbContext())
@@ -100,11 +101,11 @@ namespace CustomQotd.Features.Commands
                                     return;
                                 }
 
-                                config.LastSentDay = -1;
+                                config.LastSentTimestamp = null;
                                 await dbContext.SaveChangesAsync();
                             }
 
-                            await context.RespondAsync("Resetted last_sent_day");
+                            await context.RespondAsync("Resetted last_sent_timestamp");
                             return;
                     }
                     break;
@@ -131,7 +132,7 @@ namespace CustomQotd.Features.Commands
                                     new Question() { Id = 36 },
                                     new Question() { Id = 37 }
                                     );
-                                
+
                                 data = JsonConvert.SerializeObject(await dbContext.Questions.ToArrayAsync(), Formatting.Indented);
                             }
                             DiscordMessageBuilder builder = new();
@@ -221,6 +222,40 @@ namespace CustomQotd.Features.Commands
                             await context.RespondAsync("Successfully resetted feedback.");
                             return;
                     }
+                    break;
+                case "n":
+                    if (argsSplit[1] == "get")
+                    {
+                        using (FileStream fileStream = CreateTextFileStream(await File.ReadAllTextAsync("notices.json"), "debug_output.txt"))
+                        {
+                            DiscordMessageBuilder builder2 = new();
+
+                            builder2.AddFile(fileStream);
+
+                            await context.RespondAsync(builder2);
+
+                            fileStream.Close();
+                        }
+                        return;
+                    }
+                    if (argsSplit[1] == "reload" || argsSplit[1] == "load")
+                    {
+                        await Notices.LoadNotices();
+                        await context.RespondAsync("Successfully reloaded notices.");
+                        return;
+                    }
+
+                    (ulong messageId, string date, bool isImportant) = (ulong.Parse(argsSplit[1]), argsSplit[2], argsSplit[3] == "1");
+
+                    DiscordMessage message = await context.Channel.GetMessageAsync(messageId);
+
+                    Notices.Notice newNotice = new() { Date = DateTime.Parse(date), NoticeText = message.Content, IsImportant = isImportant };
+
+                    Notices.notices.Add(newNotice);
+
+                    await Notices.SaveNotices();
+
+                    await context.RespondAsync("Successfully added new notice.");
                     break;
             }
         }

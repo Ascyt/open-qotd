@@ -53,17 +53,18 @@ namespace CustomQotd.Features.QotdSending
 
             return index;
         }
-
-        public static async Task SendNextQotd(ulong guildId)
+        
+        public static async Task SendNextQotd(ulong guildId, Notices.Notice? latestAvaliableNotice)
         {
-            await SendQotd(guildId, await GetRandomQotd(guildId));
+            await SendQotd(guildId, await GetRandomQotd(guildId), latestAvaliableNotice);
+
         }
 
         /// <summary>
         /// Send a QOTD
         /// </summary>
         /// <returns>Whether the QOTD channel has been found or not. Returns true/false regardless whether question is null or not.</returns>
-        public static async Task<bool> SendQotd(ulong guildId, Question? question)
+        public static async Task<bool> SendQotd(ulong guildId, Question? question, Notices.Notice? latestAvailableNotice)
         {
             DiscordGuild guild;
             try
@@ -92,6 +93,7 @@ namespace CustomQotd.Features.QotdSending
             }
 
             Config? config;
+            DateTime? previousLastSentTimestamp;
             using (var dbContext = new AppDbContext())
             {
                 config = await dbContext.Configs
@@ -101,7 +103,8 @@ namespace CustomQotd.Features.QotdSending
                 if (config == null)
                     return false;
 
-                config.LastSentDay = DateTime.UtcNow.Day;
+                previousLastSentTimestamp = config.LastSentTimestamp;
+                config.LastSentTimestamp = DateTime.UtcNow;
 
                 await dbContext.SaveChangesAsync();
             }
@@ -151,8 +154,10 @@ namespace CustomQotd.Features.QotdSending
                     }
 
                     DiscordMessage presetMessage = await qotdChannel.SendMessageAsync(presetMessageBuilder);
+                    await SendNoticeIfAvailable(config, qotdChannel, latestAvailableNotice, previousLastSentTimestamp);
                     
-                    await PinMessage(config, qotdChannel, presetMessage);
+                    await PinMessageIfEnabled(config, qotdChannel, presetMessage);
+                    await CreateThreadIfEnabled(config, qotdChannel, presetMessage, null);
 
                     using (var dbContext = new AppDbContext())
                     {
@@ -181,6 +186,7 @@ namespace CustomQotd.Features.QotdSending
                     }
 
                     await qotdChannel.SendMessageAsync(noQuestionMessage);
+                    await SendNoticeIfAvailable(config, qotdChannel, latestAvailableNotice, previousLastSentTimestamp);
                 }
 
                 return true;
@@ -245,8 +251,10 @@ namespace CustomQotd.Features.QotdSending
 
                 await qotdChannel.SendMessageAsync(lastQuestionWarning);
             }
+            await SendNoticeIfAvailable(config, qotdChannel, latestAvailableNotice, previousLastSentTimestamp);
 
-            await PinMessage(config, qotdChannel, qotdMessage);
+            await PinMessageIfEnabled(config, qotdChannel, qotdMessage);
+            await CreateThreadIfEnabled(config, qotdChannel, qotdMessage, sentQuestionsCount);
 
             using (var dbContext = new AppDbContext())
             {
@@ -270,30 +278,69 @@ namespace CustomQotd.Features.QotdSending
 
             return true;
         }
-        private static async Task PinMessage(Config config, DiscordChannel qotdChannel, DiscordMessage qotdMessage)
+
+        private static async Task SendNoticeIfAvailable(Config config, DiscordChannel qotdChannel, Notices.Notice? latestAvailableNotice, DateTime? previousLastSentTimestamp)
         {
-            if (config.EnableQotdPinMessage)
+            if (latestAvailableNotice is null)
+                return;
+
+            if (config.NoticesLevel == Config.NoticeLevel.None)
+                return;
+
+            if (config.NoticesLevel == Config.NoticeLevel.Important && !latestAvailableNotice.IsImportant)
+                return;
+
+            if ((previousLastSentTimestamp is null && (latestAvailableNotice.Date >= DateTime.UtcNow.AddDays(-2))) || // not sent a qotd yet? send if notice is less than 2 days old
+                (previousLastSentTimestamp is not null && (latestAvailableNotice.Date > previousLastSentTimestamp.Value.Date))) // sent a qotd? send if notice is before the day the last qotd was sent
             {
-                DiscordMessage? oldQotdMessage = null;
-                if (config.LastQotdMessageId != null)
-                {
-                    try
-                    {
-                        oldQotdMessage = await qotdChannel.GetMessageAsync(config.LastQotdMessageId.Value);
-                    }
-                    catch (NotFoundException)
-                    {
-                        oldQotdMessage = null;
-                    }
-                }
-
-                if (oldQotdMessage is not null)
-                {
-                    await oldQotdMessage.UnpinAsync();
-                }
-
-                await qotdMessage.PinAsync();
+                await SendNotice(qotdChannel, latestAvailableNotice);
             }
+        }
+        private static async Task SendNotice(DiscordChannel qotdChannel, Notices.Notice notice)
+        {
+            DiscordMessageBuilder noticeMessageBuilder = new();
+            DiscordEmbedBuilder noticeEmbed = MessageHelpers.GenericEmbed(
+                notice.IsImportant ? "Important Notice" : "Notice",
+                notice.NoticeText, 
+                color:(notice.IsImportant ? "#ef5658" : "#56efda"));
+
+            noticeEmbed.WithFooter("Authored by the developer \x2022 Configure with /config set notices_level");
+            noticeMessageBuilder.AddEmbed(noticeEmbed);
+
+            await qotdChannel.SendMessageAsync(noticeMessageBuilder);
+        }
+
+        private static async Task PinMessageIfEnabled(Config config, DiscordChannel qotdChannel, DiscordMessage qotdMessage)
+        {
+            if (!config.EnableQotdPinMessage)
+                return;
+
+            DiscordMessage? oldQotdMessage = null;
+            if (config.LastQotdMessageId != null)
+            {
+                try
+                {
+                    oldQotdMessage = await qotdChannel.GetMessageAsync(config.LastQotdMessageId.Value);
+                }
+                catch (NotFoundException)
+                {
+                    oldQotdMessage = null;
+                }
+            }
+
+            if (oldQotdMessage is not null)
+            {
+                await oldQotdMessage.UnpinAsync();
+            }
+
+            await qotdMessage.PinAsync();
+        }
+        private static async Task CreateThreadIfEnabled(Config config, DiscordChannel qotdChannel, DiscordMessage qotdMessage, int? sentQuestionsCount)
+        {
+            if (!config.EnableQotdCreateThread)
+                return;
+
+            await qotdMessage.CreateThreadAsync($"QOTD{(sentQuestionsCount is null ? "" : $" #{sentQuestionsCount}")} Discussion ({DateTime.UtcNow:yyyy-MM-dd})", DiscordAutoArchiveDuration.Day, reason:"Automatic QOTD thread");
         }
 
         private static async Task AddPingRoleIfExistent(DiscordMessageBuilder builder, DiscordGuild guild, Config config, DiscordChannel onErrorChannel)
