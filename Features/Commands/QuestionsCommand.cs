@@ -7,6 +7,7 @@ using DSharpPlus.Interactivity.Extensions;
 using Microsoft.EntityFrameworkCore;
 using System.ComponentModel;
 using System.Text;
+using static System.Net.Mime.MediaTypeNames;
 
 namespace CustomQotd.Features.Commands
 {
@@ -101,6 +102,35 @@ namespace CustomQotd.Features.Commands
                 MessageHelpers.GenericSuccessEmbed("Added Question", body)
                 );
             await Logging.LogUserAction(context, "Added Question", body);
+        }
+
+        [Command("addbulk")]
+        [Description("Add multiple questions in bulk (one per line).")]
+        public static async Task AddQuestionsBulkAsync(CommandContext context,
+            [Description("A file containing the questions, each seperated by line-breaks.")] DiscordAttachment questionsFile,
+            [Description("The type of the questions to add.")] QuestionType type)
+        {
+            if (!await CommandRequirements.IsConfigInitialized(context) || !await CommandRequirements.UserIsAdmin(context))
+                return;
+
+            if (questionsFile.MediaType is null || !questionsFile.MediaType.Contains("text/plain"))
+            {
+                await context.RespondAsync(
+                    MessageHelpers.GenericErrorEmbed(title: "Incorrect File-Type", message: $"The questions file must be of type `text/plain` (not \"{(questionsFile.MediaType ?? "*null*")}\").\n\n" +
+                    $"If this is a file containing questions seperated by line-breaks, make sure it is using UTF-8 encoding and has a `.txt` file extension."));
+                return;
+            }
+
+            if (questionsFile.FileSize > 1024 * 1024)
+            {
+                await context.RespondAsync(
+                    MessageHelpers.GenericErrorEmbed(title: "File Too Large", message: $"The questions file size cannot exceed 1MiB (yours is approx. {(questionsFile.FileSize / 1024f / 1024f):f2}MiB).")
+                    );
+            } 
+            
+            //if (!await Question.CheckTextValidity(question, context))
+                return;
+
         }
 
         [Command("changetype")]
