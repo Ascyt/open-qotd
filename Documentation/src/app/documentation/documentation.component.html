@@ -180,6 +180,11 @@
             Add a question to the bot with a certain type, which can be <code>Suggested</code>, <code>Accepted</code> or <code>Sent</code>.
         </li>
         <li class="mb-2">
+            <code>/questions addbulk [questions_file] [type]</code>:
+            Add multiple questions from a file to the bot with a certain type, which can be <code>Suggested</code>, <code>Accepted</code> or <code>Sent</code>.<br />
+            The file must be a <code>.txt</code> file with each question on a new line. They are added in the order they are in the file, and as if added line-by-line using <code>/questions add</code>.
+        </li>
+        <li class="mb-2">
             <code>/questions changetype [question_id] [type]</code>: 
             Change the type of a question to <code>Suggested</code>, <code>Accepted</code> or <code>Sent</code>.
             Note that setting a question from <code>Suggest</code> to <code>Accepted</code> works, but it is recommended to use <code>/suggestions accept</code> instead.
