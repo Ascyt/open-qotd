@@ -1,13 +1,14 @@
 ﻿using CustomQotd.Database;
 using CustomQotd.Database.Entities;
+using CustomQotd.Features.EventHandlers;
 using CustomQotd.Features.Helpers;
 using DSharpPlus.Commands;
 using DSharpPlus.Entities;
 using DSharpPlus.Interactivity.Extensions;
 using Microsoft.EntityFrameworkCore;
+using System;
 using System.ComponentModel;
 using System.Text;
-using static System.Net.Mime.MediaTypeNames;
 
 namespace CustomQotd.Features.Commands
 {
@@ -113,10 +114,12 @@ namespace CustomQotd.Features.Commands
             if (!await CommandRequirements.IsConfigInitialized(context) || !await CommandRequirements.UserIsAdmin(context))
                 return;
 
+            await context.DeferResponseAsync();
+
             if (questionsFile.MediaType is null || !questionsFile.MediaType.Contains("text/plain"))
             {
                 await context.RespondAsync(
-                    MessageHelpers.GenericErrorEmbed(title: "Incorrect File-Type", message: $"The questions file must be of type `text/plain` (not \"{(questionsFile.MediaType ?? "*null*")}\").\n\n" +
+                    MessageHelpers.GenericErrorEmbed(title: "Incorrect filetype", message: $"The questions file must be of type `text/plain` (not \"{(questionsFile.MediaType ?? "*null*")}\").\n\n" +
                     $"If this is a file containing questions seperated by line-breaks, make sure it is using UTF-8 encoding and has a `.txt` file extension."));
                 return;
             }
@@ -124,13 +127,62 @@ namespace CustomQotd.Features.Commands
             if (questionsFile.FileSize > 1024 * 1024)
             {
                 await context.RespondAsync(
-                    MessageHelpers.GenericErrorEmbed(title: "File Too Large", message: $"The questions file size cannot exceed 1MiB (yours is approx. {(questionsFile.FileSize / 1024f / 1024f):f2}MiB).")
+                    MessageHelpers.GenericErrorEmbed(title: "File too large", message: $"The questions file size cannot exceed 1MiB (yours is approx. {(questionsFile.FileSize / 1024f / 1024f):f2}MiB).")
                     );
-            } 
-            
-            //if (!await Question.CheckTextValidity(question, context))
                 return;
+            }
 
+            string contents;
+            using (HttpClient client = new HttpClient())
+            {
+                try
+                {
+                    HttpResponseMessage response = await client.GetAsync(questionsFile.Url);
+
+                    response.EnsureSuccessStatusCode();
+
+                    contents = await response.Content.ReadAsStringAsync();
+                }
+                catch (Exception ex)
+                {
+                    await EventHandlers.EventHandlers.SendCommandErroredMessage(ex, context, "An error occurred while trying to fetch the file contents.");
+                    return;
+                }
+            }
+
+            if (contents.Contains('\r'))
+                contents = contents.Replace("\r", "");
+
+            string[] lines = contents.Split('\n', StringSplitOptions.RemoveEmptyEntries);
+
+            for (int i = 0; i < lines.Length; i++)
+            {
+                if (!await Question.CheckTextValidity(lines[i], context, i+1))
+                    return;
+            }
+
+            int startId = await Question.GetNextGuildDependentId(context.Guild!.Id);
+            DateTime now = DateTime.UtcNow;
+            IEnumerable<Question> questions = lines.Select((line, index) => new Question()
+            {
+                GuildId = context.Guild!.Id,
+                GuildDependentId = startId + index,
+                Type = type,
+                Text = line,
+                SubmittedByUserId = context.User.Id,
+                Timestamp = now
+            });
+
+            using (var dbContext = new AppDbContext())
+            {
+                await dbContext.Questions.AddRangeAsync(questions);
+                await dbContext.SaveChangesAsync();
+            }
+
+            string body = $"Added {lines.Length} question{(lines.Length == 1 ? "" : "s")} ({type}).";
+            await context.RespondAsync(
+                MessageHelpers.GenericSuccessEmbed("Added Bulk Questions", body)
+                );
         }
 
         [Command("changetype")]
