@@ -24,7 +24,7 @@ namespace CustomQotd.Database.Entities
         public ulong? QotdPingRoleId { get; set; }
         public bool EnableAutomaticQotd { get; set; } = true;
         public bool EnableQotdPinMessage { get; set; } = true;
-        public bool EnableQotdCreateThread { get; set; } = true;
+        public bool EnableQotdCreateThread { get; set; } = false;
         public bool EnableQotdAutomaticPresets { get; set; } = true;
         public bool EnableQotdUnavailableMessage { get; set; } = true;
 
