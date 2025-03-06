@@ -18,14 +18,18 @@ namespace CustomQotd.Features.EventHandlers
     {
         public static async Task CommandErrored(CommandsExtension s, CommandErroredEventArgs e)
         {
-            string message = $"An uncaught error occurred from the command you have tried to execute.\n" +
+            await SendCommandErroredMessage(e.Exception, e.Context);
+        }
+        public static async Task SendCommandErroredMessage(Exception e, CommandContext context, string? info=null)
+        {
+            string message = (info ?? $"An uncaught error occurred from the command you tried to execute.") + "\n" +
                 $"If you're unsure what to do here, please feel free to join the [Support Server](<https://open-qotd.ascyt.com/community>) to reach out for help. " +
                 $"Make sure to include the below information when you do.\n\n" +
-                $"**{e.Exception.GetType().Name}**\n" +
-                $"> {e.Exception.Message}\n\n" +
+                $"**{e.GetType().Name}**\n" +
+                $"> {e.Message}\n\n" +
                 $"Stack Trace:\n" +
                 $"```\n" +
-                $"{e.Exception.StackTrace}";
+                $"{e.StackTrace}";
 
             if (message.Length > 4096 - 5)
                 message = message.Substring(0, 4096 - 5) + "…";
@@ -33,9 +37,9 @@ namespace CustomQotd.Features.EventHandlers
             DiscordMessageBuilder messageBuilder = new();
             messageBuilder.AddEmbed(MessageHelpers.GenericEmbed(message: message + "\n```", title: "Error (internal)", color: "#800000"));
 
-            if (e.Exception is DSharpPlus.Exceptions.UnauthorizedException)
+            if (e is DSharpPlus.Exceptions.UnauthorizedException)
             {
-                messageBuilder.AddEmbed(MessageHelpers.GenericWarningEmbed(title: "Hint", message: 
+                messageBuilder.AddEmbed(MessageHelpers.GenericWarningEmbed(title: "Hint", message:
                     "This error likely means that the bot is lacking permissions to execute your command.\n" +
                     "The bot needs three different permissions to function correctly:\n" +
                     "- Send Messages\n" +
@@ -45,7 +49,7 @@ namespace CustomQotd.Features.EventHandlers
                     "Your data, including the questions you have added, should not be removed by doing this."));
             }
 
-            await e.Context.RespondAsync(messageBuilder);
+            await context.RespondAsync(messageBuilder);
         }
 
         public static async Task ComponentInteractionCreated(DiscordClient client, ComponentInteractionCreatedEventArgs args)

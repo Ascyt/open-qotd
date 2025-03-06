@@ -49,39 +49,35 @@ namespace CustomQotd.Database.Entities
         }
         public static async Task<int> GetNextGuildDependentId(ulong guildId)
         {
-            HashSet<int> existingIds;
+            List<int> existingIds;
             using (var dbContext = new AppDbContext())
             {
-                existingIds = new HashSet<int>(await dbContext.Questions
+                existingIds = await dbContext.Questions
                     .Where(q => q.GuildId == guildId)
                     .Select(q => q.GuildDependentId)
-                    .ToListAsync());
+                    .ToListAsync();
             }
 
-            int nextId = 1;
-            while (existingIds.Contains(nextId))
-            {
-                nextId++;
-            }
-
-            return nextId;
+            return existingIds.Max() + 1;
         }
 
-        public static async Task<bool> CheckTextValidity(string text, CommandContext? context)
+        public static async Task<bool> CheckTextValidity(string text, CommandContext? context, int? lineNumber=null)
         {
+            string lineNumberString = (lineNumber is null ? "" : $" (line {lineNumber})");
+
             if (text.Length > 256)
             {
-                if (context != null)
+                if (context is not null)
                     await context.RespondAsync(
-                        MessageHelpers.GenericErrorEmbed(title: "Maximum Length Exceeded", message: $"Your question is {text.Length} characters in length, however it must not exceed **250** characters."));
+                        MessageHelpers.GenericErrorEmbed(title: "Maximum Length Exceeded", message: $"Your question{lineNumberString} is {text.Length} characters in length, however it must not exceed **256** characters."));
                 return false;
             }
 
             if (text.Contains("\n"))
             {
-                if (context != null)
+                if (context is not null)
                     await context.RespondAsync(
-                        MessageHelpers.GenericErrorEmbed(title: "Line-breaks are forbidden", message: "Your question must not contain any line-breaks and must all be written in one line."));
+                        MessageHelpers.GenericErrorEmbed(title: "Line-breaks are forbidden", message: $"Your question{lineNumberString} must not contain any line-breaks and must all be written in one line."));
                 return false;
             }
 
