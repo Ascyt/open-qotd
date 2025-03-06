@@ -45,6 +45,7 @@ namespace CustomQotd.Features.Commands
                 await context.RespondAsync(
                     MessageHelpers.GenericErrorEmbed("Server Administrator permission is required to run this command.")
                     );
+                return;
             }
 
             QotdTimeMinuteUtc = Math.Clamp(QotdTimeMinuteUtc, 0, 59);
@@ -102,6 +103,7 @@ namespace CustomQotd.Features.Commands
                 await context.RespondAsync(
                     MessageHelpers.GenericErrorEmbed("Server Administrator permission is required to run this command.")
                     );
+                return;
             }
 
             if (!await CommandRequirements.IsConfigInitialized(context))
@@ -146,6 +148,7 @@ namespace CustomQotd.Features.Commands
                 await context.RespondAsync(
                     MessageHelpers.GenericErrorEmbed("Server Administrator permission is required to run this command.")
                     );
+                return;
             }
 
             if (!await CommandRequirements.IsConfigInitialized(context))
@@ -230,6 +233,14 @@ namespace CustomQotd.Features.Commands
             [Description("The role that will get pinged when a new QOTD is suggested.")] SingleOption? SuggestionsPingRole = null,
             [Description("The channel where commands, QOTDs and more get logged to.")] SingleOption? LogsChannel = null)
         {
+            if (!context.Member!.Permissions.HasPermission(DiscordPermissions.Administrator))
+            {
+                await context.RespondAsync(
+                    MessageHelpers.GenericErrorEmbed("Server Administrator permission is required to run this command.")
+                    );
+                return;
+            }
+
             Config config;
             using (var dbContext = new AppDbContext())
             {
