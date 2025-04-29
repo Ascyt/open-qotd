@@ -46,7 +46,7 @@ namespace CustomQotd.Features
         /// </summary>
         public static Notice? GetLatestAvailableNotice()
         {
-            return notices.Where(n => n.Date <= DateTime.UtcNow).FirstOrDefault();
+            return notices.Where(n => n.Date <= DateTime.UtcNow).MaxBy(n => n.Date);
         }
     }
 }
