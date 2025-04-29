@@ -291,7 +291,7 @@ namespace CustomQotd.Features.QotdSending
                 return;
 
             if ((previousLastSentTimestamp is null && (latestAvailableNotice.Date >= DateTime.UtcNow.AddDays(-2))) || // not sent a qotd yet? send if notice is less than 2 days old
-                (previousLastSentTimestamp is not null && (latestAvailableNotice.Date > previousLastSentTimestamp.Value.Date))) // sent a qotd? send if notice is before the day the last qotd was sent
+                (previousLastSentTimestamp is not null && (latestAvailableNotice.Date > previousLastSentTimestamp.Value))) // sent a qotd? send if notice is before the day the last qotd was sent
             {
                 await SendNotice(qotdChannel, latestAvailableNotice);
             }
