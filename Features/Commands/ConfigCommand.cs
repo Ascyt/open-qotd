@@ -71,23 +71,24 @@ namespace CustomQotd.Features.Commands
                 NoticesLevel = NoticesLevel,
                 LogsChannelId = LogsChannel?.Id
             };
+            bool reInitialized = false;
             using (var dbContext = new AppDbContext())
             {
                 Config? existingConfig = await dbContext.Configs.FindAsync(context!.Guild.Id);
                 if (existingConfig != null)
                 {
-                    existingConfig = config;
+                    dbContext.Remove(existingConfig);
+                    await dbContext.SaveChangesAsync();
+                    reInitialized = true;
                 }
-                else
-                {
-                    await dbContext.Configs.AddAsync(config);
-                }
+
+                await dbContext.Configs.AddAsync(config);
                 await dbContext.SaveChangesAsync();
             }
             string configString = await config.ToStringAsync();
 
             await context.RespondAsync(
-                    MessageHelpers.GenericSuccessEmbed("Successfully initialized config", configString)
+                    MessageHelpers.GenericSuccessEmbed($"Successfully {(reInitialized ? "re-" : "")}initialized config", configString)
                 );
 
             // Can cause issues
