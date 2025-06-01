@@ -46,7 +46,7 @@ namespace CustomQotd.Features.Commands
 
             DiscordMessageBuilder messageBuilder = new DiscordMessageBuilder();
             messageBuilder.AddEmbed(embed);
-            messageBuilder.AddComponents(
+            messageBuilder.AddActionRowComponent(
                 rerollButton
                 );
 
@@ -91,7 +91,7 @@ namespace CustomQotd.Features.Commands
 
                 messageBuilder = new DiscordMessageBuilder();
                 messageBuilder.AddEmbed(embed);
-                messageBuilder.AddComponents(
+                messageBuilder.AddActionRowComponent(
                     rerollButton
                     );
 
@@ -100,7 +100,7 @@ namespace CustomQotd.Features.Commands
 
                 DiscordInteractionResponseBuilder interactionResponseBuilder = new DiscordInteractionResponseBuilder();
                 interactionResponseBuilder.AddEmbed(embed);
-                interactionResponseBuilder.AddComponents(
+                interactionResponseBuilder.AddActionRowComponent(
                     rerollButton
                     );  
 

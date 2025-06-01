@@ -127,7 +127,7 @@ namespace CustomQotd.Features.Helpers
                 message.AddEmbed(GenericErrorEmbed($"Page {page} does not exist.", title: title));
                 if (includeButtons)
                 {
-                    message.AddComponents(
+                    message.AddActionRowComponent(
                             new DiscordButtonComponent(DiscordButtonStyle.Secondary, "redirect", $"Go to page {totalPages}")
                         );
                 }
@@ -151,7 +151,7 @@ namespace CustomQotd.Features.Helpers
 
             if (includeButtons)
             {
-                message.AddComponents(
+                message.AddActionRowComponent(
                     new DiscordButtonComponent(DiscordButtonStyle.Secondary, "first", "<<", page == 1),
                     new DiscordButtonComponent(DiscordButtonStyle.Primary, "backward", "<", page == 1),
                     new DiscordButtonComponent(DiscordButtonStyle.Primary, "forward", ">", page == totalPages),
@@ -177,7 +177,7 @@ namespace CustomQotd.Features.Helpers
                 message.AddEmbed(GenericErrorEmbed($"Page {page} does not exist.", title: title));
                 if (includeButtons)
                 {
-                    message.AddComponents(
+                    message.AddActionRowComponent(
                         new DiscordButtonComponent(DiscordButtonStyle.Secondary, "redirect", $"Go to page {totalPages}")
                     );
                 }
@@ -201,7 +201,7 @@ namespace CustomQotd.Features.Helpers
 
             if (includeButtons)
             {
-                message.AddComponents(
+                message.AddActionRowComponent(
                 new DiscordButtonComponent(DiscordButtonStyle.Secondary, "first", "<<", page == 1),
                 new DiscordButtonComponent(DiscordButtonStyle.Primary, "backward", "<", page == 1),
                 new DiscordButtonComponent(DiscordButtonStyle.Primary, "forward", ">", page == totalPages),

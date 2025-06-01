@@ -132,7 +132,7 @@ namespace CustomQotd.Features.EventHandlers
             DiscordInteractionResponseBuilder modal = new DiscordInteractionResponseBuilder()
                 .WithTitle("Suggest a Question Of The Day!")
                 .WithCustomId("suggest-qotd")
-                .AddComponents(new DiscordTextInputComponent(
+                .AddTextInputComponent(new DiscordTextInputComponent(
                     label: "Question", customId: "text", placeholder: $"This will require approval by the staff of this server.", max_length: 256, required: true, style: DiscordTextInputStyle.Short));
 
             await args.Interaction.CreateResponseAsync(DiscordInteractionResponseType.Modal, modal);
