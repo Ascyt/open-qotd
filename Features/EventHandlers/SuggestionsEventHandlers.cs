@@ -142,7 +142,7 @@ namespace CustomQotd.Features.EventHandlers
             DiscordInteractionResponseBuilder modal = new DiscordInteractionResponseBuilder()
                 .WithTitle(question.Text.Length > 32 ? $"Denial of \"{question.Text.Substring(0, 32)}…\"" : $"Denial of \"{question.Text}\"")
                 .WithCustomId($"suggestions-deny/{guildDependentId}")
-                .AddComponents(new DiscordTextInputComponent(
+                .AddTextInputComponent(new DiscordTextInputComponent(
                     label: "Denial Reason", customId: "reason", placeholder: "This will be sent to the user.", max_length: 1024, required: true, style: DiscordTextInputStyle.Paragraph));
 
             await args.Interaction.CreateResponseAsync(DiscordInteractionResponseType.Modal, modal);

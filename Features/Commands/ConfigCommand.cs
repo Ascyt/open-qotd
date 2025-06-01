@@ -40,7 +40,7 @@ namespace CustomQotd.Features.Commands
             [Description("Whether all, only important, or no notices should be shown under QOTDs (all by default).")] Config.NoticeLevel NoticesLevel = Config.NoticeLevel.All,
             [Description("The channel where commands, QOTDs and more get logged to.")] DiscordChannel? LogsChannel = null)
         {
-            if (!context.Member!.Permissions.HasPermission(DiscordPermissions.Administrator))
+            if (!context.Member!.Permissions.HasPermission(DiscordPermission.Administrator))
             {
                 await context.RespondAsync(
                     MessageHelpers.GenericErrorEmbed("Server Administrator permission is required to run this command.")
@@ -98,7 +98,7 @@ namespace CustomQotd.Features.Commands
         [Description("Get all config values")]
         public static async Task GetAsync(CommandContext context)
         {
-            if (!context.Member!.Permissions.HasPermission(DiscordPermissions.Administrator))
+            if (!context.Member!.Permissions.HasPermission(DiscordPermission.Administrator))
             {
                 await context.RespondAsync(
                     MessageHelpers.GenericErrorEmbed("Server Administrator permission is required to run this command.")
@@ -143,7 +143,7 @@ namespace CustomQotd.Features.Commands
             [Description("Whether all, only important, or no notices should be shown under QOTDs (all by default).")] Config.NoticeLevel? NoticesLevel = null,
             [Description("The channel where commands, QOTDs and more get logged to.")] DiscordChannel? LogsChannel = null)
         {
-            if (!context.Member!.Permissions.HasPermission(DiscordPermissions.Administrator))
+            if (!context.Member!.Permissions.HasPermission(DiscordPermission.Administrator))
             {
                 await context.RespondAsync(
                     MessageHelpers.GenericErrorEmbed("Server Administrator permission is required to run this command.")
@@ -233,7 +233,7 @@ namespace CustomQotd.Features.Commands
             [Description("The role that will get pinged when a new QOTD is suggested.")] SingleOption? SuggestionsPingRole = null,
             [Description("The channel where commands, QOTDs and more get logged to.")] SingleOption? LogsChannel = null)
         {
-            if (!context.Member!.Permissions.HasPermission(DiscordPermissions.Administrator))
+            if (!context.Member!.Permissions.HasPermission(DiscordPermission.Administrator))
             {
                 await context.RespondAsync(
                     MessageHelpers.GenericErrorEmbed("Server Administrator permission is required to run this command.")

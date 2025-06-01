@@ -143,7 +143,7 @@ namespace CustomQotd.Features.Commands
             messageBuilder.AddEmbed(MessageHelpers.GenericEmbed("A new QOTD Suggestion is available!", embedBody,
                 color: "#f0b132"));
 
-            messageBuilder.AddComponents(
+            messageBuilder.AddActionRowComponent(
                 new DiscordButtonComponent(DiscordButtonStyle.Success, $"suggestions-accept/{newQuestion.GuildDependentId}", "Accept"),
                 new DiscordButtonComponent(DiscordButtonStyle.Danger, $"suggestions-deny/{newQuestion.GuildDependentId}", "Deny")
             );

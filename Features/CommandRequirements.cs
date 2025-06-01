@@ -70,7 +70,7 @@ namespace CustomQotd.Features
         /// <returns>(If config is initialized, error message if not)</returns>
         public static async Task<(bool, string?)> UserIsAdmin(DiscordGuild guild, DiscordMember member)
         {
-            if (member.Permissions.HasPermission(DiscordPermissions.Administrator))
+            if (member.Permissions.HasPermission(DiscordPermission.Administrator))
                 return (true, null);
 
             ulong roleId;
@@ -135,7 +135,7 @@ namespace CustomQotd.Features
 
         public static async Task<(bool, string?)> UserIsBasic(DiscordGuild guild, DiscordMember member)
         {
-            if (member.Permissions.HasPermission(DiscordPermissions.Administrator))
+            if (member.Permissions.HasPermission(DiscordPermission.Administrator))
                 return (true, null);
 
             ulong? roleId;
