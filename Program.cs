@@ -51,7 +51,7 @@ namespace CustomQotd
             builder.UseCommands
             (
                 // we register our commands here
-                extension =>
+                (IServiceProvider provider, CommandsExtension extension) =>
                 {
                     extension.AddCommands([
                         typeof(ConfigCommand),
