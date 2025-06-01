@@ -77,6 +77,7 @@ namespace CustomQotd.Features.Commands
                 if (existingConfig != null)
                 {
                     existingConfig = config;
+                    dbContext.Update(existingConfig);
                 }
                 else
                 {
