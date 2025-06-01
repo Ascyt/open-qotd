@@ -101,6 +101,33 @@ namespace CustomQotd.Features.EventHandlers
         {
             if (!await CommandRequirements.IsConfigInitialized(args) || !await CommandRequirements.UserIsBasic(args))
                 return;
+                
+            Config? config;
+            using (var dbContext = new AppDbContext())
+            {
+                config = await dbContext.Configs
+                    .Where(q => q.GuildId == args.Interaction.GuildId)
+                    .FirstOrDefaultAsync();
+            }
+            if (config is null)
+            {
+                DiscordEmbed errorEmbed = MessageHelpers.GenericErrorEmbed("Config not found or not initialized yet.");
+
+                await args.Interaction.CreateResponseAsync(DiscordInteractionResponseType.ChannelMessageWithSource, new DiscordInteractionResponseBuilder()
+                    .AddEmbed(errorEmbed)
+                    .AsEphemeral());
+                return;
+            }
+
+            if (!config.EnableSuggestions)
+            {
+                DiscordEmbed errorEmbed = MessageHelpers.GenericErrorEmbed($"Suggestions are not enabled for this server.");
+
+                await args.Interaction.CreateResponseAsync(DiscordInteractionResponseType.ChannelMessageWithSource, new DiscordInteractionResponseBuilder()
+                    .AddEmbed(errorEmbed)
+                    .AsEphemeral());
+                return;
+            }
 
             DiscordInteractionResponseBuilder modal = new DiscordInteractionResponseBuilder()
                 .WithTitle("Suggest a Question Of The Day!")
@@ -113,6 +140,33 @@ namespace CustomQotd.Features.EventHandlers
 
         private static async Task SuggestQotdModalSubmitted(DiscordClient client, ModalSubmittedEventArgs args)
         {
+            Config? config;
+            using (var dbContext = new AppDbContext())
+            {
+                config = await dbContext.Configs
+                    .Where(q => q.GuildId == args.Interaction.GuildId)
+                    .FirstOrDefaultAsync();
+            }
+            if (config is null)
+            {
+                DiscordEmbed errorEmbed = MessageHelpers.GenericErrorEmbed("Config not found or not initialized yet.");
+
+                await args.Interaction.CreateResponseAsync(DiscordInteractionResponseType.ChannelMessageWithSource, new DiscordInteractionResponseBuilder()
+                    .AddEmbed(errorEmbed)
+                    .AsEphemeral());
+                return;
+            }
+
+            if (!config.EnableSuggestions)
+            {
+                DiscordEmbed errorEmbed = MessageHelpers.GenericErrorEmbed($"Suggestions are not enabled for this server.");
+
+                await args.Interaction.CreateResponseAsync(DiscordInteractionResponseType.ChannelMessageWithSource, new DiscordInteractionResponseBuilder()
+                    .AddEmbed(errorEmbed)
+                    .AsEphemeral());
+                return;
+            }
+
             string question = args.Values["text"];
 
             (bool, DiscordEmbed) result = await SuggestCommand.SuggestNoContextAsync(question, args.Interaction.Guild!, args.Interaction.Channel, args.Interaction.User);
@@ -123,7 +177,7 @@ namespace CustomQotd.Features.EventHandlers
             responseBuilder.IsEphemeral = true;
 
             await args.Interaction.CreateResponseAsync(DiscordInteractionResponseType.ChannelMessageWithSource, responseBuilder);
-        
+
         }
     }
 }

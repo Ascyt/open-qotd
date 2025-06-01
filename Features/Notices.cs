@@ -30,6 +30,13 @@ namespace CustomQotd.Features
 
         public static async Task LoadNotices()
         {
+            if (!File.Exists("notices.json"))
+            {
+                _notices = new List<Notice>();
+                await SaveNotices();
+                return;
+            }
+
             string jsonData = await File.ReadAllTextAsync("notices.json");
 
             _notices = JsonSerializer.Deserialize<List<Notice>>(jsonData);
