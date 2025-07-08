@@ -57,7 +57,7 @@ What is something that you think should be more widely accepted or normalized?
 Do you care about what happens after your passing?
 How has the Coronavirus pandemic and/or the virus itself affected you?
 What was a nightmare you had that still haunts you to this day?
-If you had a choice between: "Be invicible (you can't die no matter what)" or "die right now", what would you choose?
+If it was possible to live forever, would you take it?
 You are able to alter a single fact, your objective is to cause as much chaos as possible, what would you choose to change?
 What do you miss the most from your childhood?
 What is your view on death?
@@ -78,7 +78,7 @@ You are able to sell years of your lifetime for $15,000 each. How many years wou
 What was your favorite song when you were a child?
 Which of the 5 love languages is more prevalent in you?
 If you were forced to live in any period in history, when would you live and why?
-Would you rather learn the date of your death, or the cause of your death? You would not be able to change this fate.
+What song best represents the current mood you are in?
 If you found a biography of your entire life, what would it be called?
 What frivolous thing do you have a strong opinion about? For example, the correct way to hang the toilet paper is "over".
 What is the most unique or rarest item you own?
@@ -154,3 +154,6 @@ What thing did you waste the most time on?
 What field do you work in, and what advice would you give to anyone looking to start working in your field?
 Imagine you're hired to think of a new species to put on earth. What are you creating?	
 How do you feel about AI?
+If you were a villian, what would your "evil plan" be?
+What is the most meaningful gift you've ever received?
+Tell us something you think nobody here knows about you!
