@@ -6,6 +6,7 @@ using DSharpPlus.Entities;
 using DSharpPlus.EventArgs;
 using DSharpPlus.Exceptions;
 using Microsoft.EntityFrameworkCore;
+using System.Threading.Tasks;
 
 namespace CustomQotd.Features
 {
@@ -190,6 +191,32 @@ namespace CustomQotd.Features
             }
 
             return (true, null);
+        }
+
+        public const int MAX_QUESTIONS_AMOUNT = 1024 * 64; // 65k questions per guild
+        public static async Task<bool> WithinMaxQuestionsAmount(CommandContext context, int additionalAmount)
+        {
+            if (additionalAmount < 0)
+                return false;
+
+            using (var dbContext = new AppDbContext())
+            {
+                int currentAmount = dbContext.Questions
+                    .Where(q => q.GuildId == context.Guild!.Id)
+                    .Count();
+
+                bool isWithinLimit = currentAmount + additionalAmount <= MAX_QUESTIONS_AMOUNT;
+
+                if (!isWithinLimit)
+                {
+                    await context.RespondAsync(
+                        MessageHelpers.GenericErrorEmbed(
+                            $"It is not allowed to have more than **{MAX_QUESTIONS_AMOUNT}** questions in a guild. " +
+                            $"There are currently {currentAmount} questions, and adding {additionalAmount} more would exceed the limit, therefore no questions have been added."));
+                }
+
+                return isWithinLimit;
+            }
         }
     }
 }

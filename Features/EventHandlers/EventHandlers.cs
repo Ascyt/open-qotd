@@ -136,6 +136,19 @@ namespace CustomQotd.Features.EventHandlers
             Config? config;
             using (var dbContext = new AppDbContext())
             {
+                int questionsCount = await dbContext.Questions
+                    .Where(q => q.GuildId == args.Interaction.GuildId)
+                    .CountAsync();
+
+                if (questionsCount >= CommandRequirements.MAX_QUESTIONS_AMOUNT)
+                {
+                    DiscordEmbed errorEmbed = MessageHelpers.GenericErrorEmbed($"The maximum amount of questions for this guild (**{CommandRequirements.MAX_QUESTIONS_AMOUNT}**) has been reached.");
+                    await args.Interaction.CreateResponseAsync(DiscordInteractionResponseType.ChannelMessageWithSource, new DiscordInteractionResponseBuilder()
+                        .AddEmbed(errorEmbed)
+                        .AsEphemeral());
+                    return;
+                }
+
                 config = await dbContext.Configs
                     .Where(q => q.GuildId == args.Interaction.GuildId)
                     .FirstOrDefaultAsync();

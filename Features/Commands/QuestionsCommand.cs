@@ -15,8 +15,6 @@ namespace CustomQotd.Features.Commands
     [Command("questions")]
     public class QuestionsCommand
     {
-        const int MAX_QUESTIONS_AMOUNT = 1024 * 64; // 65k questions per guild
-
         [Command("view")]
         [Description("View a question using its ID.")]
         public static async Task ViewQuestionAsync(CommandContext context,
@@ -76,7 +74,7 @@ namespace CustomQotd.Features.Commands
         {
             Config? config = await CommandRequirements.TryGetConfig(context);
 
-            if (config is null || !await CommandRequirements.UserIsAdmin(context, null))
+            if (config is null || !await CommandRequirements.UserIsAdmin(context, null) || !await CommandRequirements.WithinMaxQuestionsAmount(context, 1))
                 return;
 
             if (!await Question.CheckTextValidity(question, context, config))
@@ -89,10 +87,6 @@ namespace CustomQotd.Features.Commands
 
             using (var dbContext = new AppDbContext())
             {
-                int existingCount = await dbContext.Questions
-                    .Where(q => q.GuildId == guildId && q.Type == type && q.Text == question)
-                    .CountAsync();
-
                 newQuestion = new Question()
                 {
                     GuildId = guildId,
@@ -164,6 +158,9 @@ namespace CustomQotd.Features.Commands
                 contents = contents.Replace("\r", "");
 
             string[] lines = contents.Split('\n', StringSplitOptions.RemoveEmptyEntries);
+
+            if (!await CommandRequirements.WithinMaxQuestionsAmount(context, lines.Length))
+                return;
 
             for (int i = 0; i < lines.Length; i++)
             {

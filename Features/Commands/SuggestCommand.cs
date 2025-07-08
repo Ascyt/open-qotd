@@ -25,7 +25,7 @@ namespace CustomQotd.Features.Commands
         {
             Config? config = await CommandRequirements.TryGetConfig(context);
 
-            if (config is null || !await CommandRequirements.UserIsBasic(context, config))
+            if (config is null || !await CommandRequirements.UserIsBasic(context, config) || !await CommandRequirements.WithinMaxQuestionsAmount(context, 1))
                 return;
 
             if (!config.EnableSuggestions)
