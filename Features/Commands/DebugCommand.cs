@@ -33,6 +33,8 @@ namespace CustomQotd.Features.Commands
                 return;
             }
 
+            await context.DeferResponseAsync();
+
             string[] argsSplit = args.Split(' ');
 
             switch (argsSplit[0])
