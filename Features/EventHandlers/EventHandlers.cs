@@ -37,7 +37,7 @@ namespace CustomQotd.Features.EventHandlers
             DiscordMessageBuilder messageBuilder = new();
             messageBuilder.AddEmbed(MessageHelpers.GenericEmbed(message: message + "\n```", title: "Error (internal)", color: "#800000"));
 
-            if (e is DSharpPlus.Exceptions.UnauthorizedException || true)
+            if (e is DSharpPlus.Exceptions.UnauthorizedException)
             {
                 messageBuilder.AddEmbed(MessageHelpers.GenericWarningEmbed(title: "Hint", message:
                     "This error likely means that the bot is lacking permissions to execute your command.\n" +
