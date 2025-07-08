@@ -1,10 +1,12 @@
 ﻿using CustomQotd.Database;
 using CustomQotd.Database.Entities;
+using CustomQotd.Features.EventHandlers;
 using CustomQotd.Features.Helpers;
 using DSharpPlus.Commands;
 using DSharpPlus.Entities;
 using DSharpPlus.Interactivity.Extensions;
 using Microsoft.EntityFrameworkCore;
+using System;
 using System.ComponentModel;
 using System.Text;
 
@@ -18,7 +20,7 @@ namespace CustomQotd.Features.Commands
         public static async Task ViewQuestionAsync(CommandContext context,
         [Description("The ID of the question.")] int questionId)
         {
-            if (!await CommandRequirements.IsConfigInitialized(context) || !await CommandRequirements.UserIsAdmin(context))
+            if (!await CommandRequirements.UserIsAdmin(context, null))
                 return;
 
             Question? question;
@@ -70,10 +72,12 @@ namespace CustomQotd.Features.Commands
             [Description("The question to add.")] string question,
             [Description("The type of the question to add.")] QuestionType type)
         {
-            if (!await CommandRequirements.IsConfigInitialized(context) || !await CommandRequirements.UserIsAdmin(context))
+            Config? config = await CommandRequirements.TryGetConfig(context);
+
+            if (config is null || !await CommandRequirements.UserIsAdmin(context, null) || !await CommandRequirements.WithinMaxQuestionsAmount(context, 1))
                 return;
 
-            if (!await Question.CheckTextValidity(question, context))
+            if (!await Question.CheckTextValidity(question, context, config))
                 return;
 
             ulong guildId = context.Guild!.Id;
@@ -103,13 +107,98 @@ namespace CustomQotd.Features.Commands
             await Logging.LogUserAction(context, "Added Question", body);
         }
 
+        [Command("addbulk")]
+        [Description("Add multiple questions in bulk (one per line).")]
+        public static async Task AddQuestionsBulkAsync(CommandContext context,
+            [Description("A file containing the questions, each seperated by line-breaks.")] DiscordAttachment questionsFile,
+            [Description("The type of the questions to add.")] QuestionType type)
+        {
+            Config? config = await CommandRequirements.TryGetConfig(context);
+
+            if (config is null || !await CommandRequirements.UserIsAdmin(context, config))
+                return;
+
+            await context.DeferResponseAsync();
+
+            if (questionsFile.MediaType is null || !questionsFile.MediaType.Contains("text/plain"))
+            {
+                await context.RespondAsync(
+                    MessageHelpers.GenericErrorEmbed(title: "Incorrect filetype", message: $"The questions file must be of type `text/plain` (not \"{(questionsFile.MediaType ?? "*null*")}\").\n\n" +
+                    $"If this is a file containing questions seperated by line-breaks, make sure it is using UTF-8 encoding and has a `.txt` file extension."));
+                return;
+            }
+
+            if (questionsFile.FileSize > 1024 * 1024)
+            {
+                await context.RespondAsync(
+                    MessageHelpers.GenericErrorEmbed(title: "File too large", message: $"The questions file size cannot exceed 1MiB (yours is approx. {(questionsFile.FileSize / 1024f / 1024f):f2}MiB).")
+                    );
+                return;
+            }
+
+            string contents;
+            using (HttpClient client = new HttpClient())
+            {
+                try
+                {
+                    HttpResponseMessage response = await client.GetAsync(questionsFile.Url);
+
+                    response.EnsureSuccessStatusCode();
+
+                    contents = await response.Content.ReadAsStringAsync();
+                }
+                catch (Exception ex)
+                {
+                    await EventHandlers.EventHandlers.SendCommandErroredMessage(ex, context, "An error occurred while trying to fetch the file contents.");
+                    return;
+                }
+            }
+
+            if (contents.Contains('\r'))
+                contents = contents.Replace("\r", "");
+
+            string[] lines = contents.Split('\n', StringSplitOptions.RemoveEmptyEntries);
+
+            if (!await CommandRequirements.WithinMaxQuestionsAmount(context, lines.Length))
+                return;
+
+            for (int i = 0; i < lines.Length; i++)
+            {
+                if (!await Question.CheckTextValidity(lines[i], context, config, i+1))
+                    return;
+            }
+
+            int startId = await Question.GetNextGuildDependentId(context.Guild!.Id);
+            DateTime now = DateTime.UtcNow;
+            IEnumerable<Question> questions = lines.Select((line, index) => new Question()
+            {
+                GuildId = context.Guild!.Id,
+                GuildDependentId = startId + index,
+                Type = type,
+                Text = line,
+                SubmittedByUserId = context.User.Id,
+                Timestamp = now
+            });
+
+            using (var dbContext = new AppDbContext())
+            {
+                await dbContext.Questions.AddRangeAsync(questions);
+                await dbContext.SaveChangesAsync();
+            }
+
+            string body = $"Added {lines.Length} question{(lines.Length == 1 ? "" : "s")} ({type}).";
+            await context.RespondAsync(
+                MessageHelpers.GenericSuccessEmbed("Added Bulk Questions", body)
+                );
+        }
+
         [Command("changetype")]
         [Description("Change the type of a question (eg. Sent->Accepted).")]
         public static async Task ChangeTypeOfQuestionAsync(CommandContext context,
             [Description("The ID of the question.")] int questionId,
             [Description("The type to set the question to.")] QuestionType type)
         {
-            if (!await CommandRequirements.IsConfigInitialized(context) || !await CommandRequirements.UserIsAdmin(context))
+            if (!await CommandRequirements.UserIsAdmin(context, null))
                 return;
 
             ulong guildId = context.Guild!.Id;
@@ -148,7 +237,7 @@ namespace CustomQotd.Features.Commands
             [Description("The type of the questions to change the type of.")] QuestionType fromType,
             [Description("The type to set all of those questions to.")] QuestionType toType)
         {
-            if (!await CommandRequirements.IsConfigInitialized(context) || !await CommandRequirements.UserIsAdmin(context))
+            if (!await CommandRequirements.UserIsAdmin(context, null))
                 return;
 
             if (fromType == toType)
@@ -185,7 +274,7 @@ namespace CustomQotd.Features.Commands
         public static async Task RemoveQuestionAsync(CommandContext context,
         [Description("The ID of the question.")] int questionId)
         {
-            if (!await CommandRequirements.IsConfigInitialized(context) || !await CommandRequirements.UserIsAdmin(context))
+            if (!await CommandRequirements.UserIsAdmin(context, null))
                 return;
 
             ulong guildId = context.Guild!.Id;
@@ -220,7 +309,7 @@ namespace CustomQotd.Features.Commands
             [Description("The type of questions to show.")] QuestionType type,
             [Description("The page of the listing (default 1).")] int page = 1)
         {
-            if (!await CommandRequirements.IsConfigInitialized(context) || !await CommandRequirements.UserIsAdmin(context))
+            if (!await CommandRequirements.UserIsAdmin(context, null))
                 return;
 
             await ListQuestionsNoPermcheckAsync(context, type, page);
@@ -262,7 +351,7 @@ namespace CustomQotd.Features.Commands
             [Description("The type of questions to show (default all).")] QuestionType? type = null,
             [Description("The page of the listing (default 1).")] int page = 1)
         {
-            if (!await CommandRequirements.IsConfigInitialized(context) || !await CommandRequirements.UserIsAdmin(context))
+            if (!await CommandRequirements.UserIsAdmin(context, null))
                 return;
 
             const int itemsPerPage = 10;

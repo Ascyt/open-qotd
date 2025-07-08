@@ -75,7 +75,7 @@ namespace CustomQotd.Features.Commands
         public static async Task AcceptSuggestionAsync(CommandContext context,
         [Description("The ID of the suggestion.")] int suggestionId)
         {
-            if (!await CommandRequirements.IsConfigInitialized(context) || !await CommandRequirements.UserIsAdmin(context))
+            if (!await CommandRequirements.UserIsAdmin(context, null))
                 return;
 
             Question? question;
@@ -114,7 +114,7 @@ namespace CustomQotd.Features.Commands
         [Description("The ID of the suggestion.")] int suggestionId,
         [Description("The reason why the suggestion is denied, which will be sent to the user.")] string reason)
         {
-            if (!await CommandRequirements.IsConfigInitialized(context) || !await CommandRequirements.UserIsAdmin(context))
+            if (!await CommandRequirements.UserIsAdmin(context, null))
                 return;
 
             Question? question;
@@ -153,7 +153,7 @@ namespace CustomQotd.Features.Commands
         [Description("Accept all suggestions.")]
         public static async Task AcceptAllSuggestionsAsync(CommandContext context)
         {
-            if (!await CommandRequirements.IsConfigInitialized(context) || !await CommandRequirements.UserIsAdmin(context))
+            if (!await CommandRequirements.UserIsAdmin(context, null))
                 return;
 
             await context.DeferResponseAsync();
@@ -260,7 +260,7 @@ namespace CustomQotd.Features.Commands
         [Description("Deny all suggestions.")]
         public static async Task DenyAllSuggestionsAsync(CommandContext context)
         {
-            if (!await CommandRequirements.IsConfigInitialized(context) || !await CommandRequirements.UserIsAdmin(context))
+            if (!await CommandRequirements.UserIsAdmin(context, null))
                 return;
 
             await context.DeferResponseAsync();
@@ -381,7 +381,7 @@ namespace CustomQotd.Features.Commands
                     DiscordEmbed embed = MessageHelpers.GenericErrorEmbed(title: "Suggestion Not Found", message: $"The suggestion with ID `{question.GuildDependentId}` could not be found.");
 
                     if (suggestionMessage is null)
-                        await context.Channel.SendMessageAsync(embed);
+                        await context!.Channel.SendMessageAsync(embed);
                     else
                         await suggestionMessage.Channel!.SendMessageAsync(embed
                         );

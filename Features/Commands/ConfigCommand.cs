@@ -40,7 +40,7 @@ namespace CustomQotd.Features.Commands
             [Description("Whether all, only important, or no notices should be shown under QOTDs (all by default).")] Config.NoticeLevel NoticesLevel = Config.NoticeLevel.All,
             [Description("The channel where commands, QOTDs and more get logged to.")] DiscordChannel? LogsChannel = null)
         {
-            if (!context.Member!.Permissions.HasPermission(DiscordPermissions.Administrator))
+            if (!context.Member!.Permissions.HasPermission(DiscordPermission.Administrator))
             {
                 await context.RespondAsync(
                     MessageHelpers.GenericErrorEmbed("Server Administrator permission is required to run this command.")
@@ -99,7 +99,7 @@ namespace CustomQotd.Features.Commands
         [Description("Get all config values")]
         public static async Task GetAsync(CommandContext context)
         {
-            if (!context.Member!.Permissions.HasPermission(DiscordPermissions.Administrator))
+            if (!context.Member!.Permissions.HasPermission(DiscordPermission.Administrator))
             {
                 await context.RespondAsync(
                     MessageHelpers.GenericErrorEmbed("Server Administrator permission is required to run this command.")
@@ -107,17 +107,12 @@ namespace CustomQotd.Features.Commands
                 return;
             }
 
-            if (!await CommandRequirements.IsConfigInitialized(context))
+            Config? config = await CommandRequirements.TryGetConfig(context);
+
+            if (config is null)
                 return;
 
-            Config config;
-            using (var dbContext = new AppDbContext())
-            {
-                config = (await dbContext.Configs.Where(c => c.GuildId == context.Guild!.Id).FirstOrDefaultAsync())!;
-            }
-
             string configString = await config.ToStringAsync();
-
 
             await context.RespondAsync(
                     MessageHelpers.GenericEmbed($"Config values", $"{configString}")
@@ -144,25 +139,29 @@ namespace CustomQotd.Features.Commands
             [Description("Whether all, only important, or no notices should be shown under QOTDs (all by default).")] Config.NoticeLevel? NoticesLevel = null,
             [Description("The channel where commands, QOTDs and more get logged to.")] DiscordChannel? LogsChannel = null)
         {
-            if (!context.Member!.Permissions.HasPermission(DiscordPermissions.Administrator))
+            if (!context.Member!.Permissions.HasPermission(DiscordPermission.Administrator))
             {
                 await context.RespondAsync(
                     MessageHelpers.GenericErrorEmbed("Server Administrator permission is required to run this command.")
                     );
                 return;
             }
+            Config? config = await CommandRequirements.TryGetConfig(context);
 
-            if (!await CommandRequirements.IsConfigInitialized(context))
+            if (config is null)
                 return;
+
             if (QotdTimeMinuteUtc is not null)
                 QotdTimeMinuteUtc = Math.Clamp(QotdTimeMinuteUtc.Value, 0, 59);
             if (QotdTimeHourUtc is not null)
                 QotdTimeHourUtc = Math.Clamp(QotdTimeHourUtc.Value, 0, 23);
 
-            Config config;
             using (var dbContext = new AppDbContext())
             {
-                config = dbContext.Configs.Where(c => c.GuildId == context.Guild!.Id).FirstOrDefault()!;
+                // Without extra retrieval config changes don't get saved
+                config = dbContext.Configs
+                    .Where(c => c.GuildId == context.Guild!.Id)
+                    .FirstOrDefault()!;
 
                 if ((QotdTimeMinuteUtc is not null || QotdTimeHourUtc is not null))
                 {
@@ -234,7 +233,7 @@ namespace CustomQotd.Features.Commands
             [Description("The role that will get pinged when a new QOTD is suggested.")] SingleOption? SuggestionsPingRole = null,
             [Description("The channel where commands, QOTDs and more get logged to.")] SingleOption? LogsChannel = null)
         {
-            if (!context.Member!.Permissions.HasPermission(DiscordPermissions.Administrator))
+            if (!context.Member!.Permissions.HasPermission(DiscordPermission.Administrator))
             {
                 await context.RespondAsync(
                     MessageHelpers.GenericErrorEmbed("Server Administrator permission is required to run this command.")
@@ -245,7 +244,9 @@ namespace CustomQotd.Features.Commands
             Config config;
             using (var dbContext = new AppDbContext())
             {
-                config = dbContext.Configs.Where(c => c.GuildId == context.Guild!.Id).FirstOrDefault()!;
+                config = dbContext.Configs
+                    .Where(c => c.GuildId == context.Guild!.Id)
+                    .FirstOrDefault()!;
 
                 if (BasicRole is not null)
                     config.BasicRoleId = null;

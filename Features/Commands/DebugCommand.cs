@@ -33,6 +33,8 @@ namespace CustomQotd.Features.Commands
                 return;
             }
 
+            await context.DeferResponseAsync();
+
             string[] argsSplit = args.Split(' ');
 
             switch (argsSplit[0])
@@ -257,7 +259,11 @@ namespace CustomQotd.Features.Commands
 
                     await context.RespondAsync("Successfully added new notice.");
                     break;
+                case "throwexception":
+                    throw new Exception("Thrown by debug");
             }
+
+            await context.RespondAsync("Unknown debug arg");
         }
 
         private static async Task AddQuestionsAsync(CommandContext context, string[] argsSplit)
@@ -283,8 +289,11 @@ namespace CustomQotd.Features.Commands
 
             DiscordMessage message = await context.Channel!.SendMessageAsync($"Now intercepting messages from {context.User.Mention}");
 
-            while (true)
+            int ttl = 256;
+            while (ttl > 0)
             {
+                ttl--;
+
                 StringBuilder response = new StringBuilder();
 
                 var result = await message.Channel!.GetNextMessageAsync(m =>
@@ -333,6 +342,8 @@ namespace CustomQotd.Features.Commands
 
                 await context.Channel!.SendMessageAsync(MessageHelpers.GenericEmbed(title: "Added Questions", message: response.ToString()));
             }
+
+            await context.Channel.SendMessageAsync("Interception stopped because TTL expired.");
         }
 
         private static FileStream CreateTextFileStream(string content, string path="debug_output.json")
