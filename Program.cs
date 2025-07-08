@@ -18,6 +18,8 @@ namespace CustomQotd
 {
     class Program
     {
+        public const string VERSION = "1.0.0";
+
         public static DiscordClient Client { get; private set; }
 
         public static async Task Main(string[] args)
@@ -27,12 +29,13 @@ namespace CustomQotd
                 dotnet ef database updatee
             Replace [MIGRATION_NAME] with a name that describes the migration.
             Then set it back to `false` and you're good to go. */
-            #if false
-            Console.WriteLine("Applying database migrations...");
+#if false
+            Console.WriteLine("Database migration mode; not starting client");
                 return; // The reason that doing this is important, is because otherwise attempting to migrate would start the bot which would run indefinitely
-            #endif
+#endif
 
-            Console.WriteLine("Starting bot...");
+            Console.WriteLine($"OpenQOTD v{VERSION}");
+            Console.WriteLine();
 
             Console.WriteLine("Loading presets...");
             await Presets.LoadPresets();
@@ -44,6 +47,8 @@ namespace CustomQotd
                 Console.WriteLine("Error: No discord token found. Please provide a token via the CUSTOMQOTD_TOKEN environment variable.");
                 Environment.Exit(1);
             }
+            Console.WriteLine("Token set.");
+            Console.WriteLine("Building client...");
 
             DiscordClientBuilder builder = DiscordClientBuilder.CreateDefault(discordToken, SlashCommandProcessor.RequiredIntents);
 
@@ -95,10 +100,11 @@ namespace CustomQotd
 
             DiscordActivity status = new("/qotd", DiscordActivityType.ListeningTo);
 
+            Console.WriteLine("Connecting client...");
             // Now we connect and log in.
             await client.ConnectAsync(status, DiscordUserStatus.Online);
 
-            Console.WriteLine("Bot started");
+            Console.WriteLine("Client started.");
 
             // Run the CheckTimeLoop in a separate task
             _ = Task.Run(() => QotdTimer.FetchLoopAsync());

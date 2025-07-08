@@ -69,7 +69,7 @@ namespace CustomQotd.Features.QotdSending
 
         public static async Task FetchLoopAsync()
         {
-            Console.WriteLine("Started fetch loop");
+            Console.WriteLine("Started fetch loop.");
             while (true)
             {
                 try
