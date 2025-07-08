@@ -1,4 +1,5 @@
 ﻿using CustomQotd.Database;
+using CustomQotd.Database.Entities;
 using CustomQotd.Features.Helpers;
 using DSharpPlus.Commands;
 using DSharpPlus.Entities;
@@ -13,11 +14,11 @@ namespace CustomQotd.Features
         /// <summary>
         /// Check if the config has been initialized using /config initialize for the current guild. This function also handles sending error messages, so it's recommended to end the function if it retuns false.
         /// </summary>
-        public static async Task<bool> IsConfigInitialized(CommandContext context)
+        public static async Task<Config?> TryGetConfig(CommandContext context)
         {
-            (bool, string?) result = await IsConfigInitialized(context.Guild!);
+            (Config?, string?) result = await IsConfigInitialized(context.Guild!);
 
-            if (!result.Item1)
+            if (result.Item1 is null)
             {
                 await context.RespondAsync(
                     MessageHelpers.GenericErrorEmbed(result.Item2!));
@@ -25,11 +26,11 @@ namespace CustomQotd.Features
 
             return result.Item1;
         }
-        public static async Task<bool> IsConfigInitialized(ComponentInteractionCreatedEventArgs args)
+        public static async Task<Config?> TryGetConfig(ComponentInteractionCreatedEventArgs args)
         {
-            (bool, string?) result = await IsConfigInitialized(args.Guild!);
+            (Config?, string?) result = await IsConfigInitialized(args.Guild!);
 
-            if (!result.Item1)
+            if (result.Item1 is null)
             {
                 DiscordInteractionResponseBuilder response = new();
                 response.AddEmbed(
@@ -41,14 +42,16 @@ namespace CustomQotd.Features
 
             return result.Item1;
         }
-        /// <returns>(If config is initialized, error message if not)</returns>
-        public static async Task<(bool, string?)> IsConfigInitialized(DiscordGuild guild)
+        /// <returns>(config if initialized, error if not)</returns>
+        public static async Task<(Config?, string?)> IsConfigInitialized(DiscordGuild guild)
         {
             using (var dbContext = new AppDbContext())
             {
-                return (await dbContext.Configs.AnyAsync(c => c.GuildId == guild.Id)) ? 
-                    (true, null) : 
-                    (false, $"The QOTD bot configuration has not been initialized yet. Use `/config initialize` to initialize.");
+                Config? c = await dbContext.Configs.FirstOrDefaultAsync(c => c.GuildId == guild.Id);
+
+                return c is null ? 
+                    (null, $"The QOTD bot configuration has not been initialized yet. Use `/config initialize` to initialize.") : 
+                    (c, null);
             }
         }
 

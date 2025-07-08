@@ -16,7 +16,7 @@ namespace CustomQotd.Features.Commands
         public static async Task ViewSentQuestionsAsync(CommandContext context, 
             [Description("The page of the listing (default 1).")] int page = 1)
         {
-            if (!await CommandRequirements.IsConfigInitialized(context) || !await CommandRequirements.UserIsBasic(context))
+            if (!await CommandRequirements.UserIsBasic(context))
                 return;
 
             await QuestionsCommand.ListQuestionsNoPermcheckAsync(context, Database.Entities.QuestionType.Sent, page);
@@ -40,7 +40,7 @@ namespace CustomQotd.Features.Commands
 
             if (context is SlashCommandContext)
             {
-                SlashCommandContext slashCommandcontext = context as SlashCommandContext;
+                SlashCommandContext slashCommandcontext = (context as SlashCommandContext)!;
 
                 await slashCommandcontext.RespondAsync(responseEmbed, ephemeral: true);
             }
@@ -65,16 +65,10 @@ namespace CustomQotd.Features.Commands
         [Description("Print general information about OpenQOTD")]
         public static async Task HelpAsync(CommandContext context)
         {
-            if (!await CommandRequirements.IsConfigInitialized(context) || !await CommandRequirements.UserIsBasic(context))
-                return;
+            Config? config = await CommandRequirements.TryGetConfig(context);
 
-            Config? config;
-            using (var dbContext = new AppDbContext())
-            {
-                config = await dbContext.Configs
-                    .Where(c => c.GuildId == context.Guild!.Id)
-                    .FirstOrDefaultAsync();
-            }
+            if (config is null || !await CommandRequirements.UserIsBasic(context))
+                return;
 
             string userRole = "Basic User";
             if (context.Member!.Permissions.HasPermission(DiscordPermission.Administrator))
@@ -113,7 +107,7 @@ namespace CustomQotd.Features.Commands
 
             if (context is SlashCommandContext)
             {
-                SlashCommandContext slashCommandcontext = context as SlashCommandContext;
+                SlashCommandContext slashCommandcontext = (context as SlashCommandContext)!;
 
                 await slashCommandcontext.RespondAsync(responseEmbed, ephemeral: true);
             }

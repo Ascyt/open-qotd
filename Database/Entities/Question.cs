@@ -1,5 +1,6 @@
 ﻿using CustomQotd.Features.Helpers;
 using DSharpPlus.Commands;
+using DSharpPlus.Entities;
 using Microsoft.EntityFrameworkCore;
 
 namespace CustomQotd.Database.Entities
@@ -61,7 +62,7 @@ namespace CustomQotd.Database.Entities
             return existingIds.Max() + 1;
         }
 
-        public static async Task<bool> CheckTextValidity(string text, CommandContext? context, int? lineNumber=null)
+        public static async Task<bool> CheckTextValidity(string text, CommandContext? context, Config config, int? lineNumber=null)
         {
             string lineNumberString = (lineNumber is null ? "" : $" (line {lineNumber})");
 

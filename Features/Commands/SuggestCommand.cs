@@ -23,22 +23,19 @@ namespace CustomQotd.Features.Commands
         public static async Task SuggestAsync(CommandContext context,
             [Description ("The question to be added.")] string question)
         {
-            if (!await CommandRequirements.IsConfigInitialized(context) || !await CommandRequirements.UserIsBasic(context))
+            Config? config = await CommandRequirements.TryGetConfig(context);
+
+            if (config is null || !await CommandRequirements.UserIsBasic(context))
                 return;
 
-            using (var dbContext = new AppDbContext())
+            if (!config.EnableSuggestions)
             {
-                Config? config = await dbContext.Configs.Where(c => c.GuildId == context.Guild!.Id).FirstOrDefaultAsync();
-
-                if (config != null && !config.EnableSuggestions)
-                {
-                    await context.RespondAsync(
-                        MessageHelpers.GenericErrorEmbed(title: "Suggestions Disabled", message: "Suggesting of QOTDs using `/qotd` or `/suggest` has been disabled by staff."));
-                    return;
-                }
+                await context.RespondAsync(
+                    MessageHelpers.GenericErrorEmbed(title: "Suggestions Disabled", message: "Suggesting of QOTDs using `/qotd` or `/suggest` has been disabled by staff."));
+                return;
             }
 
-            (bool, DiscordEmbed) result = await SuggestNoContextAsync(question, context.Guild!, context.Channel, context.User);
+            (bool, DiscordEmbed) result = await SuggestNoContextAsync(question, context.Guild!, context.Channel, context.User, config);
 
             if (context is SlashCommandContext && result.Item1) // Is slash command and not errored
             {
@@ -53,9 +50,9 @@ namespace CustomQotd.Features.Commands
         }
 
         /// <returns>(whether or not successful, response message)</returns>
-        public static async Task<(bool, DiscordEmbed)> SuggestNoContextAsync(string question, DiscordGuild guild, DiscordChannel discordChannel, DiscordUser user)
+        public static async Task<(bool, DiscordEmbed)> SuggestNoContextAsync(string question, DiscordGuild guild, DiscordChannel discordChannel, DiscordUser user, Config config)
         {
-            if (!await Question.CheckTextValidity(question, null))
+            if (!await Question.CheckTextValidity(question, null, config))
                 return (false, MessageHelpers.GenericErrorEmbed("Text validity check failed"));
 
             ulong guildId = guild.Id;

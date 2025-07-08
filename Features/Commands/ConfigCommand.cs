@@ -107,17 +107,12 @@ namespace CustomQotd.Features.Commands
                 return;
             }
 
-            if (!await CommandRequirements.IsConfigInitialized(context))
+            Config? config = await CommandRequirements.TryGetConfig(context);
+
+            if (config is null)
                 return;
 
-            Config config;
-            using (var dbContext = new AppDbContext())
-            {
-                config = (await dbContext.Configs.Where(c => c.GuildId == context.Guild!.Id).FirstOrDefaultAsync())!;
-            }
-
             string configString = await config.ToStringAsync();
-
 
             await context.RespondAsync(
                     MessageHelpers.GenericEmbed($"Config values", $"{configString}")
@@ -151,18 +146,22 @@ namespace CustomQotd.Features.Commands
                     );
                 return;
             }
+            Config? config = await CommandRequirements.TryGetConfig(context);
 
-            if (!await CommandRequirements.IsConfigInitialized(context))
+            if (config is null)
                 return;
+
             if (QotdTimeMinuteUtc is not null)
                 QotdTimeMinuteUtc = Math.Clamp(QotdTimeMinuteUtc.Value, 0, 59);
             if (QotdTimeHourUtc is not null)
                 QotdTimeHourUtc = Math.Clamp(QotdTimeHourUtc.Value, 0, 23);
 
-            Config config;
             using (var dbContext = new AppDbContext())
             {
-                config = dbContext.Configs.Where(c => c.GuildId == context.Guild!.Id).FirstOrDefault()!;
+                // Without extra retrieval config changes don't get saved
+                config = dbContext.Configs
+                    .Where(c => c.GuildId == context.Guild!.Id)
+                    .FirstOrDefault()!;
 
                 if ((QotdTimeMinuteUtc is not null || QotdTimeHourUtc is not null))
                 {
@@ -245,7 +244,9 @@ namespace CustomQotd.Features.Commands
             Config config;
             using (var dbContext = new AppDbContext())
             {
-                config = dbContext.Configs.Where(c => c.GuildId == context.Guild!.Id).FirstOrDefault()!;
+                config = dbContext.Configs
+                    .Where(c => c.GuildId == context.Guild!.Id)
+                    .FirstOrDefault()!;
 
                 if (BasicRole is not null)
                     config.BasicRoleId = null;

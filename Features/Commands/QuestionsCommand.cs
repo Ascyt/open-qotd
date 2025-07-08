@@ -20,7 +20,7 @@ namespace CustomQotd.Features.Commands
         public static async Task ViewQuestionAsync(CommandContext context,
         [Description("The ID of the question.")] int questionId)
         {
-            if (!await CommandRequirements.IsConfigInitialized(context) || !await CommandRequirements.UserIsAdmin(context))
+            if (!await CommandRequirements.UserIsAdmin(context))
                 return;
 
             Question? question;
@@ -72,10 +72,12 @@ namespace CustomQotd.Features.Commands
             [Description("The question to add.")] string question,
             [Description("The type of the question to add.")] QuestionType type)
         {
-            if (!await CommandRequirements.IsConfigInitialized(context) || !await CommandRequirements.UserIsAdmin(context))
+            Config? config = await CommandRequirements.TryGetConfig(context);
+
+            if (config is null || !await CommandRequirements.UserIsAdmin(context))
                 return;
 
-            if (!await Question.CheckTextValidity(question, context))
+            if (!await Question.CheckTextValidity(question, context, config))
                 return;
 
             ulong guildId = context.Guild!.Id;
@@ -111,7 +113,9 @@ namespace CustomQotd.Features.Commands
             [Description("A file containing the questions, each seperated by line-breaks.")] DiscordAttachment questionsFile,
             [Description("The type of the questions to add.")] QuestionType type)
         {
-            if (!await CommandRequirements.IsConfigInitialized(context) || !await CommandRequirements.UserIsAdmin(context))
+            Config? config = await CommandRequirements.TryGetConfig(context);
+
+            if (config is null || !await CommandRequirements.UserIsAdmin(context))
                 return;
 
             await context.DeferResponseAsync();
@@ -157,7 +161,7 @@ namespace CustomQotd.Features.Commands
 
             for (int i = 0; i < lines.Length; i++)
             {
-                if (!await Question.CheckTextValidity(lines[i], context, i+1))
+                if (!await Question.CheckTextValidity(lines[i], context, config, i+1))
                     return;
             }
 
@@ -191,7 +195,7 @@ namespace CustomQotd.Features.Commands
             [Description("The ID of the question.")] int questionId,
             [Description("The type to set the question to.")] QuestionType type)
         {
-            if (!await CommandRequirements.IsConfigInitialized(context) || !await CommandRequirements.UserIsAdmin(context))
+            if (!await CommandRequirements.UserIsAdmin(context))
                 return;
 
             ulong guildId = context.Guild!.Id;
@@ -230,7 +234,7 @@ namespace CustomQotd.Features.Commands
             [Description("The type of the questions to change the type of.")] QuestionType fromType,
             [Description("The type to set all of those questions to.")] QuestionType toType)
         {
-            if (!await CommandRequirements.IsConfigInitialized(context) || !await CommandRequirements.UserIsAdmin(context))
+            if (!await CommandRequirements.UserIsAdmin(context))
                 return;
 
             if (fromType == toType)
@@ -267,7 +271,7 @@ namespace CustomQotd.Features.Commands
         public static async Task RemoveQuestionAsync(CommandContext context,
         [Description("The ID of the question.")] int questionId)
         {
-            if (!await CommandRequirements.IsConfigInitialized(context) || !await CommandRequirements.UserIsAdmin(context))
+            if (!await CommandRequirements.UserIsAdmin(context))
                 return;
 
             ulong guildId = context.Guild!.Id;
@@ -302,7 +306,7 @@ namespace CustomQotd.Features.Commands
             [Description("The type of questions to show.")] QuestionType type,
             [Description("The page of the listing (default 1).")] int page = 1)
         {
-            if (!await CommandRequirements.IsConfigInitialized(context) || !await CommandRequirements.UserIsAdmin(context))
+            if (!await CommandRequirements.UserIsAdmin(context))
                 return;
 
             await ListQuestionsNoPermcheckAsync(context, type, page);
@@ -344,7 +348,7 @@ namespace CustomQotd.Features.Commands
             [Description("The type of questions to show (default all).")] QuestionType? type = null,
             [Description("The page of the listing (default 1).")] int page = 1)
         {
-            if (!await CommandRequirements.IsConfigInitialized(context) || !await CommandRequirements.UserIsAdmin(context))
+            if (!await CommandRequirements.UserIsAdmin(context))
                 return;
 
             const int itemsPerPage = 10;
