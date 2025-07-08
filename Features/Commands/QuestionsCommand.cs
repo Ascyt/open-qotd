@@ -15,6 +15,8 @@ namespace CustomQotd.Features.Commands
     [Command("questions")]
     public class QuestionsCommand
     {
+        const int MAX_QUESTIONS_AMOUNT = 1024 * 64; // 65k questions per guild
+
         [Command("view")]
         [Description("View a question using its ID.")]
         public static async Task ViewQuestionAsync(CommandContext context,
@@ -87,6 +89,10 @@ namespace CustomQotd.Features.Commands
 
             using (var dbContext = new AppDbContext())
             {
+                int existingCount = await dbContext.Questions
+                    .Where(q => q.GuildId == guildId && q.Type == type && q.Text == question)
+                    .CountAsync();
+
                 newQuestion = new Question()
                 {
                     GuildId = guildId,
