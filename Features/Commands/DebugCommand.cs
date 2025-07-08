@@ -259,7 +259,11 @@ namespace CustomQotd.Features.Commands
 
                     await context.RespondAsync("Successfully added new notice.");
                     break;
+                case "throwexception":
+                    throw new Exception("Thrown by debug");
             }
+
+            await context.RespondAsync("Unknown debug arg");
         }
 
         private static async Task AddQuestionsAsync(CommandContext context, string[] argsSplit)

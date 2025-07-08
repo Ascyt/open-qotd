@@ -37,7 +37,7 @@ namespace CustomQotd.Features.EventHandlers
             DiscordMessageBuilder messageBuilder = new();
             messageBuilder.AddEmbed(MessageHelpers.GenericEmbed(message: message + "\n```", title: "Error (internal)", color: "#800000"));
 
-            if (e is DSharpPlus.Exceptions.UnauthorizedException)
+            if (e is DSharpPlus.Exceptions.UnauthorizedException || true)
             {
                 messageBuilder.AddEmbed(MessageHelpers.GenericWarningEmbed(title: "Hint", message:
                     "This error likely means that the bot is lacking permissions to execute your command.\n" +
@@ -45,8 +45,16 @@ namespace CustomQotd.Features.EventHandlers
                     "- Send Messages\n" +
                     "- Manage Messages\n" +
                     "- Mention @​everyone, @​here and All Roles\n" +
-                    "If this error keeps happening, try kicking the bot from your server and re-inviting it. " +
-                    "Your data, including the questions you have added, should not be removed by doing this."));
+                    "\n" +
+                    "If the issue keeps occurring despite these steps, try the following:\n" +
+                    "- Verify that the bot is able to send messages and embeds in the relevant channels (qotd channel, suggestion channel, logs channel).\n" +
+                    "- Try disabling features such as logging (`/config reset logs_channel`) to help diagnose in which area the problem occurrs.\n" +
+                    "- Try kicking the bot from the server and re-inviting it. Your questions should not get deleted by doing this.\n" +
+                    "\n" +
+                    "Unfortunately, while this is a common issue people are experiencing, it arises from Discord's end - " +
+                    "I'm not able to do much more than to add hints to what could be causing the issue.\n" +
+                    "\n" +
+                    "If you are still experiencing issues with this, don't hesitate to let me know! I'll do my best to be quick to help with any issues."));
             }
 
             await context.RespondAsync(messageBuilder);
