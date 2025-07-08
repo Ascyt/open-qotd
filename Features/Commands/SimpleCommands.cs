@@ -16,7 +16,7 @@ namespace CustomQotd.Features.Commands
         public static async Task ViewSentQuestionsAsync(CommandContext context, 
             [Description("The page of the listing (default 1).")] int page = 1)
         {
-            if (!await CommandRequirements.UserIsBasic(context))
+            if (!await CommandRequirements.UserIsBasic(context, null))
                 return;
 
             await QuestionsCommand.ListQuestionsNoPermcheckAsync(context, Database.Entities.QuestionType.Sent, page);
@@ -67,13 +67,13 @@ namespace CustomQotd.Features.Commands
         {
             Config? config = await CommandRequirements.TryGetConfig(context);
 
-            if (config is null || !await CommandRequirements.UserIsBasic(context))
+            if (config is null || !await CommandRequirements.UserIsBasic(context, config))
                 return;
 
             string userRole = "Basic User";
             if (context.Member!.Permissions.HasPermission(DiscordPermission.Administrator))
                 userRole = "Full Administrator (incl. Config)";
-            else if (await CommandRequirements.UserIsAdmin(context, responseOnError:false))
+            else if (await CommandRequirements.UserIsAdmin(context, config, responseOnError:false))
                 userRole = "QOTD Administrator (excl. Config)";
 
             string configValuesDescription = config == null ?

@@ -21,7 +21,7 @@ namespace CustomQotd.Features.Commands
         public static async Task TopicAsync(CommandContext context,
             [Description("Whether or not to include all existing Preset questions.")] bool includePresets=true)
         {
-            if (!await CommandRequirements.UserIsBasic(context))
+            if (!await CommandRequirements.UserIsBasic(context, null))
                 return;
 
             Question[] questions;

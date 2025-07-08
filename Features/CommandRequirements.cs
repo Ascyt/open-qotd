@@ -58,9 +58,12 @@ namespace CustomQotd.Features
         /// <summary>
         /// Check if a user has admin permission. This function also handles sending error messages, so it's recommended to end the function if it retuns false.
         /// </summary>
-        public static async Task<bool> UserIsAdmin(CommandContext context, bool responseOnError = true)
+        /// <param name="config">
+        /// Config if already fetched, if `null` it will be fetched from the database.
+        /// </param>
+        public static async Task<bool> UserIsAdmin(CommandContext context, Config? config, bool responseOnError = true)
         {
-            (bool, string?) result = await UserIsAdmin(context.Guild!, context.Member!);
+            (bool, string?) result = await UserIsAdmin(context.Guild!, context.Member!, config);
 
             if (!result.Item1 && responseOnError)
             {
@@ -71,16 +74,25 @@ namespace CustomQotd.Features
             return result.Item1;
         }
         /// <returns>(If config is initialized, error message if not)</returns>
-        public static async Task<(bool, string?)> UserIsAdmin(DiscordGuild guild, DiscordMember member)
+        public static async Task<(bool, string?)> UserIsAdmin(DiscordGuild guild, DiscordMember member, Config? config)
         {
             if (member.Permissions.HasPermission(DiscordPermission.Administrator))
                 return (true, null);
 
-            ulong roleId;
-            using (var dbContext = new AppDbContext())
+            if (config is null)
             {
-                roleId = await dbContext.Configs.Where(c => c.GuildId == guild.Id).Select(c => c.AdminRoleId).FirstOrDefaultAsync();
+                using (var dbContext = new AppDbContext())
+                {
+                    config = await dbContext.Configs
+                        .Where(c => c.GuildId == guild.Id)
+                        .FirstOrDefaultAsync();
+
+                    if (config is null)
+                        return (false, "The QOTD bot configuration has not been initialized yet. Use `/config initialize` to initialize.");
+                }
             }
+
+            ulong roleId = config.AdminRoleId;
 
             if (!member.Roles.Any(role => role.Id == roleId))
             {
@@ -90,13 +102,13 @@ namespace CustomQotd.Features
                     role = await guild.GetRoleAsync(roleId);
                 }
                 catch (NotFoundException)
-                {    
-                    return (false, 
+                {
+                    return (false,
                         $"The role in the admin_role config value with ID {roleId} could not be found.\n\n" +
                             $"*It can be set using `/config set admin_role [role]`.*");
                 }
 
-                return (false, 
+                return (false,
                     $"You need to have the \"{role.Mention}\" role or Server Administrator permission to be able to run this command.");
             }
 
@@ -106,9 +118,9 @@ namespace CustomQotd.Features
         /// <summary>
         /// Check if a user has basic or admin permission. This function also handles sending error messages, so it's recommended to end the function if it retuns false.
         /// </summary>
-        public static async Task<bool> UserIsBasic(CommandContext context, bool responseOnError = true)
+        public static async Task<bool> UserIsBasic(CommandContext context, Config? config, bool responseOnError = true)
         {
-            (bool, string?) result = await UserIsBasic(context.Guild!, context.Member!);
+            (bool, string?) result = await UserIsBasic(context.Guild!, context.Member!, config);
 
             if (!result.Item1 && responseOnError)
             {
@@ -119,9 +131,9 @@ namespace CustomQotd.Features
             return result.Item1;
         }
 
-        public static async Task<bool> UserIsBasic(ComponentInteractionCreatedEventArgs args)
+        public static async Task<bool> UserIsBasic(ComponentInteractionCreatedEventArgs args, Config? config)
         {
-            (bool, string?) result = await UserIsBasic(args.Guild!, await args.Guild.GetMemberAsync(args.User.Id));
+            (bool, string?) result = await UserIsBasic(args.Guild!, await args.Guild.GetMemberAsync(args.User.Id), config);
 
             if (!result.Item1)
             {
@@ -136,21 +148,30 @@ namespace CustomQotd.Features
             return result.Item1;
         }
 
-        public static async Task<(bool, string?)> UserIsBasic(DiscordGuild guild, DiscordMember member)
+        public static async Task<(bool, string?)> UserIsBasic(DiscordGuild guild, DiscordMember member, Config? config)
         {
             if (member.Permissions.HasPermission(DiscordPermission.Administrator))
                 return (true, null);
 
-            ulong? roleId;
-            using (var dbContext = new AppDbContext())
+            if (config is null)
             {
-                roleId = await dbContext.Configs.Where(c => c.GuildId == guild.Id).Select(c => c.BasicRoleId).FirstOrDefaultAsync();
+                using (var dbContext = new AppDbContext())
+                {
+                    config = await dbContext.Configs
+                        .Where(c => c.GuildId == guild.Id)
+                        .FirstOrDefaultAsync();
+
+                    if (config is null)
+                        return (false, "The QOTD bot configuration has not been initialized yet. Use `/config initialize` to initialize.");
+                }
             }
+
+            ulong? roleId = config.BasicRoleId;
 
             if (roleId == null)
                 return (true, null);
 
-            if (!member.Roles.Any(role => role.Id == roleId) && !(await UserIsAdmin(guild, member)).Item1)
+            if (!member.Roles.Any(role => role.Id == roleId) && !(await UserIsAdmin(guild, member, config)).Item1)
             {
                 DiscordRole role;
                 try

@@ -109,7 +109,7 @@ namespace CustomQotd.Features.EventHandlers
         {
             Config? config = await CommandRequirements.TryGetConfig(args);
 
-            if (config is null || !await CommandRequirements.UserIsBasic(args))
+            if (config is null || !await CommandRequirements.UserIsBasic(args, config))
                 return;
 
             if (!config.EnableSuggestions)
