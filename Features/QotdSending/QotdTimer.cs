@@ -64,7 +64,7 @@ namespace CustomQotd.Features.QotdSending
             }
 
             if (guildIds.Length > 0)
-                await Console.Out.WriteLineAsync($"{DateTime.UtcNow}: Sent {guildIds.Length}");
+                await Console.Out.WriteLineAsync($"[{DateTime.UtcNow:O}] Sent {guildIds.Length}");
         }
 
         public static async Task FetchLoopAsync()
@@ -75,7 +75,7 @@ namespace CustomQotd.Features.QotdSending
                 try
                 {
                     await Task.Delay(1_000);
-                    //await Console.Out.WriteLineAsync($"{DateTime.UtcNow}: Check time");
+                    //await Console.Out.WriteLineAsync($"[{DateTime.UtcNow:O}] Check time");
                     await SendQotdsAsync();
                 }
                 catch (Exception ex)
