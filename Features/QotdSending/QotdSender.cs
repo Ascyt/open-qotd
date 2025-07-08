@@ -150,7 +150,7 @@ namespace CustomQotd.Features.QotdSending
                     
                     if (config.EnableSuggestions)
                     {
-                        presetMessageBuilder.AddComponents(suggestButton);
+                        presetMessageBuilder.AddActionRowComponent(suggestButton);
                     }
 
                     DiscordMessage presetMessage = await qotdChannel.SendMessageAsync(presetMessageBuilder);
@@ -182,7 +182,7 @@ namespace CustomQotd.Features.QotdSending
                         (config.EnableSuggestions ? $"\n\n*Suggest some using `/qotd`!*" : ""), color: "#dc5051"));
                     if (config.EnableSuggestions)
                     {
-                        noQuestionMessage.AddComponents(suggestButton);
+                        noQuestionMessage.AddActionRowComponent(suggestButton);
                     }
 
                     await qotdChannel.SendMessageAsync(noQuestionMessage);
@@ -227,7 +227,7 @@ namespace CustomQotd.Features.QotdSending
 
             if (config.EnableSuggestions)
             {
-                qotdMessageBuilder.AddComponents(suggestButton);
+                qotdMessageBuilder.AddActionRowComponent(suggestButton);
             }
 
             DiscordMessage qotdMessage = await qotdChannel.SendMessageAsync(qotdMessageBuilder);

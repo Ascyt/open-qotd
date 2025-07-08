@@ -21,7 +21,7 @@ namespace CustomQotd.Features.Commands
         public static async Task TopicAsync(CommandContext context,
             [Description("Whether or not to include all existing Preset questions.")] bool includePresets=true)
         {
-            if (!await CommandRequirements.IsConfigInitialized(context) || !await CommandRequirements.UserIsBasic(context))
+            if (!await CommandRequirements.UserIsBasic(context, null))
                 return;
 
             Question[] questions;
@@ -46,7 +46,7 @@ namespace CustomQotd.Features.Commands
 
             DiscordMessageBuilder messageBuilder = new DiscordMessageBuilder();
             messageBuilder.AddEmbed(embed);
-            messageBuilder.AddComponents(
+            messageBuilder.AddActionRowComponent(
                 rerollButton
                 );
 
@@ -64,8 +64,11 @@ namespace CustomQotd.Features.Commands
                 return;
             }
 
-            while (true)
+            int ttl = 64;
+            while (ttl > 0)
             {
+                ttl--;
+
                 InteractivityResult<ComponentInteractionCreatedEventArgs>? resultNullable = null;
                 resultNullable = await message.WaitForButtonAsync();
                 if (resultNullable.Value.TimedOut)
@@ -91,7 +94,7 @@ namespace CustomQotd.Features.Commands
 
                 messageBuilder = new DiscordMessageBuilder();
                 messageBuilder.AddEmbed(embed);
-                messageBuilder.AddComponents(
+                messageBuilder.AddActionRowComponent(
                     rerollButton
                     );
 
@@ -100,7 +103,7 @@ namespace CustomQotd.Features.Commands
 
                 DiscordInteractionResponseBuilder interactionResponseBuilder = new DiscordInteractionResponseBuilder();
                 interactionResponseBuilder.AddEmbed(embed);
-                interactionResponseBuilder.AddComponents(
+                interactionResponseBuilder.AddActionRowComponent(
                     rerollButton
                     );  
 

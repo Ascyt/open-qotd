@@ -28,7 +28,7 @@ namespace CustomQotd.Features.Commands
         public static async Task LeaderboardAsync(CommandContext context,
             [Description("The page of the listing (default 1).")] int page = 1)
         {
-            if (!await CommandRequirements.IsConfigInitialized(context) || !await CommandRequirements.UserIsBasic(context))
+            if (!await CommandRequirements.UserIsBasic(context, null))
                 return;
 
             List<Question> sentQuestions;

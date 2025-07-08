@@ -16,7 +16,7 @@ namespace CustomQotd.Features.Commands
         public static async Task ViewSentQuestionsAsync(CommandContext context, 
             [Description("The page of the listing (default 1).")] int page = 1)
         {
-            if (!await CommandRequirements.IsConfigInitialized(context) || !await CommandRequirements.UserIsBasic(context))
+            if (!await CommandRequirements.UserIsBasic(context, null))
                 return;
 
             await QuestionsCommand.ListQuestionsNoPermcheckAsync(context, Database.Entities.QuestionType.Sent, page);
@@ -40,7 +40,7 @@ namespace CustomQotd.Features.Commands
 
             if (context is SlashCommandContext)
             {
-                SlashCommandContext slashCommandcontext = context as SlashCommandContext;
+                SlashCommandContext slashCommandcontext = (context as SlashCommandContext)!;
 
                 await slashCommandcontext.RespondAsync(responseEmbed, ephemeral: true);
             }
@@ -65,21 +65,15 @@ namespace CustomQotd.Features.Commands
         [Description("Print general information about OpenQOTD")]
         public static async Task HelpAsync(CommandContext context)
         {
-            if (!await CommandRequirements.IsConfigInitialized(context) || !await CommandRequirements.UserIsBasic(context))
+            Config? config = await CommandRequirements.TryGetConfig(context);
+
+            if (config is null || !await CommandRequirements.UserIsBasic(context, config))
                 return;
 
-            Config? config;
-            using (var dbContext = new AppDbContext())
-            {
-                config = await dbContext.Configs
-                    .Where(c => c.GuildId == context.Guild!.Id)
-                    .FirstOrDefaultAsync();
-            }
-
             string userRole = "Basic User";
-            if (context.Member!.Permissions.HasPermission(DiscordPermissions.Administrator))
+            if (context.Member!.Permissions.HasPermission(DiscordPermission.Administrator))
                 userRole = "Full Administrator (incl. Config)";
-            else if (await CommandRequirements.UserIsAdmin(context, responseOnError:false))
+            else if (await CommandRequirements.UserIsAdmin(context, config, responseOnError:false))
                 userRole = "QOTD Administrator (excl. Config)";
 
             string configValuesDescription = config == null ?
@@ -113,7 +107,7 @@ namespace CustomQotd.Features.Commands
 
             if (context is SlashCommandContext)
             {
-                SlashCommandContext slashCommandcontext = context as SlashCommandContext;
+                SlashCommandContext slashCommandcontext = (context as SlashCommandContext)!;
 
                 await slashCommandcontext.RespondAsync(responseEmbed, ephemeral: true);
             }
