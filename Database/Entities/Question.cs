@@ -60,7 +60,7 @@ namespace CustomQotd.Database.Entities
                     .ToListAsync();
             }
 
-            return existingIds.Max() + 1;
+            return !existingIds.Any() ? 1 : existingIds.Max() + 1;
         }
 
         const int MAX_LENGTH = 256;
