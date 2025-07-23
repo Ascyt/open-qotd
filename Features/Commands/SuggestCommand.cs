@@ -81,13 +81,13 @@ namespace CustomQotd.Features.Commands
 
             var result = (true, MessageHelpers.GenericSuccessEmbed("QOTD Suggested!",
                     $"Your Question Of The Day:\n" +
-                    $"> \"**{newQuestion.Text}**\"\n" +
+                    $"\"**{newQuestion.Text}**\"\n" +
                     $"\n" +
                     $"Has successfully been suggested!\n" +
                     $"You will be notified when it gets accepted or denied."));
 
 
-            await Logging.LogUserAction(guildId, discordChannel, user, "Suggested QOTD", $"> \"**{newQuestion.Text}**\"\nID: `{newQuestion.GuildDependentId}`");
+            await Logging.LogUserAction(guildId, discordChannel, user, "Suggested QOTD", $"\"**{newQuestion.Text}**\"\nID: `{newQuestion.GuildDependentId}`");
 
             if (suggestionsChannelId == null)
             {
@@ -133,7 +133,7 @@ namespace CustomQotd.Features.Commands
 
             AddPingIfAvailable(messageBuilder, pingRole);
 
-            string embedBody = $"> \"**{newQuestion.Text}**\"\n" +
+            string embedBody = $"\"**{newQuestion.Text}**\"\n" +
                 $"By: {user.Mention} (`{user.Id}`)\n" +
                 $"ID: `{newQuestion.GuildDependentId}`";
 

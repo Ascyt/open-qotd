@@ -141,7 +141,7 @@ namespace CustomQotd.Features.QotdSending
                     await AddPingRoleIfExistent(presetMessageBuilder, guild, config, qotdChannel);
                     presetMessageBuilder.AddEmbed(
                         MessageHelpers.GenericEmbed($"Question Of The Day",
-                        $"> **{Presets.Values[presetIndex]}**\n" +
+                        $"**{Presets.Values[presetIndex]}**\n" +
                         $"\n" +
                         $"*Preset Question*",
                         color: "#8acfac")
@@ -218,7 +218,7 @@ namespace CustomQotd.Features.QotdSending
 
             qotdMessageBuilder.AddEmbed(
                 MessageHelpers.GenericEmbed($"Question Of The Day #{sentQuestionsCount}",
-                $"> **{question.Text}**\n" +
+                $"**{question.Text}**\n" +
                 $"\n" +
                 $"*Submitted by {(user is not null ? $"{user.Mention}" : $"user with ID `{question.SubmittedByUserId}`")}*",
                 color: "#8acfac")

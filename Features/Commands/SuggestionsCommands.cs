@@ -66,7 +66,7 @@ namespace CustomQotd.Features.Commands
         }
 
         public static string GetEmbedBody(Question question)
-            => $"> \"**{question.Text}**\"\n" +
+            => $"\"**{question.Text}**\"\n" +
                 $"By: <@!{question.SubmittedByUserId}> (`{question.SubmittedByUserId}`)\n" +
                 $"ID: `{question.GuildDependentId}`";
 
@@ -199,7 +199,7 @@ namespace CustomQotd.Features.Commands
                     {
                         userSendMessage.AddEmbed(MessageHelpers.GenericEmbed($"{context.Guild!.Name}: QOTD Suggestion Accepted",
                                 $"Your QOTD Suggestion:\n" +
-                                $"> \"**{pair.Value[0].Text}**\"\n\n" +
+                                $"\"**{pair.Value[0].Text}**\"\n\n" +
                                 $"Has been :white_check_mark: **ACCEPTED** :white_check_mark:!\n" +
                                 $"It is now qualified to appear as **Question Of The Day** in {context.Guild!.Name}!",
                                 color: "#20ff20"
@@ -306,7 +306,7 @@ namespace CustomQotd.Features.Commands
                     {
                         userSendMessage.AddEmbed(MessageHelpers.GenericEmbed($"{context.Guild!.Name}: QOTD Suggestion Denied",
                                 $"Your QOTD Suggestion:\n" +
-                                $"> \"**{pair.Value[0].Text}**\"\n\n" +
+                                $"\"**{pair.Value[0].Text}**\"\n\n" +
                                 $"Has been :x: **DENIED** :x:.",
                                 color: "#ff2020"
                             ).WithFooter($"Server ID: {context.Guild!.Id}"));
@@ -433,7 +433,7 @@ namespace CustomQotd.Features.Commands
                 DiscordMessageBuilder userSendMessage = new();
                 userSendMessage.AddEmbed(MessageHelpers.GenericEmbed($"{guild.Name}: QOTD Suggestion Accepted",
                         $"Your QOTD Suggestion:\n" +
-                        $"> \"**{question.Text}**\"\n\n" +
+                        $"\"**{question.Text}**\"\n\n" +
                         $"Has been :white_check_mark: **ACCEPTED** :white_check_mark:!\n" +
                         $"It is now qualified to appear as **Question Of The Day** in **{guild.Name}**!",
                         color: "#20ff20"
@@ -518,7 +518,7 @@ namespace CustomQotd.Features.Commands
                 DiscordMessageBuilder userSendMessage = new();
                 userSendMessage.AddEmbed(MessageHelpers.GenericEmbed($"{guild.Name}: QOTD Suggestion Denied",
                         $"Your QOTD Suggestion:\n" +
-                        $"> \"**{question.Text}**\"\n\n" +
+                        $"\"**{question.Text}**\"\n\n" +
                         $"Has been :x: **DENIED** :x: {(reason != null ? ($"for the following reason:\n" +
                         $"> *{reason}*") : "")}",
                         color: "#ff2020"

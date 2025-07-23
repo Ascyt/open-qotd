@@ -36,7 +36,7 @@ namespace CustomQotd.Features.Commands
             await Console.Out.WriteAsync(contents);
 
             DiscordEmbed responseEmbed = MessageHelpers.GenericSuccessEmbed("CustomQOTD feedback sent!",
-                    $"> \"**{feedback}**\"");
+                    $"\"**{feedback}**\"");
 
             if (context is SlashCommandContext)
             {
@@ -56,7 +56,7 @@ namespace CustomQotd.Features.Commands
             if (feedbackChannel is not null)
             {
                 await feedbackChannel.SendMessageAsync(MessageHelpers.GenericEmbed(title: "New Feedback", message:
-                    $"> **{feedback}**\n\n" +
+                    $"**{feedback}**\n\n" +
                     $"*Submitted by {context.User.Mention} in \"{context.Guild!.Name}\"*"));
             }
         }
