@@ -258,7 +258,7 @@ namespace CustomQotd.Features.Commands
                     await Notices.SaveNotices();
 
                     await context.RespondAsync("Successfully added new notice.");
-                    break;
+                    return;
                 case "throwexception":
                     throw new Exception("Thrown by debug");
             }
