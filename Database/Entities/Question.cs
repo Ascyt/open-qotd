@@ -68,14 +68,6 @@ namespace CustomQotd.Database.Entities
         {
             string lineNumberString = (lineNumber is null ? "" : $" (line {lineNumber})");
 
-            int existingQuestionsCount;
-            using (var dbContext = new AppDbContext())
-            {
-                existingQuestionsCount = await dbContext.Questions
-                    .Where(q => q.GuildId == config.GuildId)
-                    .CountAsync();
-            }
-
             if (string.IsNullOrWhiteSpace(text))
             {
                 if (context is not null)
