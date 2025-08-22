@@ -22,13 +22,13 @@ namespace CustomQotd.Features.Commands
         };
 
         [Command("debug")]
-        [Description("Debug command that can only be executed by developers of CustomQOTD.")]
+        [Description("Debug command that can only be executed by developers of OpenQOTD.")]
         public static async Task DebugAsync(CommandContext context, [Description("Debug arguments")] string args)
         {
             if (!allowedUsers.Contains(context.User.Id))
             {
                 await context.RespondAsync(
-                    MessageHelpers.GenericErrorEmbed("This command can only be executed by developers of CustomQOTD.")
+                    MessageHelpers.GenericErrorEmbed("This command can only be executed by developers of OpenQOTD.")
                     );
                 return;
             }
@@ -261,6 +261,49 @@ namespace CustomQotd.Features.Commands
                     return;
                 case "throwexception":
                     throw new Exception("Thrown by debug");
+                case "sql":
+                    if (argsSplit.Length < 2)
+                    {
+                        await context.RespondAsync("No SQL query provided.");
+                        return;
+                    }
+
+                    bool isGlobal = argsSplit[1] == "-g";
+                    string sqlQuery;
+                    if (isGlobal)
+                    {
+                        if (argsSplit.Length < 3)
+                        {
+                            await context.RespondAsync("No SQL query provided.");
+                            return;
+                        }
+
+                        sqlQuery = string.Join(' ', argsSplit.Skip(2));
+                    }
+                    else
+                    {
+                        sqlQuery = string.Join(' ', argsSplit.Skip(1));
+
+                        if (!sqlQuery.Contains(context.Guild!.Id.ToString()))
+                        {
+                            await context.RespondAsync($"The SQL query must contain the guild ID `{context.Guild.Id}`. Run with `-g` to bypass.");
+                            return;
+                        }
+                    }
+
+                    using (var dbContext = new AppDbContext())
+                    {
+                        try
+                        {
+                            int result = await dbContext.Database.ExecuteSqlRawAsync(sqlQuery);
+                            await context.RespondAsync($"SQL query executed successfully. Rows affected: {result}");
+                        }
+                        catch (Exception ex)
+                        {
+                            await context.RespondAsync($"Error executing SQL query:\n```{ex.Message}```");
+                        }
+                    }
+                    return;
             }
 
             await context.RespondAsync("Unknown debug arg");
