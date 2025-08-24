@@ -23,48 +23,42 @@ namespace CustomQotd.Features.QotdSending
                     c.LastSentTimestamp.Value.Day != currentDay) && 
                     ((currentHour == c.QotdTimeHourUtc && currentMinute >= c.QotdTimeMinuteUtc) || currentHour > c.QotdTimeHourUtc))
                     .Select(c => c.GuildId)
-                    // TODO: order by premium members first
                     .ToArrayAsync();
             }
 
+            if (guildIds.Length == 0)
+                return;
+
             Notices.Notice? latestAvailableNotice = Notices.GetLatestAvailableNotice();
 
-            for (int i = 0; i < guildIds.Length; i++)
+            // Send QOTDs in parallel, but limit the degree of parallelism to avoid overwhelming the database or Discord API
+            ParallelOptions options = new() 
             {
-                try
-                {
-                    DiscordGuild guild = await Program.Client.GetGuildAsync(guildIds[i]);
-                }
-                catch (NotFoundException)
-                {
-                    using (var dbContext = new AppDbContext())
-                    {
-                        Config? config = await dbContext.Configs.Where(c => c.GuildId == guildIds[i]).FirstOrDefaultAsync();
+                MaxDegreeOfParallelism = 10 
+            };
+            await Parallel.ForEachAsync(guildIds, options, async (id, ct) =>
+            {
+                await SendNextQotdIgnoreExceptions(id, latestAvailableNotice);
+            });
 
-                        if (config is null)
-                            continue;
+            await Console.Out.WriteLineAsync($"[{DateTime.UtcNow:O}] Sent {guildIds.Length}");
+        }
 
-                        dbContext.Configs.Remove(config);
-
-                        await dbContext.SaveChangesAsync();
-                        Console.WriteLine($"Removed dead guild with ID {guildIds[i]}");
-                    }
-                    continue;
-                }
-
-                try
-                {
-                    await QotdSender.SendNextQotd(guildIds[i], latestAvailableNotice);
-                }
-                catch (Exception ex)
-                {
-                    Console.WriteLine("Error in SendQotdAsync:\n" + ex.Message);
-                    continue;
-                }
+        private static async Task SendNextQotdIgnoreExceptions(ulong guildId, Notices.Notice? latestAvailableNotice)
+        {
+            try
+            {
+                await QotdSender.FetchGuildAndSendNextQotdAsync(guildId, latestAvailableNotice);
             }
-
-            if (guildIds.Length > 0)
-                await Console.Out.WriteLineAsync($"[{DateTime.UtcNow:O}] Sent {guildIds.Length}");
+            catch (QotdSender.QotdChannelNotFoundException)
+            {
+                // This exception is expected if the QOTD channel is not set for the guild.
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error sending QOTD for guild {guildId}: {ex.Message}");
+                Console.WriteLine(ex.StackTrace);
+            }
         }
 
         public static async Task FetchLoopAsync()
@@ -74,7 +68,7 @@ namespace CustomQotd.Features.QotdSending
             {
                 try
                 {
-                    await Task.Delay(1_000);
+                    await Task.Delay(100);
                     //await Console.Out.WriteLineAsync($"[{DateTime.UtcNow:O}] Check time");
                     await SendQotdsAsync();
                 }

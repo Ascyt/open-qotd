@@ -17,7 +17,7 @@ namespace CustomQotd.Features.Commands
         private static Random random = new Random();
 
         [Command("topic")]
-        [Description("Send a random Sent QOTD to the current channel.")]
+        [Description("Send a _random Sent QOTD to the current channel.")]
         public static async Task TopicAsync(CommandContext context,
             [Description("Whether or not to include all existing Preset questions.")] bool includePresets=true)
         {

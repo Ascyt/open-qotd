@@ -1,0 +1,29 @@
+﻿using CustomQotd.Database.Entities;
+using CustomQotd.Database;
+using Microsoft.EntityFrameworkCore;
+
+namespace CustomQotd.Bot.Helpers
+{
+    public class GeneralActions
+    {
+        public static async void RemoveGuildData(ulong guildId)
+        {
+            using var dbContext = new AppDbContext();
+
+            Config? delConfig = await dbContext.Configs.Where(c => c.GuildId == guildId).FirstOrDefaultAsync();
+
+            if (delConfig != null)
+            {
+                dbContext.Remove(delConfig);
+            }
+
+            List<Question> delQuestions = await dbContext.Questions.Where(q => q.GuildId == guildId).ToListAsync();
+            dbContext.RemoveRange(delQuestions);
+
+            List<PresetSent> delPresets = await dbContext.PresetSents.Where(ps => ps.GuildId == guildId).ToListAsync();
+            dbContext.RemoveRange(delPresets);
+
+            await dbContext.SaveChangesAsync();
+        }
+    }
+}

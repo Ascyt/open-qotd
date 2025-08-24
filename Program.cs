@@ -18,9 +18,9 @@ namespace CustomQotd
 {
     class Program
     {
-        public const string VERSION = "1.0.3";
+        public const string VERSION = "1.0.4";
 
-        public static DiscordClient Client { get; private set; }
+        public static DiscordClient Client { get; private set; } = null!;
 
         public static async Task Main(string[] args)
         {
@@ -50,7 +50,7 @@ namespace CustomQotd
             Console.WriteLine("Token set.");
             Console.WriteLine("Building client...");
 
-            DiscordClientBuilder builder = DiscordClientBuilder.CreateDefault(discordToken, SlashCommandProcessor.RequiredIntents);
+            DiscordClientBuilder builder = DiscordClientBuilder.CreateSharded(discordToken, SlashCommandProcessor.RequiredIntents);
 
             // Use the commands extension
             builder.UseCommands

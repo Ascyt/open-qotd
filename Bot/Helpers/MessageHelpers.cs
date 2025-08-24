@@ -53,13 +53,20 @@ namespace CustomQotd.Features.Helpers
                 return;
 
             DiscordMessage? message = await context.GetResponseAsync();
-            if (message == null)
+            if (message is null)
             {
                 var enumerable = context.Channel.GetMessagesAsync(limit: 1);
                 await foreach (var item in enumerable)
                 {
                     message = item;
                 }
+            }
+
+            if (message is null)
+            {
+                await context.RespondAsync(
+                    MessageHelpers.GenericErrorEmbed("Failed to get the response message.", title: title));
+                return;
             }
 
             var result = await message.WaitForButtonAsync();

@@ -15,7 +15,7 @@ namespace CustomQotd.Features
                 => $"{(Sent ? ":no_entry_sign:" : ":white_check_mark:")} \"**{Text}**\" (ID: `{Id}`)";
         }
 
-        public static string[] Values { get; private set; } = null;
+        public static string[] Values { get; private set; } = null!;
 
         public static async Task LoadPresets()
         {

@@ -39,7 +39,7 @@ namespace CustomQotd.Features.Commands
                     .ToListAsync();
             }
 
-            Dictionary<ulong, int> entries = new();
+            Dictionary<ulong, int> entries = [];
 
             foreach (var question in sentQuestions)
             {
@@ -53,25 +53,23 @@ namespace CustomQotd.Features.Commands
                 }
             }
 
-            List<LeaderboardEntry> sortedEntries = entries
+            List<LeaderboardEntry> sortedEntries = [.. entries
                 .OrderByDescending(pair => pair.Value)
-                .Select(pair => new LeaderboardEntry() { UserId = pair.Key, Count = pair.Value })
-                .ToList();
+                .Select(pair => new LeaderboardEntry() { UserId = pair.Key, Count = pair.Value })];
 
             const int itemsPerPage = 10;
             await MessageHelpers.ListMessageComplete(context, page, "QOTD Leaderboard",
-                async Task<(LeaderboardEntry[], int, int, int)> (int page) =>
+                (int page) =>
                 {
-                    LeaderboardEntry[] filteredEntries = sortedEntries
+                    LeaderboardEntry[] filteredEntries = [.. sortedEntries
                         .Skip((page - 1) * itemsPerPage)
-                        .Take(itemsPerPage)
-                        .ToArray();
+                        .Take(itemsPerPage)];
 
-                    int totalEntries = sortedEntries.Count  ;
+                    int totalEntries = sortedEntries.Count;
 
                     int totalPages = (int)Math.Ceiling(totalEntries / (double)itemsPerPage);
 
-                    return (filteredEntries, totalEntries, totalPages, itemsPerPage);
+                    return Task.FromResult<(LeaderboardEntry[], int, int, int)>((filteredEntries, totalEntries, totalPages, itemsPerPage));
                 });
         }
     }

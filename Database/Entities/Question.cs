@@ -3,6 +3,7 @@ using DSharpPlus.Commands;
 using DSharpPlus.Entities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
+using System.ComponentModel.DataAnnotations;
 
 namespace CustomQotd.Database.Entities
 {
@@ -17,7 +18,9 @@ namespace CustomQotd.Database.Entities
         public ulong GuildId { get; set; }
         public int GuildDependentId { get; set; }
         public QuestionType Type { get; set; }
-        public string Text { get; set; }
+        [Required]
+        [MaxLength(256)]
+        public string? Text { get; set; }
         public ulong SubmittedByUserId { get; set; }
         public DateTime Timestamp { get; set; }
         public ulong? AcceptedByUserId { get; set; }
@@ -60,13 +63,13 @@ namespace CustomQotd.Database.Entities
                     .ToListAsync();
             }
 
-            return !existingIds.Any() ? 1 : existingIds.Max() + 1;
+            return existingIds.Count == 0 ? 1 : existingIds.Max() + 1;
         }
 
         const int MAX_LENGTH = 256;
         public static async Task<bool> CheckTextValidity(string text, CommandContext? context, Config config, int? lineNumber=null)
         {
-            string lineNumberString = (lineNumber is null ? "" : $" (line {lineNumber})");
+            string lineNumberString = lineNumber is null ? "" : $" (line {lineNumber})";
 
             if (string.IsNullOrWhiteSpace(text))
             {
@@ -84,7 +87,7 @@ namespace CustomQotd.Database.Entities
                 return false;
             }
 
-            if (text.Contains("\n"))
+            if (text.Contains('\n'))
             {
                 if (context is not null)
                     await context.RespondAsync(
