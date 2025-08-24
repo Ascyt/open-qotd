@@ -82,11 +82,11 @@ namespace OpenQotd.Bot.Commands
                 $"- Suggestions enabled: **{config.EnableSuggestions}**";
 
             DiscordEmbed responseEmbed = MessageHelpers.GenericEmbed($"OpenQOTD v{Program.VERSION} - Help", 
-                $"*OpenQOTD is an open-source Question Of The Day Discord bot with a strong focus on a _random sending of QOTDs, custom questions, suggestions, presets and more.*\n" +
+                $"*OpenQOTD is an open-source Question Of The Day Discord bot with a strong focus on a random sending of QOTDs, custom questions, suggestions, presets and more.*\n" +
                 $"# Basic Commands\n" +
                 $"- `/qotd` or `/suggest`: Suggest a QOTD to the current server if suggestions are enabled.\n" +
                 $"- `/leaderboard` or `/lb`: View a learderboard based on whose questions have been sent the most.\n" +
-                $"- `/topic`: Send a _random question to the current channel, to revive a dead chat.\n" +
+                $"- `/topic`: Send a random question to the current channel, to revive a dead chat.\n" +
                 $"- `/sentquestions`: View all questions that have been sent.\n" +
                 $"- `/feedback`: Submit feedback, suggestions or bug reports to the developers of OpenQOTD.\n" +
                 $"# Server & User values\n" +
