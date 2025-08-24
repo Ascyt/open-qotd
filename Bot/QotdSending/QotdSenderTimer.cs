@@ -1,4 +1,5 @@
-﻿using CustomQotd.Database;
+﻿using CustomQotd.Bot.QotdSending;
+using CustomQotd.Database;
 using CustomQotd.Database.Entities;
 using DSharpPlus.Entities;
 using DSharpPlus.Exceptions;
@@ -6,7 +7,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace CustomQotd.Features.QotdSending
 {
-    public class QotdTimer
+    public class QotdSenderTimer
     {
         public static async Task SendQotdsAsync()
         {
@@ -50,7 +51,7 @@ namespace CustomQotd.Features.QotdSending
             {
                 await QotdSender.FetchGuildAndSendNextQotdAsync(guildId, latestAvailableNotice);
             }
-            catch (QotdSender.QotdChannelNotFoundException)
+            catch (QotdChannelNotFoundException)
             {
                 // This exception is expected if the QOTD channel is not set for the guild.
             }

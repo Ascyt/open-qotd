@@ -108,7 +108,7 @@ namespace CustomQotd
             Console.WriteLine("Client started.");
 
             // Run the CheckTimeLoop in a separate task
-            _ = Task.Run(() => QotdTimer.FetchLoopAsync());
+            _ = Task.Run(() => QotdSenderTimer.FetchLoopAsync());
 
             // And now we wait infinitely so that our bot actually stays connected.
             await Task.Delay(-1);

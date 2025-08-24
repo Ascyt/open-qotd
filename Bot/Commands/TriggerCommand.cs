@@ -1,5 +1,5 @@
-﻿using CustomQotd.Features.Helpers;
-using CustomQotd.Features.QotdSending;
+﻿using CustomQotd.Bot.QotdSending;
+using CustomQotd.Features.Helpers;
 using DSharpPlus.Commands;
 using System.ComponentModel;
 
