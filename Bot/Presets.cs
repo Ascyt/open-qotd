@@ -1,7 +1,6 @@
-﻿using CustomQotd.Database.Entities;
-using System.Runtime.CompilerServices;
+﻿using CustomQotd.Bot.Database.Entities;
 
-namespace CustomQotd.Features
+namespace CustomQotd.Bot
 {
     public static class Presets
     {

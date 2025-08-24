@@ -1,18 +1,14 @@
 ﻿using DSharpPlus;
 using DSharpPlus.Entities;
 using DSharpPlus.Commands;
-using DSharpPlus.Commands.Processors.TextCommands;
 using DSharpPlus.Commands.Processors.SlashCommands;
-using CustomQotd.Features;
-using DSharpPlus.Commands.Processors.TextCommands.Parsing;
+using CustomQotd.Bot;
 using CustomQotd.Features.Commands;
-using CustomQotd.Database;
-using Microsoft.EntityFrameworkCore;
 using DSharpPlus.Interactivity.Extensions;
-using DSharpPlus.Interactivity.Enums;
 using DSharpPlus.Interactivity;
-using CustomQotd.Features.QotdSending;
-using CustomQotd.Features.EventHandlers;
+using CustomQotd.Bot.QotdSending;
+using CustomQotd.Bot.EventHandlers;
+using CustomQotd.Bot.Commands;
 
 namespace CustomQotd
 {

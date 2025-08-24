@@ -1,5 +1,5 @@
-﻿using CustomQotd.Database.Entities;
-using CustomQotd.Database;
+﻿using CustomQotd.Bot.Database.Entities;
+using CustomQotd.Bot.Database;
 using Microsoft.EntityFrameworkCore;
 
 namespace CustomQotd.Bot.Helpers

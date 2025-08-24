@@ -1,13 +1,13 @@
-﻿using CustomQotd.Database;
-using CustomQotd.Database.Entities;
-using CustomQotd.Features.Commands;
-using CustomQotd.Features.Helpers;
+﻿using CustomQotd.Bot.Commands;
+using CustomQotd.Bot.Database;
+using CustomQotd.Bot.Database.Entities;
+using CustomQotd.Bot.Helpers;
 using DSharpPlus;
 using DSharpPlus.Entities;
 using DSharpPlus.EventArgs;
 using Microsoft.EntityFrameworkCore;
 
-namespace CustomQotd.Features.EventHandlers
+namespace CustomQotd.Bot.EventHandlers
 {
     public static class SuggestionsEventHandlers
     {
@@ -140,7 +140,7 @@ namespace CustomQotd.Features.EventHandlers
             }
 
             DiscordInteractionResponseBuilder modal = new DiscordInteractionResponseBuilder()
-                .WithTitle(question.Text.Length > 32 ? $"Denial of \"{question.Text.Substring(0, 32)}…\"" : $"Denial of \"{question.Text}\"")
+                .WithTitle(question.Text!.Length > 32 ? $"Denial of \"{question.Text.Substring(0, 32)}…\"" : $"Denial of \"{question.Text}\"")
                 .WithCustomId($"suggestions-deny/{guildDependentId}")
                 .AddTextInputComponent(new DiscordTextInputComponent(
                     label: "Denial Reason", customId: "reason", placeholder: "This will be sent to the user.", max_length: 1024, required: true, style: DiscordTextInputStyle.Paragraph));

@@ -1,12 +1,12 @@
-﻿using CustomQotd.Database;
-using CustomQotd.Database.Entities;
-using CustomQotd.Features.Helpers;
+﻿using CustomQotd.Bot.Database;
+using CustomQotd.Bot.Database.Entities;
+using CustomQotd.Bot.Helpers;
 using DSharpPlus.Commands;
 using Microsoft.EntityFrameworkCore;
 using System.ComponentModel;
 using static Microsoft.EntityFrameworkCore.DbLoggerCategory;
 
-namespace CustomQotd.Features.Commands
+namespace CustomQotd.Bot.Commands
 {
     [Command("presets")]
     public class PresetsCommand

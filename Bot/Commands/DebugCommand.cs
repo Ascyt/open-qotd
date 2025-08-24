@@ -1,18 +1,15 @@
-﻿using CustomQotd.Database.Entities;
-using CustomQotd.Database;
-using CustomQotd.Features.Helpers;
+﻿using CustomQotd.Bot.Database.Entities;
+using CustomQotd.Bot.Database;
 using DSharpPlus.Commands;
 using DSharpPlus.Entities;
 using System.ComponentModel;
 using Microsoft.EntityFrameworkCore;
 using Newtonsoft.Json;
 using System.Text;
-using Microsoft.AspNetCore.Http.Connections;
 using DSharpPlus.Interactivity.Extensions;
-using System.Threading.Channels;
-using Microsoft.EntityFrameworkCore.Storage.ValueConversion.Internal;
+using CustomQotd.Bot.Helpers;
 
-namespace CustomQotd.Features.Commands
+namespace CustomQotd.Bot.Commands
 {
     public class DebugCommand
     {
@@ -341,7 +338,7 @@ namespace CustomQotd.Features.Commands
 
                 var result = await message.Channel!.GetNextMessageAsync(m =>
                 {
-                    return (m.Author!.Id == context.User.Id);   
+                    return m.Author!.Id == context.User.Id;   
                 });
 
                 if (result.TimedOut || result.Result == null)

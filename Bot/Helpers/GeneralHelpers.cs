@@ -1,9 +1,8 @@
-﻿using CustomQotd.Database;
-using DSharpPlus.Commands;
+﻿using DSharpPlus.Commands;
 using DSharpPlus.Entities;
 using DSharpPlus.Exceptions;
 
-namespace CustomQotd.Features.Helpers
+namespace CustomQotd.Bot.Helpers
 {
     public class GeneralHelpers
     {

@@ -1,6 +1,6 @@
-﻿using CustomQotd.Database;
-using CustomQotd.Database.Entities;
-using CustomQotd.Features.Helpers;
+﻿using CustomQotd.Bot.Database;
+using CustomQotd.Bot.Database.Entities;
+using CustomQotd.Bot.Helpers;
 using DSharpPlus.Commands;
 using DSharpPlus.Entities;
 using DSharpPlus.EventArgs;
@@ -10,7 +10,7 @@ using Microsoft.EntityFrameworkCore;
 using System.ComponentModel;
 using System.Threading.Channels;
 
-namespace CustomQotd.Features.Commands
+namespace CustomQotd.Bot.Commands
 {
     public class TopicCommand
     {
@@ -130,7 +130,7 @@ namespace CustomQotd.Features.Commands
                 Question question = questions[random.Next(questions.Length)];
 
                 embed = MessageHelpers.GenericEmbed(
-                    title: question.Text,
+                    title: question.Text!,
                     message: $"*Submitted by: <@!{question.SubmittedByUserId}>*")
                     .WithFooter($"Question ID: {question.GuildDependentId}");
             }

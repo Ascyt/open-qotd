@@ -1,18 +1,15 @@
-﻿using CustomQotd.Features.Helpers;
+﻿using CustomQotd.Bot.Helpers;
 using DSharpPlus;
 using DSharpPlus.Commands;
 using DSharpPlus.Commands.EventArgs;
 using DSharpPlus.EventArgs;
 using DSharpPlus.Entities;
-using System;
-using CustomQotd.Features.Commands;
-using CustomQotd.Database;
-using CustomQotd.Database.Entities;
+using CustomQotd.Bot.Commands;
+using CustomQotd.Bot.Database;
+using CustomQotd.Bot.Database.Entities;
 using Microsoft.EntityFrameworkCore;
-using DSharpPlus.Interactivity;
-using DSharpPlus.Interactivity.Enums;
 
-namespace CustomQotd.Features.EventHandlers
+namespace CustomQotd.Bot.EventHandlers
 {
     public class EventHandlers
     {

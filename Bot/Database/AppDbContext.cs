@@ -1,7 +1,7 @@
-﻿using CustomQotd.Database.Entities;
+﻿using CustomQotd.Bot.Database.Entities;
 using Microsoft.EntityFrameworkCore;
 
-namespace CustomQotd.Database
+namespace CustomQotd.Bot.Database
 {
     public class AppDbContext : DbContext
     {

@@ -1,11 +1,10 @@
-﻿using CustomQotd.Database;
-using CustomQotd.Features.Helpers;
+﻿using CustomQotd.Bot.Database;
+using CustomQotd.Bot.Helpers;
 using DSharpPlus.Commands;
 using DSharpPlus.Entities;
-using DSharpPlus.Exceptions;
 using Microsoft.EntityFrameworkCore;
 
-namespace CustomQotd.Features
+namespace CustomQotd.Bot
 {
     public static class Logging
     {

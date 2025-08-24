@@ -1,11 +1,7 @@
-﻿using CustomQotd.Bot.QotdSending;
-using CustomQotd.Database;
-using CustomQotd.Database.Entities;
-using DSharpPlus.Entities;
-using DSharpPlus.Exceptions;
+﻿using CustomQotd.Bot.Database;
 using Microsoft.EntityFrameworkCore;
 
-namespace CustomQotd.Features.QotdSending
+namespace CustomQotd.Bot.QotdSending
 {
     public class QotdSenderTimer
     {

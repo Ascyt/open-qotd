@@ -1,20 +1,15 @@
 ﻿using CommunityToolkit.HighPerformance.Helpers;
-using CustomQotd.Database;
-using CustomQotd.Database.Entities;
-using CustomQotd.Features.Helpers;
+using CustomQotd.Bot.Database;
+using CustomQotd.Bot.Database.Entities;
+using CustomQotd.Bot.Helpers;
 using DSharpPlus.Commands;
 using DSharpPlus.Commands.Processors.SlashCommands;
 using DSharpPlus.Entities;
-using DSharpPlus.EventArgs;
 using DSharpPlus.Exceptions;
-using DSharpPlus.Interactivity;
-using DSharpPlus.Interactivity.Extensions;
 using Microsoft.EntityFrameworkCore;
-using SQLitePCL;
 using System.ComponentModel;
-using System.ComponentModel.Design.Serialization;
 
-namespace CustomQotd.Features.Commands
+namespace CustomQotd.Bot.Commands
 {
     public class SuggestCommand
     {

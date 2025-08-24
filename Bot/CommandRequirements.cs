@@ -1,14 +1,13 @@
-﻿using CustomQotd.Database;
-using CustomQotd.Database.Entities;
-using CustomQotd.Features.Helpers;
+﻿using CustomQotd.Bot.Database;
+using CustomQotd.Bot.Database.Entities;
+using CustomQotd.Bot.Helpers;
 using DSharpPlus.Commands;
 using DSharpPlus.Entities;
 using DSharpPlus.EventArgs;
 using DSharpPlus.Exceptions;
 using Microsoft.EntityFrameworkCore;
-using System.Threading.Tasks;
 
-namespace CustomQotd.Features
+namespace CustomQotd.Bot
 {
     public static class CommandRequirements
     {

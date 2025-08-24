@@ -1,13 +1,9 @@
-﻿using CustomQotd.Bot.Helpers;
-using CustomQotd.Database;
-using CustomQotd.Database.Entities;
-using CustomQotd.Features;
-using CustomQotd.Features.Helpers;
+﻿using CustomQotd.Bot.Database;
+using CustomQotd.Bot.Database.Entities;
+using CustomQotd.Bot.Helpers;
 using DSharpPlus.Entities;
 using DSharpPlus.Exceptions;
 using Microsoft.EntityFrameworkCore;
-using System.Diagnostics.CodeAnalysis;
-using System.Runtime.InteropServices;
 
 namespace CustomQotd.Bot.QotdSending
 {

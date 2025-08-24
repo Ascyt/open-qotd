@@ -1,6 +1,6 @@
-﻿using CustomQotd.Database;
-using CustomQotd.Database.Entities;
-using CustomQotd.Features.Helpers;
+﻿using CustomQotd.Bot.Database;
+using CustomQotd.Bot.Database.Entities;
+using CustomQotd.Bot.Helpers;
 using DSharpPlus.Commands;
 using DSharpPlus.Entities;
 using DSharpPlus.EventArgs;
@@ -11,7 +11,7 @@ using System.ComponentModel;
 using System.Runtime.CompilerServices;
 using System.Text;
 
-namespace CustomQotd.Features.Commands
+namespace CustomQotd.Bot.Commands
 {
     [Command("suggestions")]
     public class SuggestionsCommands
@@ -519,8 +519,8 @@ namespace CustomQotd.Features.Commands
                 userSendMessage.AddEmbed(MessageHelpers.GenericEmbed($"{guild.Name}: QOTD Suggestion Denied",
                         $"Your QOTD Suggestion:\n" +
                         $"\"**{question.Text}**\"\n\n" +
-                        $"Has been :x: **DENIED** :x: {(reason != null ? ($"for the following reason:\n" +
-                        $"> *{reason}*") : "")}",
+                        $"Has been :x: **DENIED** :x: {(reason != null ? $"for the following reason:\n" +
+                        $"> *{reason}*" : "")}",
                         color: "#ff2020"
                     ).WithFooter($"Server ID: {guild.Id}"));
 

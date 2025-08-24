@@ -1,7 +1,7 @@
-﻿using CustomQotd.Database;
-using CustomQotd.Database.Entities;
-using CustomQotd.Features.EventHandlers;
-using CustomQotd.Features.Helpers;
+﻿using CustomQotd.Bot.Database;
+using CustomQotd.Bot.Database.Entities;
+using CustomQotd.Bot.EventHandlers;
+using CustomQotd.Bot.Helpers;
 using DSharpPlus.Commands;
 using DSharpPlus.Entities;
 using DSharpPlus.Interactivity.Extensions;
@@ -10,7 +10,7 @@ using System;
 using System.ComponentModel;
 using System.Text;
 
-namespace CustomQotd.Features.Commands
+namespace CustomQotd.Bot.Commands
 {
     [Command("questions")]
     public class QuestionsCommand
@@ -63,7 +63,7 @@ namespace CustomQotd.Features.Commands
             }
 
             await context.RespondAsync(
-                MessageHelpers.GenericEmbed(question.Text, sb.ToString()));
+                MessageHelpers.GenericEmbed(question.Text!, sb.ToString()));
         }
 
         [Command("add")]

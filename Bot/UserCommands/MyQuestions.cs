@@ -1,6 +1,4 @@
-
 using System.ComponentModel;
-using CustomQotd.Features.Helpers;
 using DSharpPlus.Commands;
 using DSharpPlus.Commands.ContextChecks;
 

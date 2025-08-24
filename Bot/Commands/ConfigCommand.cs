@@ -1,17 +1,12 @@
-﻿using CustomQotd.Database;
-using CustomQotd.Database.Entities;
-using CustomQotd.Features.Helpers;
+﻿using CustomQotd.Bot.Database;
+using CustomQotd.Bot.Database.Entities;
+using CustomQotd.Bot.Helpers;
 using DSharpPlus.Commands;
 using DSharpPlus.Entities;
-using Microsoft.EntityFrameworkCore;
-using Newtonsoft.Json.Linq;
-using SQLitePCL;
 using System.ComponentModel;
-using System.Text;
-using System.Threading.Channels;
-using static CustomQotd.Features.Logging;
+using static CustomQotd.Bot.Logging;
 
-namespace CustomQotd.Features.Commands
+namespace CustomQotd.Bot.Commands
 {
     [Command("config")]
     public class ConfigCommand
@@ -163,7 +158,7 @@ namespace CustomQotd.Features.Commands
                     .Where(c => c.GuildId == context.Guild!.Id)
                     .FirstOrDefault()!;
 
-                if ((QotdTimeMinuteUtc is not null || QotdTimeHourUtc is not null))
+                if (QotdTimeMinuteUtc is not null || QotdTimeHourUtc is not null)
                 {
                     int currentDay = DateTime.UtcNow.Day;
 
