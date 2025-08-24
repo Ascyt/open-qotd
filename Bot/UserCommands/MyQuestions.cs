@@ -2,7 +2,7 @@ using System.ComponentModel;
 using DSharpPlus.Commands;
 using DSharpPlus.Commands.ContextChecks;
 
-namespace CustomQotd.Features.Commands
+namespace OpenQotd.Features.Commands
 {
     public class MyQuestionsCommand
     {

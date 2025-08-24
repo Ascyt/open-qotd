@@ -1,6 +1,6 @@
-﻿using CustomQotd.Bot.Database;
-using CustomQotd.Bot.Database.Entities;
-using CustomQotd.Bot.Helpers;
+﻿using OpenQotd.Bot.Database;
+using OpenQotd.Bot.Database.Entities;
+using OpenQotd.Bot.Helpers;
 using DSharpPlus.Commands;
 using DSharpPlus.Entities;
 using DSharpPlus.EventArgs;
@@ -11,7 +11,7 @@ using System.ComponentModel;
 using System.Runtime.CompilerServices;
 using System.Text;
 
-namespace CustomQotd.Bot.Commands
+namespace OpenQotd.Bot.Commands
 {
     [Command("suggestions")]
     public class SuggestionsCommands

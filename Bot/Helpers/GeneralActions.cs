@@ -1,8 +1,8 @@
-﻿using CustomQotd.Bot.Database.Entities;
-using CustomQotd.Bot.Database;
+﻿using OpenQotd.Bot.Database.Entities;
+using OpenQotd.Bot.Database;
 using Microsoft.EntityFrameworkCore;
 
-namespace CustomQotd.Bot.Helpers
+namespace OpenQotd.Bot.Helpers
 {
     public class GeneralActions
     {

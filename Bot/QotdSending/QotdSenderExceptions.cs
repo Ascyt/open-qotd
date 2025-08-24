@@ -1,4 +1,4 @@
-﻿namespace CustomQotd.Bot.QotdSending
+﻿namespace OpenQotd.Bot.QotdSending
 {
     public abstract class QotdSenderException : Exception
     {

@@ -1,5 +1,5 @@
-﻿using CustomQotd.Bot.Database.Entities;
-using CustomQotd.Bot.Database;
+﻿using OpenQotd.Bot.Database.Entities;
+using OpenQotd.Bot.Database;
 using DSharpPlus.Commands;
 using DSharpPlus.Entities;
 using System.ComponentModel;
@@ -7,9 +7,9 @@ using Microsoft.EntityFrameworkCore;
 using Newtonsoft.Json;
 using System.Text;
 using DSharpPlus.Interactivity.Extensions;
-using CustomQotd.Bot.Helpers;
+using OpenQotd.Bot.Helpers;
 
-namespace CustomQotd.Bot.Commands
+namespace OpenQotd.Bot.Commands
 {
     public class DebugCommand
     {

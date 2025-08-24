@@ -1,7 +1,7 @@
-﻿using CustomQotd.Bot.Database;
-using CustomQotd.Bot.Database.Entities;
-using CustomQotd.Bot.EventHandlers;
-using CustomQotd.Bot.Helpers;
+﻿using OpenQotd.Bot.Database;
+using OpenQotd.Bot.Database.Entities;
+using OpenQotd.Bot.EventHandlers;
+using OpenQotd.Bot.Helpers;
 using DSharpPlus.Commands;
 using DSharpPlus.Entities;
 using DSharpPlus.Interactivity.Extensions;
@@ -10,7 +10,7 @@ using System;
 using System.ComponentModel;
 using System.Text;
 
-namespace CustomQotd.Bot.Commands
+namespace OpenQotd.Bot.Commands
 {
     [Command("questions")]
     public class QuestionsCommand

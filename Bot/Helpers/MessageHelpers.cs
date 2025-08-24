@@ -1,5 +1,5 @@
-﻿using CustomQotd.Bot.Database;
-using CustomQotd.Bot.Database.Entities;
+﻿using OpenQotd.Bot.Database;
+using OpenQotd.Bot.Database.Entities;
 using DSharpPlus.Commands;
 using DSharpPlus.Entities;
 using DSharpPlus.Interactivity.Extensions;
@@ -7,7 +7,7 @@ using System.Collections.Generic;
 using System.Text;
 using System.Threading.Channels;
 
-namespace CustomQotd.Bot.Helpers
+namespace OpenQotd.Bot.Helpers
 {
     /// <summary>
     /// Presets for embed response messages

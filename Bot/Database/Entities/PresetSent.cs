@@ -3,7 +3,7 @@ using DSharpPlus.Exceptions;
 using Newtonsoft.Json;
 using System.ComponentModel.DataAnnotations;
 
-namespace CustomQotd.Bot.Database.Entities
+namespace OpenQotd.Bot.Database.Entities
 {
     public class PresetSent
     {

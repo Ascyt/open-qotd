@@ -1,6 +1,6 @@
-﻿using CustomQotd.Bot.Database.Entities;
+﻿using OpenQotd.Bot.Database.Entities;
 
-namespace CustomQotd.Bot
+namespace OpenQotd.Bot
 {
     public static class Presets
     {

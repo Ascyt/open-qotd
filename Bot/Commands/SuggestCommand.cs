@@ -1,7 +1,7 @@
 ﻿using CommunityToolkit.HighPerformance.Helpers;
-using CustomQotd.Bot.Database;
-using CustomQotd.Bot.Database.Entities;
-using CustomQotd.Bot.Helpers;
+using OpenQotd.Bot.Database;
+using OpenQotd.Bot.Database.Entities;
+using OpenQotd.Bot.Helpers;
 using DSharpPlus.Commands;
 using DSharpPlus.Commands.Processors.SlashCommands;
 using DSharpPlus.Entities;
@@ -9,7 +9,7 @@ using DSharpPlus.Exceptions;
 using Microsoft.EntityFrameworkCore;
 using System.ComponentModel;
 
-namespace CustomQotd.Bot.Commands
+namespace OpenQotd.Bot.Commands
 {
     public class SuggestCommand
     {

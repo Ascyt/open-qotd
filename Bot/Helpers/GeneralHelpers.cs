@@ -2,7 +2,7 @@
 using DSharpPlus.Entities;
 using DSharpPlus.Exceptions;
 
-namespace CustomQotd.Bot.Helpers
+namespace OpenQotd.Bot.Helpers
 {
     public class GeneralHelpers
     {

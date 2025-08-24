@@ -1,7 +1,7 @@
-﻿using CustomQotd.Bot.Database;
+﻿using OpenQotd.Bot.Database;
 using Microsoft.EntityFrameworkCore;
 
-namespace CustomQotd.Bot.QotdSending
+namespace OpenQotd.Bot.QotdSending
 {
     public class QotdSenderTimer
     {

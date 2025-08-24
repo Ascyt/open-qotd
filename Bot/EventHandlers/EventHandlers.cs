@@ -1,15 +1,15 @@
-﻿using CustomQotd.Bot.Helpers;
+﻿using OpenQotd.Bot.Helpers;
 using DSharpPlus;
 using DSharpPlus.Commands;
 using DSharpPlus.Commands.EventArgs;
 using DSharpPlus.EventArgs;
 using DSharpPlus.Entities;
-using CustomQotd.Bot.Commands;
-using CustomQotd.Bot.Database;
-using CustomQotd.Bot.Database.Entities;
+using OpenQotd.Bot.Commands;
+using OpenQotd.Bot.Database;
+using OpenQotd.Bot.Database.Entities;
 using Microsoft.EntityFrameworkCore;
 
-namespace CustomQotd.Bot.EventHandlers
+namespace OpenQotd.Bot.EventHandlers
 {
     public class EventHandlers
     {

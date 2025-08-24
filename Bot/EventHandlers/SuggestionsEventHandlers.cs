@@ -1,13 +1,13 @@
-﻿using CustomQotd.Bot.Commands;
-using CustomQotd.Bot.Database;
-using CustomQotd.Bot.Database.Entities;
-using CustomQotd.Bot.Helpers;
+﻿using OpenQotd.Bot.Commands;
+using OpenQotd.Bot.Database;
+using OpenQotd.Bot.Database.Entities;
+using OpenQotd.Bot.Helpers;
 using DSharpPlus;
 using DSharpPlus.Entities;
 using DSharpPlus.EventArgs;
 using Microsoft.EntityFrameworkCore;
 
-namespace CustomQotd.Bot.EventHandlers
+namespace OpenQotd.Bot.EventHandlers
 {
     public static class SuggestionsEventHandlers
     {

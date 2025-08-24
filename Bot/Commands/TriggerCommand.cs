@@ -1,9 +1,9 @@
-﻿using CustomQotd.Bot.QotdSending;
-using CustomQotd.Bot.Helpers;
+﻿using OpenQotd.Bot.QotdSending;
+using OpenQotd.Bot.Helpers;
 using DSharpPlus.Commands;
 using System.ComponentModel;
 
-namespace CustomQotd.Bot.Commands
+namespace OpenQotd.Bot.Commands
 {
     public class TriggerCommand
     {

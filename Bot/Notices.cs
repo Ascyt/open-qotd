@@ -1,7 +1,7 @@
 ﻿using System.Text.Json;
 using System.Text.Json.Serialization;
 
-namespace CustomQotd.Bot
+namespace OpenQotd.Bot
 {
     public static class Notices
     {

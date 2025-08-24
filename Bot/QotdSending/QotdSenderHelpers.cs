@@ -1,11 +1,11 @@
-﻿using CustomQotd.Bot.Database.Entities;
-using CustomQotd.Bot.Database;
+﻿using OpenQotd.Bot.Database.Entities;
+using OpenQotd.Bot.Database;
 using Microsoft.EntityFrameworkCore;
 using DSharpPlus.Entities;
 using DSharpPlus.Exceptions;
-using CustomQotd.Bot.Helpers;
+using OpenQotd.Bot.Helpers;
 
-namespace CustomQotd.Bot.QotdSending
+namespace OpenQotd.Bot.QotdSending
 {
     internal struct SendQotdData
     {

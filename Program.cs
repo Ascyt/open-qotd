@@ -2,15 +2,15 @@
 using DSharpPlus.Entities;
 using DSharpPlus.Commands;
 using DSharpPlus.Commands.Processors.SlashCommands;
-using CustomQotd.Bot;
-using CustomQotd.Features.Commands;
+using OpenQotd.Bot;
+using OpenQotd.Features.Commands;
 using DSharpPlus.Interactivity.Extensions;
 using DSharpPlus.Interactivity;
-using CustomQotd.Bot.QotdSending;
-using CustomQotd.Bot.EventHandlers;
-using CustomQotd.Bot.Commands;
+using OpenQotd.Bot.QotdSending;
+using OpenQotd.Bot.EventHandlers;
+using OpenQotd.Bot.Commands;
 
-namespace CustomQotd
+namespace OpenQotd
 {
     class Program
     {
@@ -37,10 +37,14 @@ namespace CustomQotd
             await Presets.LoadPresets();
             Console.WriteLine("Presets loaded.");
 
-            string? discordToken = Environment.GetEnvironmentVariable("CUSTOMQOTD_TOKEN");
+            string? discordToken = Environment.GetEnvironmentVariable("OPENQOTD_TOKEN");
             if (string.IsNullOrWhiteSpace(discordToken))
             {
-                Console.WriteLine("Error: No discord token found. Please provide a token via the CUSTOMQOTD_TOKEN environment variable.");
+				discordToken = Environment.GetEnvironmentVariable("CUSTOMQOTD_TOKEN"); // backwards compatibility
+			}
+            if (string.IsNullOrWhiteSpace(discordToken))
+            {
+                Console.WriteLine("Error: No discord token found. Please provide a token via the OPENQOTD_TOKEN environment variable.");
                 Environment.Exit(1);
             }
             Console.WriteLine("Token set.");

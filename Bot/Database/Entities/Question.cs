@@ -1,9 +1,9 @@
-﻿using CustomQotd.Bot.Helpers;
+﻿using OpenQotd.Bot.Helpers;
 using DSharpPlus.Commands;
 using Microsoft.EntityFrameworkCore;
 using System.ComponentModel.DataAnnotations;
 
-namespace CustomQotd.Bot.Database.Entities
+namespace OpenQotd.Bot.Database.Entities
 {
     public enum QuestionType
     {

@@ -1,11 +1,11 @@
-﻿using CustomQotd.Bot.Database.Entities;
-using CustomQotd.Bot.Helpers;
+﻿using OpenQotd.Bot.Database.Entities;
+using OpenQotd.Bot.Helpers;
 using DSharpPlus.Commands;
 using DSharpPlus.Commands.Processors.SlashCommands;
 using DSharpPlus.Entities;
 using System.ComponentModel;
 
-namespace CustomQotd.Bot.Commands
+namespace OpenQotd.Bot.Commands
 {
     public class SimpleCommands
     {
@@ -33,7 +33,7 @@ namespace CustomQotd.Bot.Commands
 
             await Console.Out.WriteAsync(contents);
 
-            DiscordEmbed responseEmbed = MessageHelpers.GenericSuccessEmbed("CustomQOTD feedback sent!",
+            DiscordEmbed responseEmbed = MessageHelpers.GenericSuccessEmbed("OpenQOTD feedback sent!",
                     $"\"**{feedback}**\"");
 
             if (context is SlashCommandContext)
