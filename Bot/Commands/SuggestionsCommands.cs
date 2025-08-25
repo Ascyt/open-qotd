@@ -553,7 +553,7 @@ namespace OpenQotd.Bot.Commands
                 await Logging.LogUserAction(suggestionMessage!.Channel!.Guild.Id, suggestionMessage.Channel, user, "Denied Suggestion", $"{question.ToString()}\n\n" +
                 $"Denial Reason: \"**{reason}**\"");
             else
-                await Logging.LogUserAction(context, "Denied Suggestion", $"{question.ToString()}\n\n" +
+                await Logging.LogUserAction(context, $"Denied Suggestion" + (config.EnableDeletedToStash ? " (moved to stash)" : ""), $"{question.ToString()}\n\n" +
                 $"Denial Reason: \"**{reason}**\"");
         }
     }
