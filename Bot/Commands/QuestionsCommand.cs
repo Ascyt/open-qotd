@@ -321,7 +321,7 @@ namespace OpenQotd.Bot.Commands
         [Command("list")]
         [Description("List all questions of a certain type.")]
         public static async Task ListQuestionsAsync(CommandContext context,
-            [Description("The type of questions to show.")] QuestionType type,
+            [Description("The type of questions to show.")] QuestionType? type = null,
             [Description("The page of the listing (default 1).")] int page = 1)
         {
             if (!await CommandRequirements.UserIsAdmin(context, null))
@@ -330,17 +330,27 @@ namespace OpenQotd.Bot.Commands
             await ListQuestionsNoPermcheckAsync(context, type, page);
         }
         public static async Task ListQuestionsNoPermcheckAsync(CommandContext context,
-            [Description("The type of questions to show.")] QuestionType type,
+            [Description("The type of questions to show.")] QuestionType? type = null,
             [Description("The page of the listing (default 1).")] int page = 1)
         {
             const int itemsPerPage = 10;
 
-            await MessageHelpers.ListMessageComplete<Question>(context, page, $"{type} Questions List", async Task<(Question[], int, int, int)> (int page) =>
+            await MessageHelpers.ListMessageComplete<Question>(context, page, type is null ? $"Questions List" : $"{type} Questions List", async Task<(Question[], int, int, int)> (int page) =>
             {
                 using (var dbContext = new AppDbContext())
                 {
-                    var sqlQuery = dbContext.Questions
-                        .Where(q => q.GuildId == context.Guild!.Id && q.Type == type);
+                    IQueryable<Question> sqlQuery;
+                    if (type is null)
+                    {
+                        sqlQuery = dbContext.Questions
+                            .Where(q => q.GuildId == context.Guild!.Id)
+                            .OrderBy(q => q.Type);
+                    }
+                    else
+                    {
+                        sqlQuery = dbContext.Questions
+                            .Where(q => q.GuildId == context.Guild!.Id && q.Type == type);
+                    }
 
                     // Get the total number of questions
                     int totalElements = await sqlQuery
