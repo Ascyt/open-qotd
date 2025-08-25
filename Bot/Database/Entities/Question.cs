@@ -10,7 +10,7 @@ namespace OpenQotd.Bot.Database.Entities
 		Suggested = 0,
         Accepted = 1, 
         Sent = 2,
-		Stashed = 3,
+		Stashed = 3
 	}
 
     public class Question
@@ -31,18 +31,30 @@ namespace OpenQotd.Bot.Database.Entities
 
         public ulong? SuggestionMessageId { get; set; }
 
-        public override string ToString()
+        public static string GetEmoji(QuestionType type)
         {
-            string emoji = Type switch
-            {
-                QuestionType.Suggested => ":red_square:",
-                QuestionType.Accepted => ":large_blue_diamond:",
-                QuestionType.Sent => ":green_circle:",
-                QuestionType.Stashed => ":heavy_multiplication_x:",
-                _ => ":black_large_square:",
-            };
-            return $"{emoji} \"**{Text}**\" (by: <@{SubmittedByUserId}>; ID: `{GuildDependentId}`)";
+			return type switch
+			{
+				QuestionType.Suggested => ":red_square:",
+				QuestionType.Accepted => ":large_blue_diamond:",
+				QuestionType.Sent => ":green_circle:",
+				QuestionType.Stashed => ":heavy_multiplication_x:",
+				_ => ":black_large_square:",
+			};
+		}
+        public static string TypeToStyledString(QuestionType type)
+        {
+            return $"{GetEmoji(type)} *{type}*";
         }
+
+        public override string ToString()
+            => ToString(longType: false);
+        public string ToString(bool longType)
+        {
+		    return longType ? 
+                $"\"**{Text}**\" (Type: {TypeToStyledString(Type)}); by: <@{SubmittedByUserId}>; ID: `{GuildDependentId}`)" : 
+                $"{GetEmoji(Type)} \"**{Text}**\" (by: <@{SubmittedByUserId}>; ID: `{GuildDependentId}`)";
+		}
         public static async Task<int> GetNextGuildDependentId(ulong guildId)
         {
             List<int> existingIds;

@@ -41,7 +41,7 @@ namespace OpenQotd.Bot.Commands
             StringBuilder sb = new();
 
             sb.AppendLine($"ID: `{question.GuildDependentId}`");
-            sb.AppendLine($"Type: **{question.Type}**");
+            sb.AppendLine($"Type: {Question.TypeToStyledString(question.Type)}");
             sb.AppendLine();
             sb.AppendLine($"Submitted by: <@{question.SubmittedByUserId}> (`{question.SubmittedByUserId}`)");
             sb.AppendLine($"Submitted at: {DSharpPlus.Formatter.Timestamp(question.Timestamp, DSharpPlus.TimestampFormat.ShortDateTime)}");
@@ -100,8 +100,9 @@ namespace OpenQotd.Bot.Commands
                 await dbContext.SaveChangesAsync();
             }
 
-            string body = $"\"**{question}**\" ({type}, ID: `{newQuestion.GuildDependentId}`)";
-            await context.RespondAsync(
+            string body = newQuestion.ToString(longType: true);
+
+			await context.RespondAsync(
                 MessageHelpers.GenericSuccessEmbed("Added Question", body)
                 );
             await Logging.LogUserAction(context, "Added Question", body);
@@ -186,7 +187,7 @@ namespace OpenQotd.Bot.Commands
                 await dbContext.SaveChangesAsync();
             }
 
-            string body = $"Added {lines.Length} question{(lines.Length == 1 ? "" : "s")} ({type}).";
+            string body = $"Added {lines.Length} question{(lines.Length == 1 ? "" : "s")} ({Question.TypeToStyledString(type)}).";
             await context.RespondAsync(
                 MessageHelpers.GenericSuccessEmbed("Added Bulk Questions", body)
                 );
@@ -216,7 +217,7 @@ namespace OpenQotd.Bot.Commands
                     return;
                 }
 
-                body = $"\n> **{question.Type}** → **{type}**";
+                body = $"\n> {Question.TypeToStyledString(question.Type)} → {Question.TypeToStyledString(type)}";
 
                 question.Type = type;
 
@@ -261,7 +262,7 @@ namespace OpenQotd.Bot.Commands
 
 				await dbContext.SaveChangesAsync();
 			}
-			string body = $"Changed {questions.Count} question{(questions.Count == 1 ? "" : "s")} from **{fromType}** to **{toType}**.";
+			string body = $"Changed {questions.Count} question{(questions.Count == 1 ? "" : "s")} from {Question.TypeToStyledString(fromType)} to {Question.TypeToStyledString(toType)}.";
 
 			await context.RespondAsync(
 				MessageHelpers.GenericSuccessEmbed("Set Bulk Question Types", body)
@@ -307,7 +308,7 @@ namespace OpenQotd.Bot.Commands
 
                 await dbContext.SaveChangesAsync();
 			}
-			string body = $"Removed {questions.Count} question{(questions.Count == 1 ? "" : "s")} of type **{type}**.";
+			string body = $"Removed {questions.Count} question{(questions.Count == 1 ? "" : "s")} of type {Question.TypeToStyledString(type)}.";
 
 			string title = config.EnableDeletedToStash && type != QuestionType.Stashed ? "Removed Bulk Questions to Stash" : "Removed Bulk Questions";
 
@@ -342,7 +343,7 @@ namespace OpenQotd.Bot.Commands
 				dbContext.Questions.RemoveRange(questions);
 				await dbContext.SaveChangesAsync();
 			}
-			string body = $"Removed {questions.Count} question{(questions.Count == 1 ? "" : "s")} of type **{QuestionType.Stashed}**.";
+			string body = $"Removed {questions.Count} question{(questions.Count == 1 ? "" : "s")} of type {Question.TypeToStyledString(QuestionType.Stashed)}.";
 
 			string title = "Cleared Stash";
 

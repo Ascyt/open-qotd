@@ -26,3 +26,32 @@ code {
 .text-warning.light-theme { 
     color: #c08000 !important;
 }
+
+.question-type {
+    font-style: italic;
+
+    &.suggested {
+        &::before {
+            content: '🟥';
+            font-style: normal;
+        }
+    }
+    &.accepted {
+        &::before {
+            content: '🔷';
+            font-style: normal;
+        }
+    }
+    &.sent {
+        &::before {
+            content: '🟢';
+            font-style: normal;
+        }
+    }
+    &.stashed {
+        &::before {
+            content: '✖️';
+            font-style: normal;
+        }
+    }
+}
