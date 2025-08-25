@@ -462,9 +462,9 @@ namespace OpenQotd.Bot.Commands
 
             using (var dbContext = new AppDbContext())
             {
-                Question? removeQuestion = await dbContext.Questions.FindAsync(question.Id);
+                Question? disableQuestion = await dbContext.Questions.FindAsync(question.Id);
 
-                if (removeQuestion == null)
+                if (disableQuestion == null)
                 {
                     DiscordEmbed embed = MessageHelpers.GenericErrorEmbed(title: "Suggestion Not Found", message: $"The suggestion with ID `{question.GuildDependentId}` could not be found.");
 
@@ -476,9 +476,9 @@ namespace OpenQotd.Bot.Commands
                     return;
                 }
 
-                dbContext.Questions.Remove(removeQuestion); 
+                disableQuestion.Type = QuestionType.Stashed;
 
-                await dbContext.SaveChangesAsync();
+				await dbContext.SaveChangesAsync();
             }
 
             if (suggestionMessage is not null)

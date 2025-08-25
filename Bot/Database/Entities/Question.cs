@@ -7,7 +7,10 @@ namespace OpenQotd.Bot.Database.Entities
 {
     public enum QuestionType
     {
-        Suggested, Accepted, Sent
+        Stashed = -1,
+		Suggested = 0,
+        Accepted = 1, 
+        Sent = 2
     }
 
     public class Question
