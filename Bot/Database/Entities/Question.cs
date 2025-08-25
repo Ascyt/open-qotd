@@ -7,11 +7,11 @@ namespace OpenQotd.Bot.Database.Entities
 {
     public enum QuestionType
     {
-        Stashed = -1,
 		Suggested = 0,
         Accepted = 1, 
-        Sent = 2
-    }
+        Sent = 2,
+		Stashed = 3,
+	}
 
     public class Question
     {
@@ -33,24 +33,14 @@ namespace OpenQotd.Bot.Database.Entities
 
         public override string ToString()
         {
-            string emoji;
-
-            switch (Type)
+            string emoji = Type switch
             {
-                case QuestionType.Suggested:
-                    emoji = ":red_square:";
-                    break;
-                case QuestionType.Accepted:
-                    emoji = ":large_blue_diamond:";
-                    break;
-                case QuestionType.Sent:
-                    emoji = ":green_circle:";
-                    break;
-                default:
-                    emoji = ":black_large_square:";
-                    break;
-            }
-
+                QuestionType.Suggested => ":red_square:",
+                QuestionType.Accepted => ":large_blue_diamond:",
+                QuestionType.Sent => ":green_circle:",
+                QuestionType.Stashed => ":heavy_multiplication_x:",
+                _ => ":black_large_square:",
+            };
             return $"{emoji} \"**{Text}**\" (by: <@{SubmittedByUserId}>; ID: `{GuildDependentId}`)";
         }
         public static async Task<int> GetNextGuildDependentId(ulong guildId)

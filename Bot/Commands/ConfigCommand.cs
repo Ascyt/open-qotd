@@ -11,10 +11,6 @@ namespace OpenQotd.Bot.Commands
     [Command("config")]
     public class ConfigCommand
     {
-        // TODO: More config options: 
-        // SendIfEmpty (bool), BasicRoleId (nullable, AdminRoleId overrides this), exclude/include days of week
-        // Plus the ability to costumize the QOTD (premium feature)
-
         [Command("initialize")]
         [Description("Initialize the config with values")]
         public static async Task InitializeAsync(CommandContext context,
@@ -33,7 +29,8 @@ namespace OpenQotd.Bot.Commands
             [Description("The channel new QOTD suggestions get announced in.")] DiscordChannel? SuggestionsChannel = null,
             [Description("The role that will get pinged when a new QOTD is suggested.")] DiscordRole? SuggestionsPingRole = null,
             [Description("Whether all, only important, or no notices should be shown under QOTDs (all by default).")] Config.NoticeLevel NoticesLevel = Config.NoticeLevel.All,
-            [Description("The channel where commands, QOTDs and more get logged to.")] DiscordChannel? LogsChannel = null)
+			[Description("Whether questions should get the \"Stashed\" type instead of being deleted (true by default).")] bool EnableDeletedToStash = true,
+			[Description("The channel where commands, QOTDs and more get logged to.")] DiscordChannel? LogsChannel = null)
         {
             if (!context.Member!.Permissions.HasPermission(DiscordPermission.Administrator))
             {
@@ -46,7 +43,7 @@ namespace OpenQotd.Bot.Commands
             QotdTimeMinuteUtc = Math.Clamp(QotdTimeMinuteUtc, 0, 59);
             QotdTimeHourUtc = Math.Clamp(QotdTimeHourUtc, 0, 23);
 
-            Config config = new Config
+            Config config = new()
             {
                 GuildId = context!.Guild!.Id,
                 BasicRoleId = BasicRole?.Id,
@@ -64,7 +61,8 @@ namespace OpenQotd.Bot.Commands
                 SuggestionsChannelId = SuggestionsChannel?.Id,
                 SuggestionsPingRoleId = SuggestionsPingRole?.Id,
                 NoticesLevel = NoticesLevel,
-                LogsChannelId = LogsChannel?.Id
+				EnableDeletedToStash = EnableDeletedToStash,
+				LogsChannelId = LogsChannel?.Id
             };
             bool reInitialized = false;
             using (var dbContext = new AppDbContext())
@@ -80,7 +78,7 @@ namespace OpenQotd.Bot.Commands
                 await dbContext.Configs.AddAsync(config);
                 await dbContext.SaveChangesAsync();
             }
-            string configString = await config.ToStringAsync();
+            string configString = config.ToString();
 
             await context.RespondAsync(
                     MessageHelpers.GenericSuccessEmbed($"Successfully {(reInitialized ? "re-" : "")}initialized config", configString)
@@ -107,7 +105,7 @@ namespace OpenQotd.Bot.Commands
             if (config is null)
                 return;
 
-            string configString = await config.ToStringAsync();
+            string configString = config.ToString();
 
             await context.RespondAsync(
                     MessageHelpers.GenericEmbed($"Config values", $"{configString}")
@@ -132,7 +130,8 @@ namespace OpenQotd.Bot.Commands
             [Description("The channel new QOTD suggestions get announced in.")] DiscordChannel? SuggestionsChannel = null,
             [Description("The role that will get pinged when a new QOTD is suggested.")] DiscordRole? SuggestionsPingRole = null,
             [Description("Whether all, only important, or no notices should be shown under QOTDs (all by default).")] Config.NoticeLevel? NoticesLevel = null,
-            [Description("The channel where commands, QOTDs and more get logged to.")] DiscordChannel? LogsChannel = null)
+			[Description("Whether questions should get the \"Stashed\" type instead of being deleted (true by default).")] bool? EnableDeletedToStash = null,
+			[Description("The channel where commands, QOTDs and more get logged to.")] DiscordChannel? LogsChannel = null)
         {
             if (!context.Member!.Permissions.HasPermission(DiscordPermission.Administrator))
             {
@@ -199,13 +198,15 @@ namespace OpenQotd.Bot.Commands
                     config.SuggestionsPingRoleId = SuggestionsPingRole.Id;
                 if (NoticesLevel is not null)
                     config.NoticesLevel = NoticesLevel.Value;
-                if (LogsChannel is not null)
+                if (EnableDeletedToStash is not null)
+					config.EnableDeletedToStash = EnableDeletedToStash.Value;
+				if (LogsChannel is not null)
                     config.LogsChannelId = LogsChannel.Id;
 
                 await dbContext.SaveChangesAsync();   
             }
 
-            string configString = await config.ToStringAsync();
+            string configString = config.ToString();
 
             await context.RespondAsync(
                     MessageHelpers.GenericSuccessEmbed("Successfully set config values", $"{configString}")
@@ -257,7 +258,7 @@ namespace OpenQotd.Bot.Commands
                 await dbContext.SaveChangesAsync();
             }
 
-            string configString = await config.ToStringAsync();
+            string configString = config.ToString();
 
             await context.RespondAsync(
                     MessageHelpers.GenericSuccessEmbed("Successfully set config values", $"{configString}")

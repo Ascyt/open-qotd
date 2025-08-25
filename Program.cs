@@ -22,7 +22,7 @@ namespace OpenQotd
         {
             /* When making changes to the database, change the `#if false` to `#if true`, then run:
                 dotnet ef migrations add [MIGRATION_NAME] 
-                dotnet ef database updatee
+                dotnet ef database update
             Replace [MIGRATION_NAME] with a name that describes the migration.
             Then set it back to `false` and you're good to go. */
 #if false

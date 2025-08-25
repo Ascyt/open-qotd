@@ -293,7 +293,22 @@ namespace OpenQotd.Bot.Commands
                 }
                 body = question.ToString();
 
-                dbContext.Questions.Remove(question);
+                Config? config = await dbContext.Configs.Where(c => c.GuildId == guildId).FirstOrDefaultAsync();
+                if (config == null)
+                {
+					await context.RespondAsync(
+						MessageHelpers.GenericErrorEmbed(title: "Config Not Found", message: "The bot configuration could not be found."));
+					return;
+				}
+
+                if (config.EnableDeletedToStash)
+                {
+                    question.Type = QuestionType.Stashed;
+				}
+                else
+                {
+                    dbContext.Questions.Remove(question);
+                }
                 await dbContext.SaveChangesAsync();
             }
 
