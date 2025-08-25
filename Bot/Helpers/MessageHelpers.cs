@@ -78,8 +78,9 @@ namespace OpenQotd.Bot.Helpers
             }
             catch (ArgumentException)
             {
-				// No buttons
-				return;
+                // ArgumentException is thrown by WaitForButtonAsync when the message does not contain any interactive buttons.
+                // In this case, there is nothing to wait for, so we simply return.
+                return;
 			}
 
             while (!result.TimedOut && result.Result?.Id != null)
