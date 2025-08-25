@@ -460,11 +460,12 @@ namespace OpenQotd.Bot.Commands
             DiscordUser user = context?.User ?? result!.Interaction.User;
             DiscordGuild guild = context?.Guild ?? result!.Interaction.Guild!;
 
+            Config? config;
             using (var dbContext = new AppDbContext())
             {
-                Question? removeQuestion = await dbContext.Questions.FindAsync(question.Id);
+                Question? disableQuestion = await dbContext.Questions.FindAsync(question.Id);
 
-                if (removeQuestion == null)
+                if (disableQuestion == null)
                 {
                     DiscordEmbed embed = MessageHelpers.GenericErrorEmbed(title: "Suggestion Not Found", message: $"The suggestion with ID `{question.GuildDependentId}` could not be found.");
 
@@ -476,7 +477,26 @@ namespace OpenQotd.Bot.Commands
                     return;
                 }
 
-                dbContext.Questions.Remove(removeQuestion); 
+				config = await dbContext.Configs.Where(c => c.GuildId == guild.Id).FirstOrDefaultAsync();
+				if (config == null)
+				{
+					DiscordEmbed embed = MessageHelpers.GenericErrorEmbed(title: "Config Not Found", message: $"The config for this server could not be found.");
+					if (suggestionMessage is null)
+						await context!.Channel.SendMessageAsync(embed);
+					else
+						await suggestionMessage.Channel!.SendMessageAsync(embed
+						);
+					return;
+				}
+
+                if (config.EnableDeletedToStash)
+                {
+                    disableQuestion.Type = QuestionType.Stashed;
+                }
+                else
+                {
+					dbContext.Questions.Remove(disableQuestion);
+				}
 
                 await dbContext.SaveChangesAsync();
             }
@@ -533,7 +553,7 @@ namespace OpenQotd.Bot.Commands
                 await Logging.LogUserAction(suggestionMessage!.Channel!.Guild.Id, suggestionMessage.Channel, user, "Denied Suggestion", $"{question.ToString()}\n\n" +
                 $"Denial Reason: \"**{reason}**\"");
             else
-                await Logging.LogUserAction(context, "Denied Suggestion", $"{question.ToString()}\n\n" +
+                await Logging.LogUserAction(context, $"Denied Suggestion" + (config.EnableDeletedToStash ? " (moved to stash)" : ""), $"{question.ToString()}\n\n" +
                 $"Denial Reason: \"**{reason}**\"");
         }
     }

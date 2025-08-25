@@ -35,6 +35,7 @@ namespace OpenQotd.Bot.Database.Entities
         public ulong? SuggestionsPingRoleId { get; set; }
         public NoticeLevel NoticesLevel { get; set; } = NoticeLevel.All;
         public ulong? LogsChannelId { get; set; }
+        public bool EnableDeletedToStash { get; set; } = true;
 
         // Variables (not set using /config)
         public DateTime? LastSentTimestamp { get; set; }
@@ -44,25 +45,13 @@ namespace OpenQotd.Bot.Database.Entities
 
         public ulong? LastQotdMessageId { get; set; }
 
-        /// <summary>
-        /// Do not use ToString(), use ToStringAsync() instead
-        /// </summary>
-        /// <exception cref="NotImplementedException"></exception>
         public override string ToString()
         {
-            throw new NotImplementedException($"Use ToStringAsync() instead");
-        }
-
-        // TODO: Probably change this to just show the the roles with <@&id> and the channels with <#id> for performance reasons
-        public async Task<string> ToStringAsync()
-        {
-            DiscordGuild guild = await Program.Client.GetGuildAsync(GuildId);
-
             return
-                $"- basic_role: {await RoleIdToString(BasicRoleId, guild)}\n" +
-                $"- admin_role: {await RoleIdToString(AdminRoleId, guild)}\n" +
-                $"- qotd_channel: {await ChannelIdToString(QotdChannelId, guild)}\n" +
-                $"- qotd_ping_role: {await RoleIdToString(QotdPingRoleId, guild)}\n" +
+                $"- basic_role: {FormatRole(BasicRoleId)}\n" +
+                $"- admin_role: {FormatRole(AdminRoleId)}\n" +
+                $"- qotd_channel: {FormatChannel(QotdChannelId)}\n" +
+                $"- qotd_ping_role: {FormatRole(QotdPingRoleId)}\n" +
                 $"- enable_automatic_qotd: **{EnableAutomaticQotd}**\n" +
                 $"- enable_qotd_pin_message: **{EnableQotdPinMessage}**\n" +
                 $"- enable_qotd_create_thread: **{EnableQotdCreateThread}**\n" +
@@ -70,45 +59,21 @@ namespace OpenQotd.Bot.Database.Entities
                 $"- enable_qotd_unavailable_message: **{EnableQotdUnavailableMessage}**\n" +
                 $"- qotd_time_hour_utc: **{QotdTimeHourUtc}**\n" +
                 $"- qotd_time_minute_utc: **{QotdTimeMinuteUtc}**\n" +
-                $"- enable_suggestions: **{EnableSuggestions}**\n" + 
-                $"- suggestions_channel: {await ChannelIdToString(SuggestionsChannelId, guild)}\n" +
-                $"- suggestions_ping_role: {await RoleIdToString(SuggestionsPingRoleId, guild)}\n" +
+                $"- enable_suggestions: **{EnableSuggestions}**\n" +
+                $"- suggestions_channel: {FormatChannel(SuggestionsChannelId)}\n" +
+                $"- suggestions_ping_role: {FormatRole(SuggestionsPingRoleId)}\n" +
                 $"- notices_level: **{NoticesLevel}**\n" +
-                $"- logs_channel: {await ChannelIdToString(LogsChannelId, guild)}\n";
+                $"- enable_deleted_questions_to_stash: **{EnableDeletedToStash}**\n" +
+                $"- logs_channel: {FormatChannel(LogsChannelId)}";
         }
 
-        private static async Task<string> RoleIdToString(ulong? roleId, DiscordGuild guild)
+        private static string FormatRole(ulong? roleId)
         {
-            try
-            {
-                if (roleId == null)
-                    return "*unset*";
-
-                DiscordRole role = await guild.GetRoleAsync(roleId.Value);
-
-                return $"{role.Mention} (`{roleId}`)";
-            }
-            catch (NotFoundException)
-            {
-                return $"`{roleId}` *(role not found)*";
-            }
+            return roleId is null ? "*unset*" : $"<@&{roleId}>";
         }
-
-        private static async Task<string> ChannelIdToString(ulong? channelId, DiscordGuild guild)
+        private static string FormatChannel(ulong? channelId)
         {
-            try
-            {
-                if (channelId == null)
-                    return "*unset*";
-
-                DiscordChannel channel = await guild.GetChannelAsync(channelId.Value);
-
-                return $"{channel.Mention} (`{channelId}`)";
-            }
-            catch (NotFoundException)
-            {
-                return $"`{channelId}` *(channel not found)*";
-            }
+            return channelId is null ? "*unset*" : $"<#{channelId}>";
         }
     }
 }

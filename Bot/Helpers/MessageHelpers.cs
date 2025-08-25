@@ -6,6 +6,8 @@ using DSharpPlus.Interactivity.Extensions;
 using System.Collections.Generic;
 using System.Text;
 using System.Threading.Channels;
+using DSharpPlus.Interactivity;
+using DSharpPlus.EventArgs;
 
 namespace OpenQotd.Bot.Helpers
 {
@@ -69,7 +71,17 @@ namespace OpenQotd.Bot.Helpers
                 return;
             }
 
-            var result = await message.WaitForButtonAsync();
+            InteractivityResult<ComponentInteractionCreatedEventArgs> result;
+            try
+            {
+               result = await message.WaitForButtonAsync();
+            }
+            catch (ArgumentException)
+            {
+                // ArgumentException is thrown by WaitForButtonAsync when the message does not contain any interactive buttons.
+                // In this case, there is nothing to wait for, so we simply return.
+                return;
+			}
 
             while (!result.TimedOut && result.Result?.Id != null)
             {

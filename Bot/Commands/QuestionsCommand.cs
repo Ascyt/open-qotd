@@ -229,48 +229,131 @@ namespace OpenQotd.Bot.Commands
                 MessageHelpers.GenericSuccessEmbed("Set Question Type", body)
                 );
             await Logging.LogUserAction(context, "Set Question Type", body);
-        }
+		}
 
-        [Command("changetypebulk")]
-        [Description("Change the type of all questions of a certain type to another (eg. all Sent questions->Accepted).")]
-        public static async Task ChangeTypeOfQuestionsBulkAsync(CommandContext context,
-            [Description("The type of the questions to change the type of.")] QuestionType fromType,
-            [Description("The type to set all of those questions to.")] QuestionType toType)
-        {
-            if (!await CommandRequirements.UserIsAdmin(context, null))
-                return;
+		[Command("changetypebulk")]
+		[Description("Change the type of all questions of a certain type to another (eg. all Sent questions->Accepted).")]
+		public static async Task ChangeTypeOfQuestionsBulkAsync(CommandContext context,
+			[Description("The type of the questions to change the type of.")] QuestionType fromType,
+			[Description("The type to set all of those questions to.")] QuestionType toType)
+		{
+			if (!await CommandRequirements.UserIsAdmin(context, null))
+				return;
 
-            if (fromType == toType)
-            {
-                await context.RespondAsync(
-                    MessageHelpers.GenericErrorEmbed(message: $"Arguments `from_type` and `to_type` cannot be the same."));
-                return;
-            }
+			if (fromType == toType)
+			{
+				await context.RespondAsync(
+					MessageHelpers.GenericErrorEmbed(message: $"Arguments `from_type` and `to_type` cannot be the same."));
+				return;
+			}
 
-            ulong guildId = context.Guild!.Id;
+			ulong guildId = context.Guild!.Id;
 
-            List<Question>? questions;
-            using (var dbContext = new AppDbContext())
-            {
-                questions = await dbContext.Questions.Where(q => q.GuildId == guildId && q.Type == fromType).ToListAsync();
+			List<Question>? questions;
+			using (var dbContext = new AppDbContext())
+			{
+				questions = await dbContext.Questions.Where(q => q.GuildId == guildId && q.Type == fromType).ToListAsync();
 
-                foreach (Question question in questions)
+				foreach (Question question in questions)
+				{
+					question.Type = toType;
+				}
+
+				await dbContext.SaveChangesAsync();
+			}
+			string body = $"Changed {questions.Count} question{(questions.Count == 1 ? "" : "s")} from **{fromType}** to **{toType}**.";
+
+			await context.RespondAsync(
+				MessageHelpers.GenericSuccessEmbed("Set Bulk Question Types", body)
+				);
+			await Logging.LogUserAction(context, "Set Bulk Question Types", body);
+		}
+
+		[Command("removebulk")]
+		[Description("Remove all questions of a certain to stash or irreversably delete them if disabled.")]
+		public static async Task RemoveQuestionsBulkAsync(CommandContext context,
+			[Description("The type of the questions to remove.")] QuestionType type)
+		{
+			if (!await CommandRequirements.UserIsAdmin(context, null))
+				return;
+
+			ulong guildId = context.Guild!.Id;
+
+			List<Question>? questions;
+            Config? config;
+			using (var dbContext = new AppDbContext())
+			{
+				questions = await dbContext.Questions.Where(q => q.GuildId == guildId && q.Type == type).ToListAsync();
+
+                config = await dbContext.Configs.Where(c => c.GuildId == guildId).FirstOrDefaultAsync();
+                if (config == null)
                 {
-                    question.Type = toType;
+                    await context.RespondAsync(
+                        MessageHelpers.GenericErrorEmbed(title: "Config Not Found", message: "The bot configuration could not be found."));
+                    return;
                 }
 
+				if (config.EnableDeletedToStash && type != QuestionType.Stashed) 
+				{
+                    foreach (Question question in questions)
+					{
+						question.Type = QuestionType.Stashed;
+					}
+				}
+                else
+                {
+					dbContext.Questions.RemoveRange(questions);
+				}
+
                 await dbContext.SaveChangesAsync();
-            }
-            string body = $"Changed {questions.Count} question{(questions.Count == 1 ? "" : "s")} from **{fromType}** to **{toType}**.";
+			}
+			string body = $"Removed {questions.Count} question{(questions.Count == 1 ? "" : "s")} of type **{type}**.";
 
-            await context.RespondAsync(
-                MessageHelpers.GenericSuccessEmbed("Set Bulk Question Types", body)
-                );
-            await Logging.LogUserAction(context, "Set Bulk Question Types", body);
-        }
+			string title = config.EnableDeletedToStash && type != QuestionType.Stashed ? "Removed Bulk Questions to Stash" : "Removed Bulk Questions";
 
-        [Command("remove")]
-        [Description("Irreversably delete a question.")]
+			await context.RespondAsync(
+				MessageHelpers.GenericSuccessEmbed(title, body)
+				);
+			await Logging.LogUserAction(context, title, body);
+		}
+        [Command("clearstash")]
+        [Description("Remove all questions of Stashed type.")]
+        public static async Task ClearStashAsync(CommandContext context)
+        {
+			if (!await CommandRequirements.UserIsAdmin(context, null))
+				return;
+
+			ulong guildId = context.Guild!.Id;
+
+			List<Question>? questions;
+			Config? config;
+			using (var dbContext = new AppDbContext())
+			{
+				questions = await dbContext.Questions.Where(q => q.GuildId == guildId && q.Type == QuestionType.Stashed).ToListAsync();
+
+				config = await dbContext.Configs.Where(c => c.GuildId == guildId).FirstOrDefaultAsync();
+				if (config == null)
+				{
+					await context.RespondAsync(
+						MessageHelpers.GenericErrorEmbed(title: "Config Not Found", message: "The bot configuration could not be found."));
+					return;
+				}
+
+				dbContext.Questions.RemoveRange(questions);
+				await dbContext.SaveChangesAsync();
+			}
+			string body = $"Removed {questions.Count} question{(questions.Count == 1 ? "" : "s")} of type **{QuestionType.Stashed}**.";
+
+			string title = "Cleared Stash";
+
+			await context.RespondAsync(
+				MessageHelpers.GenericSuccessEmbed(title, body)
+				);
+			await Logging.LogUserAction(context, title, body);
+		}
+
+		[Command("remove")]
+        [Description("Remove a question to stash or irreversably delete it if disabled.")]
         public static async Task RemoveQuestionAsync(CommandContext context,
         [Description("The ID of the question.")] int questionId)
         {
@@ -281,6 +364,7 @@ namespace OpenQotd.Bot.Commands
 
             Question? question;
             string body;
+            Config? config;
             using (var dbContext = new AppDbContext())
             {
                 question = await dbContext.Questions.Where(q => q.GuildId == guildId && q.GuildDependentId == questionId).FirstOrDefaultAsync();
@@ -293,20 +377,37 @@ namespace OpenQotd.Bot.Commands
                 }
                 body = question.ToString();
 
-                dbContext.Questions.Remove(question);
+                config = await dbContext.Configs.Where(c => c.GuildId == guildId).FirstOrDefaultAsync();
+                if (config == null)
+                {
+					await context.RespondAsync(
+						MessageHelpers.GenericErrorEmbed(title: "Config Not Found", message: "The bot configuration could not be found."));
+					return;
+				}
+
+                if (config.EnableDeletedToStash && question.Type != QuestionType.Stashed)
+                {
+                    question.Type = QuestionType.Stashed;
+				}
+                else
+                {
+                    dbContext.Questions.Remove(question);
+                }
                 await dbContext.SaveChangesAsync();
             }
 
-            await context.RespondAsync(
-                MessageHelpers.GenericSuccessEmbed("Removed Question", body)
+            string title = config.EnableDeletedToStash && question.Type != QuestionType.Stashed ? "Removed Question to Stash" : "Removed Question";
+
+			await context.RespondAsync(
+                MessageHelpers.GenericSuccessEmbed(title, body)
                 );
-            await Logging.LogUserAction(context, "Removed Question", body);
+            await Logging.LogUserAction(context, title, body);
         }
 
         [Command("list")]
         [Description("List all questions of a certain type.")]
         public static async Task ListQuestionsAsync(CommandContext context,
-            [Description("The type of questions to show.")] QuestionType type,
+            [Description("The type of questions to show.")] QuestionType? type = null,
             [Description("The page of the listing (default 1).")] int page = 1)
         {
             if (!await CommandRequirements.UserIsAdmin(context, null))
@@ -315,17 +416,27 @@ namespace OpenQotd.Bot.Commands
             await ListQuestionsNoPermcheckAsync(context, type, page);
         }
         public static async Task ListQuestionsNoPermcheckAsync(CommandContext context,
-            [Description("The type of questions to show.")] QuestionType type,
+            [Description("The type of questions to show.")] QuestionType? type = null,
             [Description("The page of the listing (default 1).")] int page = 1)
         {
             const int itemsPerPage = 10;
 
-            await MessageHelpers.ListMessageComplete<Question>(context, page, $"{type} Questions List", async Task<(Question[], int, int, int)> (int page) =>
+            await MessageHelpers.ListMessageComplete<Question>(context, page, type is null ? $"Questions List" : $"{type} Questions List", async Task<(Question[], int, int, int)> (int page) =>
             {
                 using (var dbContext = new AppDbContext())
                 {
-                    var sqlQuery = dbContext.Questions
-                        .Where(q => q.GuildId == context.Guild!.Id && q.Type == type);
+                    IQueryable<Question> sqlQuery;
+                    if (type is null)
+                    {
+                        sqlQuery = dbContext.Questions
+                            .Where(q => q.GuildId == context.Guild!.Id)
+                            .OrderBy(q => q.Type);
+                    }
+                    else
+                    {
+                        sqlQuery = dbContext.Questions
+                            .Where(q => q.GuildId == context.Guild!.Id && q.Type == type);
+                    }
 
                     // Get the total number of questions
                     int totalElements = await sqlQuery
