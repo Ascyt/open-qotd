@@ -1,8 +1,9 @@
-﻿using OpenQotd.Bot.Database;
+﻿using DSharpPlus.Commands;
+using DSharpPlus.Entities;
+using Microsoft.EntityFrameworkCore;
+using OpenQotd.Bot.Database;
 using OpenQotd.Bot.Database.Entities;
 using OpenQotd.Bot.Helpers;
-using DSharpPlus.Commands;
-using DSharpPlus.Entities;
 using System.ComponentModel;
 using static OpenQotd.Bot.Logging;
 
@@ -67,7 +68,8 @@ namespace OpenQotd.Bot.Commands
             bool reInitialized = false;
             using (var dbContext = new AppDbContext())
             {
-                Config? existingConfig = await dbContext.Configs.FindAsync(context!.Guild.Id);
+                Config? existingConfig = await dbContext.Configs.FirstOrDefaultAsync(c => c.GuildId == context!.Guild.Id);
+
                 if (existingConfig != null)
                 {
                     dbContext.Remove(existingConfig);

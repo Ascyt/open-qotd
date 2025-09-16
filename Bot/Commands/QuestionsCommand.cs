@@ -1,12 +1,9 @@
 ﻿using OpenQotd.Bot.Database;
 using OpenQotd.Bot.Database.Entities;
-using OpenQotd.Bot.EventHandlers;
 using OpenQotd.Bot.Helpers;
 using DSharpPlus.Commands;
 using DSharpPlus.Entities;
-using DSharpPlus.Interactivity.Extensions;
 using Microsoft.EntityFrameworkCore;
-using System;
 using System.ComponentModel;
 using System.Text;
 
@@ -431,12 +428,16 @@ namespace OpenQotd.Bot.Commands
                     {
                         sqlQuery = dbContext.Questions
                             .Where(q => q.GuildId == context.Guild!.Id)
-                            .OrderBy(q => q.Type);
+                            .OrderBy(q => q.Type)
+                            .ThenByDescending(q => q.Timestamp)
+                            .ThenByDescending(q => q.Id);
                     }
                     else
                     {
                         sqlQuery = dbContext.Questions
-                            .Where(q => q.GuildId == context.Guild!.Id && q.Type == type);
+                            .Where(q => q.GuildId == context.Guild!.Id && q.Type == type)
+                            .OrderByDescending(q => q.Timestamp)
+                            .ThenByDescending(q => q.Id);
                     }
 
                     // Get the total number of questions

@@ -7,7 +7,10 @@ appsettings.json
 *.db-wal
 *.db-*
 
-Migrations
+Migrations/
 
 notices.json
 feedback.txt
+
+.env
+pgdata/
