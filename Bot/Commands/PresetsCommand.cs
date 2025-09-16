@@ -28,7 +28,7 @@ namespace OpenQotd.Bot.Commands
             await PrintPresetDisabledWarningIfRequired(context);
 
             const int itemsPerPage = 10;
-            await MessageHelpers.ListMessageComplete(context, page, $"{(type != null ? $"{type} " : "")}Presets List", 
+            await MessageHelpers.SendListMessage(context, page, $"{(type != null ? $"{type} " : "")}Presets List", 
                 async Task<(Presets.PresetBySent[], int, int, int)> (int page) =>
             {
                 HashSet<PresetSent> presetSents;

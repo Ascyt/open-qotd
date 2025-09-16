@@ -14,10 +14,10 @@ namespace OpenQotd.Bot.Commands
 {
     public class DebugCommand
     {
-        public static HashSet<ulong> allowedUsers = new()
-        {
+        private readonly static HashSet<ulong> allowedUsers =
+        [
             417669404537520128
-        };
+        ];
 
         [Command("debug")]
         [Description("Debug command that can only be executed by developers of OpenQOTD.")]

@@ -30,13 +30,20 @@ namespace OpenQotd.Bot.Helpers
                 .WithDescription(message);
 
         /// <summary>
-        /// 
+        /// Fetch the database for a list message with pagination.
         /// </summary>
-        /// <typeparam name="T"></typeparam>
-        /// <param name="page"></param>
         /// <returns>Elements, total elements, total pages, elements per page</returns>
-        public delegate Task<(T[], int, int, int)> ListMessageCompleteFetchDb<T>(int page);
-        public static async Task ListMessageComplete<T>(CommandContext context, int initialPage, string title, ListMessageCompleteFetchDb<T> fetchDb)
+        public delegate Task<(T[], int, int, int)> ListMessageFetchDb<T>(int page);
+        /// <summary>
+        /// Convert an element to a string for display in the list message.
+        /// </summary>
+        public delegate string ListMessageElementToString<T>(T element, int rank);
+        /// <summary>
+        /// Automatic list message with pagination buttons.
+        /// </summary>
+        private static string DefaultElementToString<T>(T element, int rank) 
+            => $"{rank}. {element}";
+        public static async Task SendListMessage<T>(CommandContext context, int initialPage, string title, ListMessageFetchDb<T> fetchDb, ListMessageElementToString<T>? elementToString=null)
         {
             int page = initialPage;
 
@@ -45,10 +52,12 @@ namespace OpenQotd.Bot.Helpers
                 page = 1;
             }
 
+            elementToString ??= DefaultElementToString;
+
             (T[] elements, int totalElements, int totalPages, int elementsPerPage) = await fetchDb(page);
 
             await context.RespondAsync(
-                MessageHelpers.GetListMessage(elements, title, page, totalPages, totalElements, elementsPerPage)
+                MessageHelpers.GetListMessage(elements, title, page, totalPages, totalElements, elementsPerPage, elementToString)
                 );
 
             if (totalPages == 0)
@@ -111,13 +120,13 @@ namespace OpenQotd.Bot.Helpers
                 if (messageDelete)
                 {
                     await message.DeleteAsync();
-                    DiscordMessageBuilder newMessageContent = MessageHelpers.GetListMessage(elements, title, page, totalPages, totalElements, elementsPerPage);
+                    DiscordMessageBuilder newMessageContent = MessageHelpers.GetListMessage(elements, title, page, totalPages, totalElements, elementsPerPage, elementToString);
                     message = await context.Channel.SendMessageAsync(newMessageContent);
                 }
                 else
                 {
                     DiscordInteractionResponseBuilder builder = new DiscordInteractionResponseBuilder();
-                    MessageHelpers.EditListMessage(elements, title, page, totalPages, totalElements, elementsPerPage, builder);
+                    MessageHelpers.EditListMessage(elements, title, page, totalPages, totalElements, elementsPerPage, builder, elementToString);
 
                     await result.Result.Interaction.CreateResponseAsync(DiscordInteractionResponseType.UpdateMessage, builder);
                 }
@@ -125,13 +134,13 @@ namespace OpenQotd.Bot.Helpers
                 result = await message.WaitForButtonAsync();
             }
 
-            await message.ModifyAsync(MessageHelpers.GetListMessage(elements, title, page, totalPages, totalElements, elementsPerPage, includeButtons: false));
+            await message.ModifyAsync(MessageHelpers.GetListMessage(elements, title, page, totalPages, totalElements, elementsPerPage, elementToString, includeButtons: false));
         }
 
         /// <summary>
         /// Get a message for a list of elements. Assumes it is already filtered by page
         /// </summary>
-        public static DiscordMessageBuilder GetListMessage<T>(T[] elements, string title, int page, int totalPages, int totalElements, int elementsPerPage, bool includeButtons = true)
+        private static DiscordMessageBuilder GetListMessage<T>(T[] elements, string title, int page, int totalPages, int totalElements, int elementsPerPage, ListMessageElementToString<T> elementToString, bool includeButtons = true)
         {
             DiscordMessageBuilder message = new();
 
@@ -158,12 +167,12 @@ namespace OpenQotd.Bot.Helpers
             for (int i = 0; i < elements.Length; i++)
             {
                 T element = elements[i];
-                sb.AppendLine(element!.ToString()!.Replace("%index%", ((page - 1) * elementsPerPage + i + 1).ToString()));
+                sb.AppendLine(elementToString(element, (page - 1) * elementsPerPage + i + 1));
             }
 
             message.AddEmbed(
                 GenericEmbed(message: sb.ToString(), title: title)
-                .WithFooter($"Page {page} of {totalPages} \x2022 {totalElements} elements")); // TODO: Add elements in total
+                .WithFooter($"Page {page} of {totalPages} \x2022 {totalElements} elements"));
 
             if (totalPages < 2)
                 return message;
@@ -183,7 +192,7 @@ namespace OpenQotd.Bot.Helpers
         /// <summary>
         /// Edit a message for a list of elements. Assumes it is already filtered by page
         /// </summary>
-        public static void EditListMessage<T>(T[] elements, string title, int page, int totalPages, int totalElements, int elementsPerPage, DiscordInteractionResponseBuilder message, bool includeButtons = true)
+        public static void EditListMessage<T>(T[] elements, string title, int page, int totalPages, int totalElements, int elementsPerPage, DiscordInteractionResponseBuilder message, ListMessageElementToString<T> elementToString, bool includeButtons = true)
         {
             if (totalPages == 0)
             {
@@ -208,7 +217,7 @@ namespace OpenQotd.Bot.Helpers
             for (int i = 0; i < elements.Length; i++)
             {
                 T element = elements[i];
-                sb.AppendLine(element!.ToString()!.Replace("%index%", ((page - 1) * elementsPerPage + i + 1).ToString()));
+                sb.AppendLine(elementToString(element, (page - 1) * elementsPerPage + i + 1));
             }
 
             message.AddEmbed(

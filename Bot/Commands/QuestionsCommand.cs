@@ -419,41 +419,40 @@ namespace OpenQotd.Bot.Commands
         {
             const int itemsPerPage = 10;
 
-            await MessageHelpers.ListMessageComplete<Question>(context, page, type is null ? $"Questions List" : $"{type} Questions List", async Task<(Question[], int, int, int)> (int page) =>
+            await MessageHelpers.SendListMessage<Question>(context, page, type is null ? $"Questions List" : $"{type} Questions List", async Task<(Question[], int, int, int)> (int page) =>
             {
-                using (AppDbContext dbContext = new())
+                using AppDbContext dbContext = new();
+
+                IQueryable<Question> sqlQuery;
+                if (type is null)
                 {
-                    IQueryable<Question> sqlQuery;
-                    if (type is null)
-                    {
-                        sqlQuery = dbContext.Questions
-                            .Where(q => q.GuildId == context.Guild!.Id)
-                            .OrderBy(q => q.Type)
-                            .ThenByDescending(q => q.Timestamp)
-                            .ThenByDescending(q => q.Id);
-                    }
-                    else
-                    {
-                        sqlQuery = dbContext.Questions
-                            .Where(q => q.GuildId == context.Guild!.Id && q.Type == type)
-                            .OrderByDescending(q => q.Timestamp)
-                            .ThenByDescending(q => q.Id);
-                    }
-
-                    // Get the total number of questions
-                    int totalElements = await sqlQuery
-                        .CountAsync();
-
-                    // Calculate the total number of pages
-                    int totalPages = (int)Math.Ceiling(totalElements / (double)itemsPerPage);
-
-                    // Fetch the questions for the current page
-                    return (await sqlQuery
-                        .Skip((page - 1) * itemsPerPage)
-                        .Take(itemsPerPage)
-                        .ToArrayAsync(),
-                        totalElements, totalPages, itemsPerPage);
+                    sqlQuery = dbContext.Questions
+                        .Where(q => q.GuildId == context.Guild!.Id)
+                        .OrderBy(q => q.Type)
+                        .ThenByDescending(q => q.Timestamp)
+                        .ThenByDescending(q => q.Id);
                 }
+                else
+                {
+                    sqlQuery = dbContext.Questions
+                        .Where(q => q.GuildId == context.Guild!.Id && q.Type == type)
+                        .OrderByDescending(q => q.Timestamp)
+                        .ThenByDescending(q => q.Id);
+                }
+
+                // Get the total number of questions
+                int totalElements = await sqlQuery
+                    .CountAsync();
+
+                // Calculate the total number of pages
+                int totalPages = (int)Math.Ceiling(totalElements / (double)itemsPerPage);
+
+                // Fetch the questions for the current page
+                return (await sqlQuery
+                    .Skip((page - 1) * itemsPerPage)
+                    .Take(itemsPerPage)
+                    .ToArrayAsync(),
+                    totalElements, totalPages, itemsPerPage);
             });
         }
 
@@ -468,7 +467,7 @@ namespace OpenQotd.Bot.Commands
                 return;
 
             const int itemsPerPage = 10;
-            await MessageHelpers.ListMessageComplete<Question>(context, page, $"{(type != null ? $"{type} " : "")}Questions Search for \"{query}\"", async Task<(Question[], int, int, int)> (int page) =>
+            await MessageHelpers.SendListMessage<Question>(context, page, $"{(type != null ? $"{type} " : "")}Questions Search for \"{query}\"", async Task<(Question[], int, int, int)> (int page) =>
             {
                 using AppDbContext dbContext = new();
 

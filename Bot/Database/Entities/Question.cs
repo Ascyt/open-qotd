@@ -57,19 +57,17 @@ namespace OpenQotd.Bot.Database.Entities
 		}
         public static async Task<int> GetNextGuildDependentId(ulong guildId)
         {
-            using (AppDbContext dbContext = new())
+            using AppDbContext dbContext = new();
+            try
             {
-                try
-                {
-                    return await dbContext.Questions
-                        .Where(q => q.GuildId == guildId)
-                        .Select(q => q.GuildDependentId)
-                        .MaxAsync() + 1;
-                }
-                catch (InvalidOperationException)
-                {
-                    return 1; // No questions yet for this guild
-                }
+                return await dbContext.Questions
+                    .Where(q => q.GuildId == guildId)
+                    .Select(q => q.GuildDependentId)
+                    .MaxAsync() + 1;
+            }
+            catch (InvalidOperationException)
+            {
+                return 1; // No questions yet for this guild
             }
         }
 
