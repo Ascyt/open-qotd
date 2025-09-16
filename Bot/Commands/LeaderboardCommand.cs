@@ -32,7 +32,7 @@ namespace OpenQotd.Bot.Commands
                 return;
 
             List<Question> sentQuestions;
-            using (var dbContext = new AppDbContext())
+            using (AppDbContext dbContext = new())
             {
                 sentQuestions = await dbContext.Questions
                     .Where(q => q.GuildId == context.Guild!.Id && q.Type == QuestionType.Sent)
@@ -41,11 +41,11 @@ namespace OpenQotd.Bot.Commands
 
             Dictionary<ulong, int> entries = [];
 
-            foreach (var question in sentQuestions)
+            foreach (Question question in sentQuestions)
             {
-                if (entries.ContainsKey(question.SubmittedByUserId))
+                if (entries.TryGetValue(question.SubmittedByUserId, out int value))
                 {
-                    entries[question.SubmittedByUserId]++;
+                    entries[question.SubmittedByUserId] = ++value;
                 }
                 else
                 {

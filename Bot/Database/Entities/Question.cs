@@ -57,7 +57,7 @@ namespace OpenQotd.Bot.Database.Entities
 		}
         public static async Task<int> GetNextGuildDependentId(ulong guildId)
         {
-            using (var dbContext = new AppDbContext())
+            using (AppDbContext dbContext = new())
             {
                 try
                 {

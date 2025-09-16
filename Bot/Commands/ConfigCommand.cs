@@ -66,7 +66,7 @@ namespace OpenQotd.Bot.Commands
 				LogsChannelId = LogsChannel?.Id
             };
             bool reInitialized = false;
-            using (var dbContext = new AppDbContext())
+            using (AppDbContext dbContext = new())
             {
                 Config? existingConfig = await dbContext.Configs.FirstOrDefaultAsync(c => c.GuildId == context!.Guild.Id);
 
@@ -152,7 +152,7 @@ namespace OpenQotd.Bot.Commands
             if (QotdTimeHourUtc is not null)
                 QotdTimeHourUtc = Math.Clamp(QotdTimeHourUtc.Value, 0, 23);
 
-            using (var dbContext = new AppDbContext())
+            using (AppDbContext dbContext = new())
             {
                 // Without extra retrieval config changes don't get saved
                 config = dbContext.Configs
@@ -240,7 +240,7 @@ namespace OpenQotd.Bot.Commands
             }
 
             Config config;
-            using (var dbContext = new AppDbContext())
+            using (AppDbContext dbContext = new())
             {
                 config = dbContext.Configs
                     .Where(c => c.GuildId == context.Guild!.Id)

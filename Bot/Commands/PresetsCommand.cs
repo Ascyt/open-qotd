@@ -33,7 +33,7 @@ namespace OpenQotd.Bot.Commands
             {
                 HashSet<PresetSent> presetSents;
 
-                using (var dbContext = new AppDbContext())
+                using (AppDbContext dbContext = new())
                 {
                     presetSents = (await dbContext.PresetSents
                         .Where(p => p.GuildId == context.Guild!.Id).ToListAsync()).ToHashSet();
@@ -74,7 +74,7 @@ namespace OpenQotd.Bot.Commands
 
             bool changesMade = false;
 
-            using (var dbContext = new AppDbContext())
+            using (AppDbContext dbContext = new())
             {
                 PresetSent? preset = await dbContext.PresetSents.FirstOrDefaultAsync(p => p.GuildId == context.Guild!.Id && p.PresetIndex == id);
 
@@ -124,7 +124,7 @@ namespace OpenQotd.Bot.Commands
 
             await PrintPresetDisabledWarningIfRequired(context);
 
-            using (var dbContext = new AppDbContext())
+            using (AppDbContext dbContext = new())
             {
                 List<PresetSent> toRemove = await dbContext.PresetSents.Where(ps => ps.GuildId == context.Guild!.Id).ToListAsync();
 
@@ -147,7 +147,7 @@ namespace OpenQotd.Bot.Commands
         private static async Task PrintPresetDisabledWarningIfRequired(CommandContext context)
         {
             bool enableQotdAutomaticPresets;
-            using (var dbContext = new AppDbContext())
+            using (AppDbContext dbContext = new())
             {
                 enableQotdAutomaticPresets = dbContext.Configs
                     .Where(c => c.GuildId == context.Guild!.Id)

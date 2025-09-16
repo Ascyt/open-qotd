@@ -25,7 +25,7 @@ namespace OpenQotd.Bot.Commands
                 return;
 
             Question[] questions;
-            using (var dbContext = new AppDbContext())
+            using (AppDbContext dbContext = new())
             {
                 questions = await dbContext.Questions
                     .Where(q => q.GuildId == context.Guild!.Id && q.Type == QuestionType.Sent)
@@ -77,7 +77,7 @@ namespace OpenQotd.Bot.Commands
                     return;
                 }
 
-                var result = resultNullable!.Value;
+                InteractivityResult<ComponentInteractionCreatedEventArgs> result = resultNullable!.Value;
 
                 if (result.Result.User.Id != context.User.Id)
                 {
@@ -101,7 +101,7 @@ namespace OpenQotd.Bot.Commands
                 messageBuilderNoButtons = new DiscordMessageBuilder();
                 messageBuilderNoButtons.AddEmbed(embed);
 
-                DiscordInteractionResponseBuilder interactionResponseBuilder = new DiscordInteractionResponseBuilder();
+                DiscordInteractionResponseBuilder interactionResponseBuilder = new();
                 interactionResponseBuilder.AddEmbed(embed);
                 interactionResponseBuilder.AddActionRowComponent(
                     rerollButton

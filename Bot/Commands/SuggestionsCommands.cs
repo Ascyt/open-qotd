@@ -29,7 +29,7 @@ namespace OpenQotd.Bot.Commands
                 return null;
 
             ulong? suggestionChannelId;
-            using (var dbContext = new AppDbContext())
+            using (AppDbContext dbContext = new())
             {
                 suggestionChannelId = await dbContext.Configs.Where(c => c.GuildId == guild.Id).Select(c => c.SuggestionsChannelId).FirstOrDefaultAsync();
             }
@@ -79,7 +79,7 @@ namespace OpenQotd.Bot.Commands
                 return;
 
             Question? question;
-            using (var dbContext = new AppDbContext())
+            using (AppDbContext dbContext = new())
             {
                 question = await dbContext.Questions
                     .Where(q => q.GuildId == context.Guild!.Id && q.GuildDependentId == suggestionId)
@@ -118,7 +118,7 @@ namespace OpenQotd.Bot.Commands
                 return;
 
             Question? question;
-            using (var dbContext = new AppDbContext())
+            using (AppDbContext dbContext = new())
             {
                 question = await dbContext.Questions
                     .Where(q => q.GuildId == context.Guild!.Id && q.GuildDependentId == suggestionId)
@@ -159,14 +159,14 @@ namespace OpenQotd.Bot.Commands
             await context.DeferResponseAsync();
 
             Question[] questions;
-            using (var dbContext = new AppDbContext())
+            using (AppDbContext dbContext = new())
             {
                 questions = await dbContext.Questions.Where(q => q.GuildId == context.Guild!.Id && q.Type == QuestionType.Suggested).ToArrayAsync();
             }
 
             Dictionary<ulong, List<Question>> questionsByUsers = new();
 
-            foreach (var question in questions)
+            foreach (Question question in questions)
             {
                 DiscordMessage? suggestionMessage = await GetSuggestionMessage(question, context.Guild!);
 
@@ -175,7 +175,7 @@ namespace OpenQotd.Bot.Commands
                 await Task.Delay(100); // Prevent rate-limit
 
                 if (!questionsByUsers.ContainsKey(question.SubmittedByUserId))
-                    questionsByUsers.Add(question.SubmittedByUserId, new List<Question>());
+                    questionsByUsers.Add(question.SubmittedByUserId, []);
 
                 questionsByUsers[question.SubmittedByUserId].Add(question);
             }
@@ -266,14 +266,14 @@ namespace OpenQotd.Bot.Commands
             await context.DeferResponseAsync();
 
             Question[] questions;
-            using (var dbContext = new AppDbContext())
+            using (AppDbContext dbContext = new())
             {
                 questions = await dbContext.Questions.Where(q => q.GuildId == context.Guild!.Id && q.Type == QuestionType.Suggested).ToArrayAsync();
             }
 
             Dictionary<ulong, List<Question>> questionsByUsers = new();
 
-            foreach (var question in questions)
+            foreach (Question question in questions)
             {
                 DiscordMessage? suggestionMessage = await GetSuggestionMessage(question, context.Guild!);
 
@@ -282,7 +282,7 @@ namespace OpenQotd.Bot.Commands
                 await Task.Delay(1000); // Prevent rate-limit
 
                 if (!questionsByUsers.ContainsKey(question.SubmittedByUserId))
-                    questionsByUsers.Add(question.SubmittedByUserId, new List<Question>());
+                    questionsByUsers.Add(question.SubmittedByUserId, []);
 
                 questionsByUsers[question.SubmittedByUserId].Add(question);
             }
@@ -340,7 +340,7 @@ namespace OpenQotd.Bot.Commands
                 }
             }
 
-            int count = questions.Count();
+            int count = questions.Length;
 
             StringBuilder logSb = new StringBuilder();
             int index1 = 0;
@@ -372,7 +372,7 @@ namespace OpenQotd.Bot.Commands
             DiscordUser user = context?.User ?? result!.User;
             DiscordGuild guild = context?.Guild ?? result!.Guild;
 
-            using (var dbContext = new AppDbContext())
+            using (AppDbContext dbContext = new())
             {
                 Question? modifyQuestion = await dbContext.Questions.FindAsync(question.Id);
 
@@ -461,7 +461,7 @@ namespace OpenQotd.Bot.Commands
             DiscordGuild guild = context?.Guild ?? result!.Interaction.Guild!;
 
             Config? config;
-            using (var dbContext = new AppDbContext())
+            using (AppDbContext dbContext = new())
             {
                 Question? disableQuestion = await dbContext.Questions.FindAsync(question.Id);
 

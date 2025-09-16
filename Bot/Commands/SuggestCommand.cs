@@ -56,7 +56,7 @@ namespace OpenQotd.Bot.Commands
             Question newQuestion;
             ulong? suggestionsChannelId;
             ulong? suggestionsPingRoleId;
-            using (var dbContext = new AppDbContext())
+            using (AppDbContext dbContext = new())
             {
                 newQuestion = new Question()
                 {
@@ -74,7 +74,7 @@ namespace OpenQotd.Bot.Commands
                 suggestionsPingRoleId = await dbContext.Configs.Where(c => c.GuildId == guildId).Select(c => c.SuggestionsPingRoleId).FirstOrDefaultAsync();
             }
 
-            var result = (true, MessageHelpers.GenericSuccessEmbed("QOTD Suggested!",
+            (bool, DiscordEmbedBuilder) result = (true, MessageHelpers.GenericSuccessEmbed("QOTD Suggested!",
                     $"Your Question Of The Day:\n" +
                     $"\"**{newQuestion.Text}**\"\n" +
                     $"\n" +
@@ -146,7 +146,7 @@ namespace OpenQotd.Bot.Commands
 
             await message.PinAsync();
 
-            using (var dbContext = new AppDbContext())
+            using (AppDbContext dbContext = new())
             {
                 Question? updateQuestion = await dbContext.Questions.FindAsync(newQuestion.Id);
 

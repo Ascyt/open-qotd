@@ -132,7 +132,7 @@ namespace OpenQotd.Bot.EventHandlers
         private static async Task SuggestQotdModalSubmitted(DiscordClient client, ModalSubmittedEventArgs args)
         {
             Config? config;
-            using (var dbContext = new AppDbContext())
+            using (AppDbContext dbContext = new())
             {
                 int questionsCount = await dbContext.Questions
                     .Where(q => q.GuildId == args.Interaction.GuildId)

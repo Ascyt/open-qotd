@@ -8,6 +8,7 @@ using Newtonsoft.Json;
 using System.Text;
 using DSharpPlus.Interactivity.Extensions;
 using OpenQotd.Bot.Helpers;
+using DSharpPlus.Interactivity;
 
 namespace OpenQotd.Bot.Commands
 {
@@ -41,7 +42,7 @@ namespace OpenQotd.Bot.Commands
                     {
                         case "count":
                             int count;
-                            using (var dbContext = new AppDbContext())
+                            using (AppDbContext dbContext = new())
                             {
                                 count = await dbContext.Configs.CountAsync();
                             }
@@ -51,7 +52,7 @@ namespace OpenQotd.Bot.Commands
 
                         case "getall":
                             string data;
-                            using (var dbContext = new AppDbContext())
+                            using (AppDbContext dbContext = new())
                             {
                                 data = JsonConvert.SerializeObject(await dbContext.Configs.ToArrayAsync(), Formatting.Indented);
                             }
@@ -71,7 +72,7 @@ namespace OpenQotd.Bot.Commands
                             ulong guildId = argsSplit.Length > 2 ? ulong.Parse(argsSplit[2]) : context.Guild!.Id;
 
                             string guildSpecificData;
-                            using (var dbContext = new AppDbContext())
+                            using (AppDbContext dbContext = new())
                             {
                                 guildSpecificData = JsonConvert.SerializeObject(await dbContext.Configs.Where(c => c.GuildId == guildId).ToArrayAsync(), Formatting.Indented);
                             }
@@ -90,7 +91,7 @@ namespace OpenQotd.Bot.Commands
                         case "resetlastsenttimestamp":
                             ulong guildId1 = argsSplit.Length > 2 ? ulong.Parse(argsSplit[2]) : context.Guild!.Id;
 
-                            using (var dbContext = new AppDbContext())
+                            using (AppDbContext dbContext = new())
                             {
                                 Config? config = await dbContext.Configs.Where(c => c.GuildId == guildId1).FirstOrDefaultAsync();
 
@@ -113,7 +114,7 @@ namespace OpenQotd.Bot.Commands
                     {
                         case "count":
                             int count;
-                            using (var dbContext = new AppDbContext())
+                            using (AppDbContext dbContext = new())
                             {
                                 count = await dbContext.Questions.CountAsync();
                             }
@@ -123,7 +124,7 @@ namespace OpenQotd.Bot.Commands
 
                         case "getall":
                             string data;
-                            using (var dbContext = new AppDbContext())
+                            using (AppDbContext dbContext = new())
                             {
                                 dbContext.RemoveRange(
                                     new Question() { Id = 34 },
@@ -150,7 +151,7 @@ namespace OpenQotd.Bot.Commands
                             ulong guildId = argsSplit.Length > 2 ? ulong.Parse(argsSplit[2]) : context.Guild!.Id;
 
                             string guildSpecificData;
-                            using (var dbContext = new AppDbContext())
+                            using (AppDbContext dbContext = new())
                             {
                                 guildSpecificData = JsonConvert.SerializeObject(await dbContext.Questions.Where(c => c.GuildId == guildId).ToArrayAsync(), Formatting.Indented);
                             }
@@ -171,7 +172,7 @@ namespace OpenQotd.Bot.Commands
 
                         case "removeduplicates":
                             List<Question> questions;
-                            using (var dbContext = new AppDbContext())
+                            using (AppDbContext dbContext = new())
                             {
                                 questions = await dbContext.Questions.Where(c => c.GuildId == context.Guild!.Id).ToListAsync();
                             }
@@ -182,7 +183,7 @@ namespace OpenQotd.Bot.Commands
                                 .SelectMany(g => g.Skip(1).Select(q => q.Id))
                                 .ToList();
 
-                            using (var dbContext = new AppDbContext())
+                            using (AppDbContext dbContext = new())
                             {
                                 foreach (int id in duplicateIds)
                                 {
@@ -288,7 +289,7 @@ namespace OpenQotd.Bot.Commands
                         }
                     }
 
-                    using (var dbContext = new AppDbContext())
+                    using (AppDbContext dbContext = new())
                     {
                         try
                         {
@@ -334,9 +335,9 @@ namespace OpenQotd.Bot.Commands
             {
                 ttl--;
 
-                StringBuilder response = new StringBuilder();
+                StringBuilder response = new();
 
-                var result = await message.Channel!.GetNextMessageAsync(m =>
+                InteractivityResult<DiscordMessage> result = await message.Channel!.GetNextMessageAsync(m =>
                 {
                     return m.Author!.Id == context.User.Id;   
                 });
@@ -362,7 +363,7 @@ namespace OpenQotd.Bot.Commands
 
                     Question newQuestion;
 
-                    using (var dbContext = new AppDbContext())
+                    using (AppDbContext dbContext = new())
                     {
                         newQuestion = new Question()
                         {
@@ -392,7 +393,7 @@ namespace OpenQotd.Bot.Commands
             File.WriteAllText(path, content);
 
             // Open a FileStream for the temporary file
-            FileStream fileStream = new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.None, 4096, FileOptions.DeleteOnClose);
+            FileStream fileStream = new(path, FileMode.Open, FileAccess.Read, FileShare.None, 4096, FileOptions.DeleteOnClose);
 
             return fileStream;
         }

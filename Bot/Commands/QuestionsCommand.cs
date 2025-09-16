@@ -21,7 +21,7 @@ namespace OpenQotd.Bot.Commands
                 return;
 
             Question? question;
-            using (var dbContext = new AppDbContext())
+            using (AppDbContext dbContext = new())
             {
                 question = await dbContext.Questions
                     .Where(q => q.GuildId == context.Guild!.Id && q.GuildDependentId == questionId)
@@ -82,7 +82,7 @@ namespace OpenQotd.Bot.Commands
 
             Question newQuestion;
 
-            using (var dbContext = new AppDbContext())
+            using (AppDbContext dbContext = new())
             {
                 newQuestion = new Question()
                 {
@@ -178,7 +178,7 @@ namespace OpenQotd.Bot.Commands
                 Timestamp = now
             });
 
-            using (var dbContext = new AppDbContext())
+            using (AppDbContext dbContext = new())
             {
                 await dbContext.Questions.AddRangeAsync(questions);
                 await dbContext.SaveChangesAsync();
@@ -203,7 +203,7 @@ namespace OpenQotd.Bot.Commands
 
             Question? question;
             string body;
-            using (var dbContext = new AppDbContext())
+            using (AppDbContext dbContext = new())
             {
                 question = await dbContext.Questions.Where(q => q.GuildId == guildId && q.GuildDependentId == questionId).FirstOrDefaultAsync();
 
@@ -248,7 +248,7 @@ namespace OpenQotd.Bot.Commands
 			ulong guildId = context.Guild!.Id;
 
 			List<Question>? questions;
-			using (var dbContext = new AppDbContext())
+			using (AppDbContext dbContext = new())
 			{
 				questions = await dbContext.Questions.Where(q => q.GuildId == guildId && q.Type == fromType).ToListAsync();
 
@@ -279,7 +279,7 @@ namespace OpenQotd.Bot.Commands
 
 			List<Question>? questions;
             Config? config;
-			using (var dbContext = new AppDbContext())
+			using (AppDbContext dbContext = new())
 			{
 				questions = await dbContext.Questions.Where(q => q.GuildId == guildId && q.Type == type).ToListAsync();
 
@@ -325,7 +325,7 @@ namespace OpenQotd.Bot.Commands
 
 			List<Question>? questions;
 			Config? config;
-			using (var dbContext = new AppDbContext())
+			using (AppDbContext dbContext = new())
 			{
 				questions = await dbContext.Questions.Where(q => q.GuildId == guildId && q.Type == QuestionType.Stashed).ToListAsync();
 
@@ -363,7 +363,7 @@ namespace OpenQotd.Bot.Commands
             Question? question;
             string body;
             Config? config;
-            using (var dbContext = new AppDbContext())
+            using (AppDbContext dbContext = new())
             {
                 question = await dbContext.Questions.Where(q => q.GuildId == guildId && q.GuildDependentId == questionId).FirstOrDefaultAsync();
 
@@ -421,7 +421,7 @@ namespace OpenQotd.Bot.Commands
 
             await MessageHelpers.ListMessageComplete<Question>(context, page, type is null ? $"Questions List" : $"{type} Questions List", async Task<(Question[], int, int, int)> (int page) =>
             {
-                using (var dbContext = new AppDbContext())
+                using (AppDbContext dbContext = new())
                 {
                     IQueryable<Question> sqlQuery;
                     if (type is null)
@@ -470,28 +470,26 @@ namespace OpenQotd.Bot.Commands
             const int itemsPerPage = 10;
             await MessageHelpers.ListMessageComplete<Question>(context, page, $"{(type != null ? $"{type} " : "")}Questions Search for \"{query}\"", async Task<(Question[], int, int, int)> (int page) =>
             {
+                using AppDbContext dbContext = new();
 
-                using (var dbContext = new AppDbContext())
-                {
-                    // Build the base query
-                    var sqlQuery = dbContext.Questions
-                        .Where(q => q.GuildId == context.Guild!.Id && (type == null || q.Type == type))
-                        .Where(q => EF.Functions.Like(q.Text, $"%{query}%"));
+                // Build the base query
+                IQueryable<Question> sqlQuery = dbContext.Questions
+                    .Where(q => q.GuildId == context.Guild!.Id && (type == null || q.Type == type))
+                    .Where(q => EF.Functions.Like(q.Text, $"%{query}%"));
 
-                    // Get the total number of questions
-                    int totalQuestions = await sqlQuery.CountAsync();
+                // Get the total number of questions
+                int totalQuestions = await sqlQuery.CountAsync();
 
-                    // Calculate the total number of pages
-                    int totalPages = (int)Math.Ceiling(totalQuestions / (double)itemsPerPage);
+                // Calculate the total number of pages
+                int totalPages = (int)Math.Ceiling(totalQuestions / (double)itemsPerPage);
 
-                    // Fetch the questions for the current page
-                    Question[] questions = await sqlQuery
-                        .Skip((page - 1) * itemsPerPage)
-                        .Take(itemsPerPage)
-                        .ToArrayAsync();
+                // Fetch the questions for the current page
+                Question[] questions = await sqlQuery
+                    .Skip((page - 1) * itemsPerPage)
+                    .Take(itemsPerPage)
+                    .ToArrayAsync();
 
-                    return (questions, totalQuestions, totalPages, itemsPerPage);
-                }
+                return (questions, totalQuestions, totalPages, itemsPerPage);
             });
         }
     }

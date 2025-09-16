@@ -15,7 +15,7 @@ namespace OpenQotd.Bot
         public static async Task LogUserAction(ulong guildId, DiscordChannel channel, DiscordUser user, string title, string? message = null)
         {
             ulong? logChannelId;
-            using (var dbContext = new AppDbContext())
+            using (AppDbContext dbContext = new())
             {
                 logChannelId = await dbContext.Configs.Where(c => c.GuildId == guildId).Select(c => c.LogsChannelId).FirstOrDefaultAsync();
             }

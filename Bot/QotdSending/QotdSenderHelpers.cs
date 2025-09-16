@@ -43,7 +43,7 @@ namespace OpenQotd.Bot.QotdSending
         public static async Task<Question?> GetRandomQotd(ulong guildId)
         {
             Question[] questions;
-            using (var dbContext = new AppDbContext())
+            using (AppDbContext dbContext = new())
             {
                 questions = await dbContext.Questions
                     .Where(q => q.GuildId == guildId && q.Type == QuestionType.Accepted)
@@ -58,9 +58,9 @@ namespace OpenQotd.Bot.QotdSending
         public static int GetRandomPreset(List<PresetSent> presetSents)
         {
             bool[] isPresetUsed = new bool[Presets.Values.Length];
-            foreach (var presetSent in presetSents)
+            foreach (PresetSent ps in presetSents)
             {
-                isPresetUsed[presetSent.PresetIndex] = true;
+                isPresetUsed[ps.PresetIndex] = true;
             }
 
             int index;

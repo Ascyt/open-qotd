@@ -19,7 +19,7 @@ namespace OpenQotd.Bot.QotdSending
             }
             catch (NotFoundException)
             {
-                using var dbContext = new AppDbContext();
+                using AppDbContext dbContext = new();
                 Config? config = await dbContext.Configs.Where(c => c.GuildId == guildId).FirstOrDefaultAsync();
 
                 if (config is null)
@@ -46,7 +46,7 @@ namespace OpenQotd.Bot.QotdSending
             // Fetch the config and update the last sent timestamp
             Config? config;
             DateTime? previousLastSentTimestamp;
-            using (var dbContext = new AppDbContext())
+            using (AppDbContext dbContext = new())
             {
                 config = await dbContext.Configs
                     .Where(c => c.GuildId == guild.Id)
@@ -74,7 +74,7 @@ namespace OpenQotd.Bot.QotdSending
                 if (config.EnableQotdAutomaticPresets)
                 {
                     List<PresetSent> presetSents;
-                    using (var dbContext = new AppDbContext())
+                    using (AppDbContext dbContext = new())
                     {
                         presetSents = await dbContext.PresetSents
                             .Where(ps => ps.GuildId == guild.Id)
@@ -136,7 +136,7 @@ namespace OpenQotd.Bot.QotdSending
 
             DiscordMessage sentMessage = await qotdChannel.SendMessageAsync(messageBuilder);
 
-            using (var dbContext = new AppDbContext())
+            using (AppDbContext dbContext = new())
             {
                 Config? foundConfig = await dbContext.Configs.Where(c => c.GuildId == d.guild.Id).FirstOrDefaultAsync();
                 if (foundConfig != null)
@@ -161,7 +161,7 @@ namespace OpenQotd.Bot.QotdSending
 
             int acceptedQuestionsCount;
             int sentQuestionsCount;
-            using (var dbContext = new AppDbContext())
+            using (AppDbContext dbContext = new())
             {
                 acceptedQuestionsCount = await dbContext.Questions.Where(q => q.GuildId == d.guild.Id && q.Type == QuestionType.Accepted).CountAsync()
                     - 1;
@@ -181,7 +181,7 @@ namespace OpenQotd.Bot.QotdSending
             DiscordChannel qotdChannel = await d.GetQotdChannelAsync();
 
             DiscordMessage sentMessage = await qotdChannel.SendMessageAsync(messageBuilder);
-            using (var dbContext = new AppDbContext())
+            using (AppDbContext dbContext = new())
             {
                 Config? foundConfig = await dbContext.Configs.Where(c => c.GuildId == d.guild.Id).FirstOrDefaultAsync();
                 if (foundConfig != null)
@@ -206,7 +206,7 @@ namespace OpenQotd.Bot.QotdSending
                 DiscordMessageBuilder lastQuestionWarning = new();
 
                 int presetsSent;
-                using (var dbContext = new AppDbContext())
+                using (AppDbContext dbContext = new())
                 {
                     presetsSent = await dbContext.PresetSents.Where(ps => ps.GuildId == d.guild.Id).CountAsync();
                 }

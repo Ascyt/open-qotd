@@ -57,8 +57,8 @@ namespace OpenQotd.Bot.Helpers
             DiscordMessage? message = await context.GetResponseAsync();
             if (message is null)
             {
-                var enumerable = context.Channel.GetMessagesAsync(limit: 1);
-                await foreach (var item in enumerable)
+                IAsyncEnumerable<DiscordMessage> enumerable = context.Channel.GetMessagesAsync(limit: 1);
+                await foreach (DiscordMessage item in enumerable)
                 {
                     message = item;
                 }
@@ -111,7 +111,7 @@ namespace OpenQotd.Bot.Helpers
                 if (messageDelete)
                 {
                     await message.DeleteAsync();
-                    var newMessageContent = MessageHelpers.GetListMessage(elements, title, page, totalPages, totalElements, elementsPerPage);
+                    DiscordMessageBuilder newMessageContent = MessageHelpers.GetListMessage(elements, title, page, totalPages, totalElements, elementsPerPage);
                     message = await context.Channel.SendMessageAsync(newMessageContent);
                 }
                 else

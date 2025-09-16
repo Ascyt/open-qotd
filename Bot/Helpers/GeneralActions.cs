@@ -8,7 +8,7 @@ namespace OpenQotd.Bot.Helpers
     {
         public static async void RemoveGuildData(ulong guildId)
         {
-            using var dbContext = new AppDbContext();
+            using AppDbContext dbContext = new();
 
             Config? delConfig = await dbContext.Configs.Where(c => c.GuildId == guildId).FirstOrDefaultAsync();
 

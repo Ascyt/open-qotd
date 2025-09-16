@@ -45,7 +45,7 @@ namespace OpenQotd.Bot
         /// <returns>(config if initialized, error if not)</returns>
         public static async Task<(Config?, string?)> IsConfigInitialized(DiscordGuild guild)
         {
-            using (var dbContext = new AppDbContext())
+            using (AppDbContext dbContext = new())
             {
                 Config? c = await dbContext.Configs.FirstOrDefaultAsync(c => c.GuildId == guild.Id);
 
@@ -81,7 +81,7 @@ namespace OpenQotd.Bot
 
             if (config is null)
             {
-                using (var dbContext = new AppDbContext())
+                using (AppDbContext dbContext = new())
                 {
                     config = await dbContext.Configs
                         .Where(c => c.GuildId == guild.Id)
@@ -155,7 +155,7 @@ namespace OpenQotd.Bot
 
             if (config is null)
             {
-                using (var dbContext = new AppDbContext())
+                using (AppDbContext dbContext = new())
                 {
                     config = await dbContext.Configs
                         .Where(c => c.GuildId == guild.Id)
@@ -198,7 +198,7 @@ namespace OpenQotd.Bot
             if (additionalAmount < 0)
                 return false;
 
-            using (var dbContext = new AppDbContext())
+            using (AppDbContext dbContext = new())
             {
                 int currentAmount = dbContext.Questions
                     .Where(q => q.GuildId == context.Guild!.Id)

@@ -12,7 +12,7 @@ namespace OpenQotd.Bot.QotdSending
             int currentMinute = DateTime.UtcNow.Minute;
 
             ulong[] guildIds;
-            using (var dbContext = new AppDbContext())
+            using (AppDbContext dbContext = new())
             {
                 guildIds = await dbContext.Configs
                     .Where(c => c.EnableAutomaticQotd && 
