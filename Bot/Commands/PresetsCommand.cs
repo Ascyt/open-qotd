@@ -4,7 +4,6 @@ using OpenQotd.Bot.Helpers;
 using DSharpPlus.Commands;
 using Microsoft.EntityFrameworkCore;
 using System.ComponentModel;
-using static Microsoft.EntityFrameworkCore.DbLoggerCategory;
 
 namespace OpenQotd.Bot.Commands
 {

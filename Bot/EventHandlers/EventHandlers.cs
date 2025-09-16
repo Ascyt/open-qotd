@@ -17,7 +17,7 @@ namespace OpenQotd.Bot.EventHandlers
         {
             await SendCommandErroredMessage(e.Exception, e.Context);
         }
-        public static async Task SendCommandErroredMessage(Exception e, CommandContext context, string? info=null)
+        public static async Task SendCommandErroredMessage(Exception e, CommandContext context, string? info=null, IEnumerable<DiscordEmbed>? additionalEmbeds=null)
         {
             string message = (info ?? $"An uncaught error occurred from the command you tried to execute.") + "\n" +
                 $"If you're unsure what to do here, please feel free to join the [Support Server](<https://open-qotd.ascyt.com/community>) to reach out for help. " +
@@ -52,6 +52,12 @@ namespace OpenQotd.Bot.EventHandlers
                     "I'm not able to do much more than to add hints to what could be causing the issue.\n" +
                     "\n" +
                     "If you are still experiencing issues with this, don't hesitate to let me know! I'll do my best to be quick to help with any issues."));
+            }
+
+            if (additionalEmbeds is not null)   
+            {
+                foreach (DiscordEmbed embed in additionalEmbeds)
+                    messageBuilder.AddEmbed(embed);
             }
 
             await context.RespondAsync(messageBuilder);

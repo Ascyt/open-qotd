@@ -135,7 +135,7 @@ namespace OpenQotd.Bot.Commands
             }
 
             string contents;
-            using (HttpClient client = new HttpClient())
+            using (HttpClient client = new())
             {
                 try
                 {
@@ -147,7 +147,23 @@ namespace OpenQotd.Bot.Commands
                 }
                 catch (Exception ex)
                 {
-                    await EventHandlers.EventHandlers.SendCommandErroredMessage(ex, context, "An error occurred while trying to fetch the file contents.");
+                    List<DiscordEmbed> additionalEmbeds = [];
+                    if (ex is InvalidOperationException)
+                    {
+                        additionalEmbeds.Add(
+                            MessageHelpers.GenericWarningEmbed(title:"Hint", message:
+                            $"If you're encountering the error \"The character set provided in ContentType is invalid\", " +
+                            $"it likely means that there are characters in your file that are invalid in your encoding or that your encoding is not supported.\n" +
+                            $"\n" +
+                            $"This is a common issue that can occurr when you've exported a Google Docs file (or similar) to `.txt`. " +
+                            $"A simple fix for this is to manually create a `.txt` file using **Windows Notepad**, **Notepad++** or a similar plain text editor, paste your text into there and then use that file. " +
+                            $"Also, ensure that it says \"UTF-8\" (not \"UTF-8-BOM\" or similar) and something along the lines of \"plain text file\" at the bottom of your open `.txt` file.\n" +
+                            $"\n" +
+                            $"If you are still experiencing issues with this, don't hesitate to let me know! I'll do my best to be quick to help with any issues.")
+                            );
+                    }
+
+                    await EventHandlers.EventHandlers.SendCommandErroredMessage(ex, context, "An error occurred while trying to fetch the file contents.", additionalEmbeds);
                     return;
                 }
             }
