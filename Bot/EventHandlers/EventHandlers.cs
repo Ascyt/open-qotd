@@ -75,6 +75,7 @@ namespace OpenQotd.Bot.EventHandlers
 
                 case "forward":
                 case "backward":
+                case "first":
                 case "last":
                 case "redirect":
                 case "reroll":

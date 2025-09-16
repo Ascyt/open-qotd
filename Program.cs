@@ -20,6 +20,13 @@ namespace OpenQotd
 
         public static async Task Main(string[] args)
         {
+            Console.WriteLine($"OpenQOTD v{VERSION}");
+            Console.WriteLine();
+
+            Console.WriteLine("Loading environment variables...");
+            DotNetEnv.Env.Load();
+            Console.WriteLine("Environment variables loaded.");
+
             /* When making changes to the database, change the `#if false` to `#if true`, then run:
                 dotnet ef migrations add [MIGRATION_NAME] 
                 dotnet ef database update
@@ -29,9 +36,6 @@ namespace OpenQotd
             Console.WriteLine("Database migration mode; not starting client");
                 return; // The reason that doing this is important, is because otherwise attempting to migrate would start the bot which would run indefinitely
 #endif
-
-            Console.WriteLine($"OpenQOTD v{VERSION}");
-            Console.WriteLine();
 
             Console.WriteLine("Loading presets...");
             await Presets.LoadPresets();

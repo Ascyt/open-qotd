@@ -14,7 +14,7 @@ namespace OpenQotd.Bot.Database.Entities
             All = 2
         }
 
-        [Key]
+        public int Id { get; set; }
         public ulong GuildId { get; set; }
 
         public ulong? BasicRoleId { get; set; }
