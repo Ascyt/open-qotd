@@ -26,31 +26,31 @@ namespace OpenQotd.Bot.Commands
 
             await PrintPresetDisabledWarningIfRequired(context);
 
-            const int itemsPerPage = 10;
-            await MessageHelpers.SendListMessage(context, page, $"{(type != null ? $"{type} " : "")}Presets List", 
-                async Task<(Presets.PresetBySent[], int, int, int)> (int page) =>
+
+            HashSet<PresetSent> presetSents;
+
+            using (AppDbContext dbContext = new())
             {
-                HashSet<PresetSent> presetSents;
+                presetSents = [.. (await dbContext.PresetSents
+                        .Where(p => p.GuildId == context.Guild!.Id).ToListAsync())];
+            }
 
-                using (AppDbContext dbContext = new())
-                {
-                    presetSents = (await dbContext.PresetSents
-                        .Where(p => p.GuildId == context.Guild!.Id).ToListAsync()).ToHashSet();
-                }
-
+            const int itemsPerPage = 10;
+            await MessageHelpers.SendListMessage(context, page, $"{(type != null ? $"{type} " : "")}Presets List",
+            (int page) =>
+            {
                 List<Presets.PresetBySent> presetsBySent = Presets.GetValuesBySent(presetSents);
 
                 int totalPresets = presetsBySent.Count;
 
                 int totalPages = (int)Math.Ceiling(totalPresets / (double)itemsPerPage);
 
-                Presets.PresetBySent[] presetsInPage = presetsBySent
+                Presets.PresetBySent[] presetsInPage = [.. presetsBySent
                     .Skip((page - 1) * itemsPerPage)
-                    .Take(itemsPerPage)
-                    .ToArray();
+                    .Take(itemsPerPage)];
 
-                return (presetsInPage, totalPresets, totalPages, itemsPerPage);
-            });
+                return Task.FromResult<(Presets.PresetBySent[], int, int, int)>((presetsInPage, totalPresets, totalPages, itemsPerPage));
+            }, ListPresetToString);
         }
 
 
@@ -162,5 +162,8 @@ namespace OpenQotd.Bot.Commands
                 "*They can be enabled with `/config set enable_qotd_automatic_presets True`.*")
                 );
         }
+
+        private static string ListPresetToString(Presets.PresetBySent preset, int rank)
+            => preset.ToString();
     }
 }
