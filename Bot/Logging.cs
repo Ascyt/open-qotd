@@ -55,7 +55,7 @@ namespace OpenQotd.Bot
         private static async Task PrintNotFoundWarning(DiscordChannel channel)
         {
             await channel.SendMessageAsync(
-                MessageHelpers.GenericWarningEmbed("Log channel is set, but not found.\n\n" +
+                GenericEmbeds.Warning("Log channel is set, but not found.\n\n" +
                 "*It can be set using `/config set log_channel [channel]`, or unset using `/config reset log_channel`.*")
                 );
         }

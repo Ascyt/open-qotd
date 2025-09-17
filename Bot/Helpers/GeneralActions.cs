@@ -6,6 +6,9 @@ namespace OpenQotd.Bot.Helpers
 {
     public class GeneralActions
     {
+        /// <summary>
+        /// Removes all data associated with a guild from the database.
+        /// </summary>
         public static async void RemoveGuildData(ulong guildId)
         {
             using AppDbContext dbContext = new();

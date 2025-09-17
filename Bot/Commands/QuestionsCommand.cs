@@ -31,7 +31,7 @@ namespace OpenQotd.Bot.Commands
             if (question == null)
             {
                 await context.RespondAsync(
-                    MessageHelpers.GenericErrorEmbed(title:"Question Not Found", message:$"The question with ID `{questionId}` could not be found."));
+                    GenericEmbeds.Error(title:"Question Not Found", message:$"The question with ID `{questionId}` could not be found."));
                 return;
             }
 
@@ -60,7 +60,7 @@ namespace OpenQotd.Bot.Commands
             }
 
             await context.RespondAsync(
-                MessageHelpers.GenericEmbed(question.Text!, sb.ToString()));
+                GenericEmbeds.Custom(question.Text!, sb.ToString()));
         }
 
         [Command("add")]
@@ -100,7 +100,7 @@ namespace OpenQotd.Bot.Commands
             string body = newQuestion.ToString(longType: true);
 
 			await context.RespondAsync(
-                MessageHelpers.GenericSuccessEmbed("Added Question", body)
+                GenericEmbeds.Success("Added Question", body)
                 );
             await Logging.LogUserAction(context, "Added Question", body);
         }
@@ -121,7 +121,7 @@ namespace OpenQotd.Bot.Commands
             if (questionsFile.MediaType is null || !questionsFile.MediaType.Contains("text/plain"))
             {
                 await context.RespondAsync(
-                    MessageHelpers.GenericErrorEmbed(title: "Incorrect filetype", message: $"The questions file must be of type `text/plain` (not \"{(questionsFile.MediaType ?? "*null*")}\").\n\n" +
+                    GenericEmbeds.Error(title: "Incorrect filetype", message: $"The questions file must be of type `text/plain` (not \"{(questionsFile.MediaType ?? "*null*")}\").\n\n" +
                     $"If this is a file containing questions seperated by line-breaks, make sure it is using UTF-8 encoding and has a `.txt` file extension."));
                 return;
             }
@@ -129,7 +129,7 @@ namespace OpenQotd.Bot.Commands
             if (questionsFile.FileSize > 1024 * 1024)
             {
                 await context.RespondAsync(
-                    MessageHelpers.GenericErrorEmbed(title: "File too large", message: $"The questions file size cannot exceed 1MiB (yours is approx. {(questionsFile.FileSize / 1024f / 1024f):f2}MiB).")
+                    GenericEmbeds.Error(title: "File too large", message: $"The questions file size cannot exceed 1MiB (yours is approx. {(questionsFile.FileSize / 1024f / 1024f):f2}MiB).")
                     );
                 return;
             }
@@ -151,7 +151,7 @@ namespace OpenQotd.Bot.Commands
                     if (ex is InvalidOperationException)
                     {
                         additionalEmbeds.Add(
-                            MessageHelpers.GenericWarningEmbed(title:"Hint", message:
+                            GenericEmbeds.Warning(title:"Hint", message:
                             $"If you're encountering the error \"The character set provided in ContentType is invalid\", " +
                             $"it likely means that there are characters in your file that are invalid in your encoding or that your encoding is not supported.\n" +
                             $"\n" +
@@ -202,7 +202,7 @@ namespace OpenQotd.Bot.Commands
 
             string body = $"Added {lines.Length} question{(lines.Length == 1 ? "" : "s")} ({Question.TypeToStyledString(type)}).";
             await context.RespondAsync(
-                MessageHelpers.GenericSuccessEmbed("Added Bulk Questions", body)
+                GenericEmbeds.Success("Added Bulk Questions", body)
                 );
         }
 
@@ -226,7 +226,7 @@ namespace OpenQotd.Bot.Commands
                 if (question == null)
                 {
                     await context.RespondAsync(
-                        MessageHelpers.GenericErrorEmbed(title: "Question Not Found", message: $"The question with ID `{questionId}` could not be found."));
+                        GenericEmbeds.Error(title: "Question Not Found", message: $"The question with ID `{questionId}` could not be found."));
                     return;
                 }
 
@@ -240,7 +240,7 @@ namespace OpenQotd.Bot.Commands
             }
 
             await context.RespondAsync(
-                MessageHelpers.GenericSuccessEmbed("Set Question Type", body)
+                GenericEmbeds.Success("Set Question Type", body)
                 );
             await Logging.LogUserAction(context, "Set Question Type", body);
 		}
@@ -257,7 +257,7 @@ namespace OpenQotd.Bot.Commands
 			if (fromType == toType)
 			{
 				await context.RespondAsync(
-					MessageHelpers.GenericErrorEmbed(message: $"Arguments `from_type` and `to_type` cannot be the same."));
+					GenericEmbeds.Error(message: $"Arguments `from_type` and `to_type` cannot be the same."));
 				return;
 			}
 
@@ -278,7 +278,7 @@ namespace OpenQotd.Bot.Commands
 			string body = $"Changed {questions.Count} question{(questions.Count == 1 ? "" : "s")} from {Question.TypeToStyledString(fromType)} to {Question.TypeToStyledString(toType)}.";
 
 			await context.RespondAsync(
-				MessageHelpers.GenericSuccessEmbed("Set Bulk Question Types", body)
+				GenericEmbeds.Success("Set Bulk Question Types", body)
 				);
 			await Logging.LogUserAction(context, "Set Bulk Question Types", body);
 		}
@@ -303,7 +303,7 @@ namespace OpenQotd.Bot.Commands
                 if (config == null)
                 {
                     await context.RespondAsync(
-                        MessageHelpers.GenericErrorEmbed(title: "Config Not Found", message: "The bot configuration could not be found."));
+                        GenericEmbeds.Error(title: "Config Not Found", message: "The bot configuration could not be found."));
                     return;
                 }
 
@@ -326,7 +326,7 @@ namespace OpenQotd.Bot.Commands
 			string title = config.EnableDeletedToStash && type != QuestionType.Stashed ? "Removed Bulk Questions to Stash" : "Removed Bulk Questions";
 
 			await context.RespondAsync(
-				MessageHelpers.GenericSuccessEmbed(title, body)
+				GenericEmbeds.Success(title, body)
 				);
 			await Logging.LogUserAction(context, title, body);
 		}
@@ -349,7 +349,7 @@ namespace OpenQotd.Bot.Commands
 				if (config == null)
 				{
 					await context.RespondAsync(
-						MessageHelpers.GenericErrorEmbed(title: "Config Not Found", message: "The bot configuration could not be found."));
+						GenericEmbeds.Error(title: "Config Not Found", message: "The bot configuration could not be found."));
 					return;
 				}
 
@@ -361,7 +361,7 @@ namespace OpenQotd.Bot.Commands
 			string title = "Cleared Stash";
 
 			await context.RespondAsync(
-				MessageHelpers.GenericSuccessEmbed(title, body)
+				GenericEmbeds.Success(title, body)
 				);
 			await Logging.LogUserAction(context, title, body);
 		}
@@ -386,7 +386,7 @@ namespace OpenQotd.Bot.Commands
                 if (question == null)
                 {
                     await context.RespondAsync(
-                        MessageHelpers.GenericErrorEmbed(title:"Question Not Found", message:$"The question with ID `{questionId}` could not be found."));
+                        GenericEmbeds.Error(title:"Question Not Found", message:$"The question with ID `{questionId}` could not be found."));
                     return;
                 }
                 body = question.ToString();
@@ -395,7 +395,7 @@ namespace OpenQotd.Bot.Commands
                 if (config == null)
                 {
 					await context.RespondAsync(
-						MessageHelpers.GenericErrorEmbed(title: "Config Not Found", message: "The bot configuration could not be found."));
+						GenericEmbeds.Error(title: "Config Not Found", message: "The bot configuration could not be found."));
 					return;
 				}
 
@@ -413,7 +413,7 @@ namespace OpenQotd.Bot.Commands
             string title = config.EnableDeletedToStash && question.Type != QuestionType.Stashed ? "Removed Question to Stash" : "Removed Question";
 
 			await context.RespondAsync(
-                MessageHelpers.GenericSuccessEmbed(title, body)
+                GenericEmbeds.Success(title, body)
                 );
             await Logging.LogUserAction(context, title, body);
         }

@@ -33,7 +33,7 @@ namespace OpenQotd.Bot.Commands
 
             await Console.Out.WriteAsync(contents);
 
-            DiscordEmbed responseEmbed = MessageHelpers.GenericSuccessEmbed("OpenQOTD feedback sent!",
+            DiscordEmbed responseEmbed = GenericEmbeds.Success("OpenQOTD feedback sent!",
                     $"\"**{feedback}**\"");
 
             if (context is SlashCommandContext)
@@ -53,7 +53,7 @@ namespace OpenQotd.Bot.Commands
 
             if (feedbackChannel is not null)
             {
-                await feedbackChannel.SendMessageAsync(MessageHelpers.GenericEmbed(title: "New Feedback", message:
+                await feedbackChannel.SendMessageAsync(GenericEmbeds.Custom(title: "New Feedback", message:
                     $"**{feedback}**\n\n" +
                     $"*Submitted by {context.User.Mention} in \"{context.Guild!.Name}\"*"));
             }
@@ -81,7 +81,7 @@ namespace OpenQotd.Bot.Commands
                 $"- QOTD time: {DSharpPlus.Formatter.Timestamp(DateTime.Today + new TimeSpan(config.QotdTimeHourUtc, config.QotdTimeMinuteUtc, 0), DSharpPlus.TimestampFormat.ShortTime)}\n" +
                 $"- Suggestions enabled: **{config.EnableSuggestions}**";
 
-            DiscordEmbed responseEmbed = MessageHelpers.GenericEmbed($"OpenQOTD v{Program.VERSION} - Help", 
+            DiscordEmbed responseEmbed = GenericEmbeds.Custom($"OpenQOTD v{Program.VERSION} - Help", 
                 $"*OpenQOTD is an open-source Question Of The Day Discord bot with a strong focus on a random sending of QOTDs, custom questions, suggestions, presets and more.*\n" +
                 $"# Basic Commands\n" +
                 $"- `/qotd` or `/suggest`: Suggest a QOTD to the current server if suggestions are enabled.\n" +

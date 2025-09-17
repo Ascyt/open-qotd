@@ -24,7 +24,7 @@ namespace OpenQotd.Bot
             if (result.Item1 is null)
             {
                 await context.RespondAsync(
-                    MessageHelpers.GenericErrorEmbed(result.Item2!));
+                    GenericEmbeds.Error(result.Item2!));
             }
 
             return result.Item1;
@@ -41,7 +41,7 @@ namespace OpenQotd.Bot
             {
                 DiscordInteractionResponseBuilder response = new();
                 response.AddEmbed(
-                    MessageHelpers.GenericErrorEmbed(result.Item2!));
+                    GenericEmbeds.Error(result.Item2!));
                 response.IsEphemeral = true;
 
                 await args.Interaction.CreateResponseAsync(DiscordInteractionResponseType.ChannelMessageWithSource, response);
@@ -77,7 +77,7 @@ namespace OpenQotd.Bot
             if (!result.Item1 && responseOnError)
             {
                 await context.RespondAsync(
-                    MessageHelpers.GenericErrorEmbed(result.Item2!));
+                    GenericEmbeds.Error(result.Item2!));
             }
 
             return result.Item1;
@@ -139,7 +139,7 @@ namespace OpenQotd.Bot
             if (!result.Item1 && responseOnError)
             {
                 await context.RespondAsync(
-                    MessageHelpers.GenericErrorEmbed(result.Item2!));
+                    GenericEmbeds.Error(result.Item2!));
             }
 
             return result.Item1;
@@ -156,7 +156,7 @@ namespace OpenQotd.Bot
             {
                 DiscordInteractionResponseBuilder response = new();
                 response.AddEmbed(
-                    MessageHelpers.GenericErrorEmbed(result.Item2!));
+                    GenericEmbeds.Error(result.Item2!));
                 response.IsEphemeral = true;
 
                 await args.Interaction.CreateResponseAsync(DiscordInteractionResponseType.ChannelMessageWithSource, response);
@@ -230,7 +230,7 @@ namespace OpenQotd.Bot
             if (!isWithinLimit)
             {
                 await context.RespondAsync(
-                    MessageHelpers.GenericErrorEmbed(
+                    GenericEmbeds.Error(
                         $"It is not allowed to have more than **{MAX_QUESTIONS_AMOUNT}** questions in a guild. " +
                         $"There are currently {currentAmount} questions, and adding {additionalAmount} more would exceed the limit, therefore no questions have been added."));
             }

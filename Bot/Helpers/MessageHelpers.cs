@@ -1,11 +1,7 @@
-﻿using OpenQotd.Bot.Database;
-using OpenQotd.Bot.Database.Entities;
-using DSharpPlus.Commands;
+﻿using DSharpPlus.Commands;
 using DSharpPlus.Entities;
 using DSharpPlus.Interactivity.Extensions;
-using System.Collections.Generic;
 using System.Text;
-using System.Threading.Channels;
 using DSharpPlus.Interactivity;
 using DSharpPlus.EventArgs;
 
@@ -16,19 +12,6 @@ namespace OpenQotd.Bot.Helpers
     /// </summary>
     public static class MessageHelpers
     {
-        public static DiscordEmbedBuilder GenericSuccessEmbed(string title, string message) =>
-            GenericEmbed(title, message, "#20c020");
-
-        public static DiscordEmbedBuilder GenericErrorEmbed(string message, string title = "Error") =>
-            GenericEmbed(title, message, "#ff0000");
-        public static DiscordEmbedBuilder GenericWarningEmbed(string message, string title = "Warning") =>
-            GenericEmbed(title, message, "#ffc000");
-
-        public static DiscordEmbedBuilder GenericEmbed(string title, string message, string color = "#5865f2") => new DiscordEmbedBuilder()
-                .WithTitle(title)
-                .WithColor(new DiscordColor(color))
-                .WithDescription(message);
-
         /// <summary>
         /// Fetch the database for a list message with pagination.
         /// </summary>
@@ -76,7 +59,7 @@ namespace OpenQotd.Bot.Helpers
             if (message is null)
             {
                 await context.RespondAsync(
-                    MessageHelpers.GenericErrorEmbed("Failed to get the response message.", title: title));
+                    GenericEmbeds.Error("Failed to get the response message.", title: title));
                 return;
             }
 
@@ -146,13 +129,13 @@ namespace OpenQotd.Bot.Helpers
 
             if (totalPages == 0)
             {
-                message.AddEmbed(GenericErrorEmbed($"No elements.", title: title));
+                message.AddEmbed(GenericEmbeds.Error($"No elements.", title: title));
                 return message;
             }
 
             if (elements.Length == 0)
             {
-                message.AddEmbed(GenericErrorEmbed($"Page {page} does not exist.", title: title));
+                message.AddEmbed(GenericEmbeds.Error($"Page {page} does not exist.", title: title));
                 if (includeButtons)
                 {
                     message.AddActionRowComponent(
@@ -171,7 +154,7 @@ namespace OpenQotd.Bot.Helpers
             }
 
             message.AddEmbed(
-                GenericEmbed(message: sb.ToString(), title: title)
+                GenericEmbeds.Custom(message: sb.ToString(), title: title)
                 .WithFooter($"Page {page} of {totalPages} \x2022 {totalElements} elements"));
 
             if (totalPages < 2)
@@ -196,13 +179,13 @@ namespace OpenQotd.Bot.Helpers
         {
             if (totalPages == 0)
             {
-                message.AddEmbed(GenericErrorEmbed($"No elements.", title: title));
+                message.AddEmbed(GenericEmbeds.Error($"No elements.", title: title));
                 return;
             }
 
             if (elements.Length == 0)
             {
-                message.AddEmbed(GenericErrorEmbed($"Page {page} does not exist.", title: title));
+                message.AddEmbed(GenericEmbeds.Error($"Page {page} does not exist.", title: title));
                 if (includeButtons)
                 {
                     message.AddActionRowComponent(
@@ -221,7 +204,7 @@ namespace OpenQotd.Bot.Helpers
             }
 
             message.AddEmbed(
-                GenericEmbed(message:sb.ToString(), title:title)
+                GenericEmbeds.Custom(message:sb.ToString(), title:title)
                 .WithFooter($"Page {page} of {totalPages} \x2022 {totalElements} elements"));
 
             if (totalPages < 2)

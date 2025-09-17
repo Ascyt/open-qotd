@@ -26,7 +26,7 @@ namespace OpenQotd.Bot.Commands
             if (!config.EnableSuggestions)
             {
                 await context.RespondAsync(
-                    MessageHelpers.GenericErrorEmbed(title: "Suggestions Disabled", message: "Suggesting of QOTDs using `/qotd` or `/suggest` has been disabled by staff."));
+                    GenericEmbeds.Error(title: "Suggestions Disabled", message: "Suggesting of QOTDs using `/qotd` or `/suggest` has been disabled by staff."));
                 return;
             }
 
@@ -48,7 +48,7 @@ namespace OpenQotd.Bot.Commands
         public static async Task<(bool, DiscordEmbed)> SuggestNoContextAsync(string question, DiscordGuild guild, DiscordChannel discordChannel, DiscordUser user, Config config)
         {
             if (!await Question.CheckTextValidity(question, null, config))
-                return (false, MessageHelpers.GenericErrorEmbed("Text validity check failed"));
+                return (false, GenericEmbeds.Error("Text validity check failed"));
 
             ulong guildId = guild.Id;
             ulong userId = user.Id;
@@ -74,7 +74,7 @@ namespace OpenQotd.Bot.Commands
                 suggestionsPingRoleId = await dbContext.Configs.Where(c => c.GuildId == guildId).Select(c => c.SuggestionsPingRoleId).FirstOrDefaultAsync();
             }
 
-            (bool, DiscordEmbedBuilder) result = (true, MessageHelpers.GenericSuccessEmbed("QOTD Suggested!",
+            (bool, DiscordEmbedBuilder) result = (true, GenericEmbeds.Success("QOTD Suggested!",
                     $"Your Question Of The Day:\n" +
                     $"\"**{newQuestion.Text}**\"\n" +
                     $"\n" +
@@ -88,7 +88,7 @@ namespace OpenQotd.Bot.Commands
             {
                 if (suggestionsPingRoleId == null)
                 {
-                    await discordChannel.SendMessageAsync(MessageHelpers.GenericWarningEmbed("Suggestions ping role is set, but suggestions channel is not.\n\n" +
+                    await discordChannel.SendMessageAsync(GenericEmbeds.Warning("Suggestions ping role is set, but suggestions channel is not.\n\n" +
                         "*The channel can be set using `/config set suggestions_channel [channel]`, or the ping role can be removed using `/config reset suggestions_ping_role`.*"));
                 }
                 // Qotd suggested but no suggestion channel
@@ -105,7 +105,7 @@ namespace OpenQotd.Bot.Commands
                 catch (NotFoundException)
                 {
                     await discordChannel.SendMessageAsync(
-                        MessageHelpers.GenericWarningEmbed("Suggestions ping role is set, but not found.\n\n" +
+                        GenericEmbeds.Warning("Suggestions ping role is set, but not found.\n\n" +
                         "*It can be set using `/config set suggestions_ping_role [channel]`, or unset using `/config reset suggestions_ping_role`.*")
                         );
                 }
@@ -119,7 +119,7 @@ namespace OpenQotd.Bot.Commands
             catch (NotFoundException)
             {
                 return (false,
-                    MessageHelpers.GenericWarningEmbed("Suggestions channel is set, but not found.\n\n" +
+                    GenericEmbeds.Warning("Suggestions channel is set, but not found.\n\n" +
                     "*It can be set using `/config set suggestions_channel [channel]`, or unset using `/config reset suggestions_channel`.*")
                     );
             }
@@ -132,7 +132,7 @@ namespace OpenQotd.Bot.Commands
                 $"By: {user.Mention} (`{user.Id}`)\n" +
                 $"ID: `{newQuestion.GuildDependentId}`";
 
-            messageBuilder.AddEmbed(MessageHelpers.GenericEmbed("A new QOTD Suggestion is available!", embedBody,
+            messageBuilder.AddEmbed(GenericEmbeds.Custom("A new QOTD Suggestion is available!", embedBody,
                 color: "#f0b132"));
 
             messageBuilder.AddActionRowComponent(

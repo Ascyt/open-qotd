@@ -180,7 +180,7 @@ namespace OpenQotd.Bot.Database.Entities
             {
                 if (context is not null)
                     await context.RespondAsync(
-                        MessageHelpers.GenericErrorEmbed(title: "Empty Question", message: $"Your question{lineNumberString} must not be empty."));
+                        GenericEmbeds.Error(title: "Empty Question", message: $"Your question{lineNumberString} must not be empty."));
                 return false;
             }
 
@@ -188,7 +188,7 @@ namespace OpenQotd.Bot.Database.Entities
             {
                 if (context is not null)
                     await context.RespondAsync(
-                        MessageHelpers.GenericErrorEmbed(title: "Maximum Length Exceeded", message: $"Your question{lineNumberString} is {text.Length} characters in length, however it must not exceed **{MAX_LENGTH}** characters."));
+                        GenericEmbeds.Error(title: "Maximum Length Exceeded", message: $"Your question{lineNumberString} is {text.Length} characters in length, however it must not exceed **{MAX_LENGTH}** characters."));
                 return false;
             }
 
@@ -196,7 +196,7 @@ namespace OpenQotd.Bot.Database.Entities
             {
                 if (context is not null)
                     await context.RespondAsync(
-                        MessageHelpers.GenericErrorEmbed(title: "Line-breaks are forbidden", message: $"Your question{lineNumberString} must not contain any line-breaks and must all be written in one line."));
+                        GenericEmbeds.Error(title: "Line-breaks are forbidden", message: $"Your question{lineNumberString} must not contain any line-breaks and must all be written in one line."));
                 return false;
             }
 

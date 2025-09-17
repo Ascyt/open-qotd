@@ -88,7 +88,7 @@ namespace OpenQotd.Bot.Commands
                 if (question == null)
                 {
                     await context.RespondAsync(
-                        MessageHelpers.GenericErrorEmbed(title: "Suggestion Not Found", message: $"The suggestion with ID `{suggestionId}` could not be found."));
+                        GenericEmbeds.Error(title: "Suggestion Not Found", message: $"The suggestion with ID `{suggestionId}` could not be found."));
                     return;
                 }
             }
@@ -96,7 +96,7 @@ namespace OpenQotd.Bot.Commands
             if (question.Type != QuestionType.Suggested)
             {
                 await context.RespondAsync(
-                    MessageHelpers.GenericErrorEmbed(title: "Mismatching Type", message: $"It's only possible to accept **Suggested** questions, the provided question is of type **{question.Type}**."));
+                    GenericEmbeds.Error(title: "Mismatching Type", message: $"It's only possible to accept **Suggested** questions, the provided question is of type **{question.Type}**."));
                 return;
             }
 
@@ -105,7 +105,7 @@ namespace OpenQotd.Bot.Commands
             await AcceptSuggestionNoContextAsync(question, suggestionMessage, null, context);
 
             await context.RespondAsync(
-                MessageHelpers.GenericSuccessEmbed("Suggestion Accepted", $"Successfully accepted suggestion with ID `{question.GuildDependentId}`"));
+                GenericEmbeds.Success("Suggestion Accepted", $"Successfully accepted suggestion with ID `{question.GuildDependentId}`"));
         }
 
         [Command("deny")]
@@ -127,7 +127,7 @@ namespace OpenQotd.Bot.Commands
                 if (question == null)
                 {
                     await context.RespondAsync(
-                        MessageHelpers.GenericErrorEmbed(title: "Suggestion Not Found", message: $"The suggestion with ID `{suggestionId}` could not be found."));
+                        GenericEmbeds.Error(title: "Suggestion Not Found", message: $"The suggestion with ID `{suggestionId}` could not be found."));
                     return;
                 }
             }
@@ -135,7 +135,7 @@ namespace OpenQotd.Bot.Commands
             if (question.Type != QuestionType.Suggested)
             {
                 await context.RespondAsync(
-                    MessageHelpers.GenericErrorEmbed(title: "Mismatching Type", message: $"It's only possible to deny **Suggested** questions, the provided question is of type **{question.Type}**."));
+                    GenericEmbeds.Error(title: "Mismatching Type", message: $"It's only possible to deny **Suggested** questions, the provided question is of type **{question.Type}**."));
                 return;
             }
 
@@ -146,7 +146,7 @@ namespace OpenQotd.Bot.Commands
             await DenySuggestionNoContextAsync(question, suggestionMessage, null, context, reason);
 
             await context.RespondAsync(
-                MessageHelpers.GenericSuccessEmbed("Suggestion Denied", $"Successfully denied suggestion with ID `{question.GuildDependentId}`."));
+                GenericEmbeds.Success("Suggestion Denied", $"Successfully denied suggestion with ID `{question.GuildDependentId}`."));
         }
 
         [Command("acceptall")]
@@ -197,7 +197,7 @@ namespace OpenQotd.Bot.Commands
 
                     if (pair.Value.Count == 1)
                     {
-                        userSendMessage.AddEmbed(MessageHelpers.GenericEmbed($"{context.Guild!.Name}: QOTD Suggestion Accepted",
+                        userSendMessage.AddEmbed(GenericEmbeds.Custom($"{context.Guild!.Name}: QOTD Suggestion Accepted",
                                 $"Your QOTD Suggestion:\n" +
                                 $"\"**{pair.Value[0].Text}**\"\n\n" +
                                 $"Has been :white_check_mark: **ACCEPTED** :white_check_mark:!\n" +
@@ -225,7 +225,7 @@ namespace OpenQotd.Bot.Commands
                         sb.Append($"\nHave been :white_check_mark: **ACCEPTED** :white_check_mark:!\n" +
                             $"They are now qualified to appear as **Question Of The Day** in **{context.Guild!.Name}**!");
 
-                        userSendMessage.AddEmbed(MessageHelpers.GenericEmbed($"{context.Guild!.Name}: QOTD Suggestions Accepted", sb.ToString(), color: "#20ff20"));
+                        userSendMessage.AddEmbed(GenericEmbeds.Custom($"{context.Guild!.Name}: QOTD Suggestions Accepted", sb.ToString(), color: "#20ff20"));
                     }
                     await suggester.SendMessageAsync(
                         userSendMessage
@@ -253,7 +253,7 @@ namespace OpenQotd.Bot.Commands
 
             await Logging.LogUserAction(context, $"Accepted all {count} Suggestions", logSb.ToString());
 
-            await context.FollowupAsync(MessageHelpers.GenericSuccessEmbed("Suggestions Accepted", $"Successfully accepted {count} suggestion{(count == 1 ? "" : "s")}."));
+            await context.FollowupAsync(GenericEmbeds.Success("Suggestions Accepted", $"Successfully accepted {count} suggestion{(count == 1 ? "" : "s")}."));
         }
 
         [Command("denyall")]
@@ -304,7 +304,7 @@ namespace OpenQotd.Bot.Commands
 
                     if (pair.Value.Count == 1)
                     {
-                        userSendMessage.AddEmbed(MessageHelpers.GenericEmbed($"{context.Guild!.Name}: QOTD Suggestion Denied",
+                        userSendMessage.AddEmbed(GenericEmbeds.Custom($"{context.Guild!.Name}: QOTD Suggestion Denied",
                                 $"Your QOTD Suggestion:\n" +
                                 $"\"**{pair.Value[0].Text}**\"\n\n" +
                                 $"Has been :x: **DENIED** :x:.",
@@ -330,7 +330,7 @@ namespace OpenQotd.Bot.Commands
 
                         sb.Append($"\nHave been :x: **DENIED** :x:.");
 
-                        userSendMessage.AddEmbed(MessageHelpers.GenericEmbed($"{context.Guild!.Name}: QOTD Suggestions Denied", sb.ToString(), color: "#ff2020"));
+                        userSendMessage.AddEmbed(GenericEmbeds.Custom($"{context.Guild!.Name}: QOTD Suggestions Denied", sb.ToString(), color: "#ff2020"));
                     }
                     await suggester.SendMessageAsync(
                         userSendMessage
@@ -358,7 +358,7 @@ namespace OpenQotd.Bot.Commands
 
             await Logging.LogUserAction(context, $"Denied all {count} Suggestions", logSb.ToString());
 
-            await context.FollowupAsync(MessageHelpers.GenericSuccessEmbed("Suggestions Denied", $"Successfully denied {count} suggestion{(count == 1 ? "" : "s")}."));
+            await context.FollowupAsync(GenericEmbeds.Success("Suggestions Denied", $"Successfully denied {count} suggestion{(count == 1 ? "" : "s")}."));
         }
 
 
@@ -378,7 +378,7 @@ namespace OpenQotd.Bot.Commands
 
                 if (modifyQuestion == null)
                 {
-                    DiscordEmbed embed = MessageHelpers.GenericErrorEmbed(title: "Suggestion Not Found", message: $"The suggestion with ID `{question.GuildDependentId}` could not be found.");
+                    DiscordEmbed embed = GenericEmbeds.Error(title: "Suggestion Not Found", message: $"The suggestion with ID `{question.GuildDependentId}` could not be found.");
 
                     if (suggestionMessage is null)
                         await context!.Channel.SendMessageAsync(embed);
@@ -405,7 +405,7 @@ namespace OpenQotd.Bot.Commands
 
                 string embedBody = GetEmbedBody(question);
 
-                messageBuilder.AddEmbed(MessageHelpers.GenericEmbed($"QOTD Suggestion Accepted", embedBody +
+                messageBuilder.AddEmbed(GenericEmbeds.Custom($"QOTD Suggestion Accepted", embedBody +
                     $"\n\nAccepted by: {user.Mention}", color: "#20ff20"));
 
                 if (result is null)
@@ -431,7 +431,7 @@ namespace OpenQotd.Bot.Commands
             if (suggester is not null)
             {
                 DiscordMessageBuilder userSendMessage = new();
-                userSendMessage.AddEmbed(MessageHelpers.GenericEmbed($"{guild.Name}: QOTD Suggestion Accepted",
+                userSendMessage.AddEmbed(GenericEmbeds.Custom($"{guild.Name}: QOTD Suggestion Accepted",
                         $"Your QOTD Suggestion:\n" +
                         $"\"**{question.Text}**\"\n\n" +
                         $"Has been :white_check_mark: **ACCEPTED** :white_check_mark:!\n" +
@@ -467,7 +467,7 @@ namespace OpenQotd.Bot.Commands
 
                 if (disableQuestion == null)
                 {
-                    DiscordEmbed embed = MessageHelpers.GenericErrorEmbed(title: "Suggestion Not Found", message: $"The suggestion with ID `{question.GuildDependentId}` could not be found.");
+                    DiscordEmbed embed = GenericEmbeds.Error(title: "Suggestion Not Found", message: $"The suggestion with ID `{question.GuildDependentId}` could not be found.");
 
                     if (suggestionMessage is null)
                         await context!.Channel.SendMessageAsync(embed);
@@ -480,7 +480,7 @@ namespace OpenQotd.Bot.Commands
 				config = await dbContext.Configs.Where(c => c.GuildId == guild.Id).FirstOrDefaultAsync();
 				if (config == null)
 				{
-					DiscordEmbed embed = MessageHelpers.GenericErrorEmbed(title: "Config Not Found", message: $"The config for this server could not be found.");
+					DiscordEmbed embed = GenericEmbeds.Error(title: "Config Not Found", message: $"The config for this server could not be found.");
 					if (suggestionMessage is null)
 						await context!.Channel.SendMessageAsync(embed);
 					else
@@ -509,7 +509,7 @@ namespace OpenQotd.Bot.Commands
 
                 string embedBody = GetEmbedBody(question);
 
-                messageBuilder.AddEmbed(MessageHelpers.GenericEmbed($"QOTD Suggestion Denied", embedBody +
+                messageBuilder.AddEmbed(GenericEmbeds.Custom($"QOTD Suggestion Denied", embedBody +
                     $"\n\nDenied by: {user.Mention}{(reason != null ? $"\nReason: \"**{reason}**\"" : "")}", color: "#ff2020"));
 
                 if (result is null)
@@ -536,7 +536,7 @@ namespace OpenQotd.Bot.Commands
             if (suggester is not null)
             {
                 DiscordMessageBuilder userSendMessage = new();
-                userSendMessage.AddEmbed(MessageHelpers.GenericEmbed($"{guild.Name}: QOTD Suggestion Denied",
+                userSendMessage.AddEmbed(GenericEmbeds.Custom($"{guild.Name}: QOTD Suggestion Denied",
                         $"Your QOTD Suggestion:\n" +
                         $"\"**{question.Text}**\"\n\n" +
                         $"Has been :x: **DENIED** :x: {(reason != null ? $"for the following reason:\n" +

@@ -34,11 +34,11 @@ namespace OpenQotd.Bot.EventHandlers
                 message = string.Concat(message.AsSpan(0, 4096 - 5), "…");
 
             DiscordMessageBuilder messageBuilder = new();
-            messageBuilder.AddEmbed(MessageHelpers.GenericEmbed(message: message + "\n```", title: "Error (internal)", color: "#800000"));
+            messageBuilder.AddEmbed(GenericEmbeds.Custom(message: message + "\n```", title: "Error (internal)", color: "#800000"));
 
             if (e is DSharpPlus.Exceptions.UnauthorizedException)
             {
-                messageBuilder.AddEmbed(MessageHelpers.GenericWarningEmbed(title: "Hint", message:
+                messageBuilder.AddEmbed(GenericEmbeds.Warning(title: "Hint", message:
                     "This error likely means that the bot is lacking permissions to execute your command.\n" +
                     "The bot needs three different permissions to function correctly:\n" +
                     "- Send Messages\n" +

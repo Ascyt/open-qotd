@@ -162,7 +162,7 @@ namespace OpenQotd.Bot.QotdSending
             catch (NotFoundException)
             {
                 await (await d.GetQotdChannelAsync()).SendMessageAsync(
-                    MessageHelpers.GenericWarningEmbed("QOTD ping role is set, but not found.\n\n" +
+                    GenericEmbeds.Warning("QOTD ping role is set, but not found.\n\n" +
                     "*It can be set using `/config set qotd_ping_role [channel]`, or unset using `/config reset qotd_ping_role`.*")
                     );
                 return;

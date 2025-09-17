@@ -76,7 +76,7 @@ namespace OpenQotd
                         typeof(SimpleCommands),
                         typeof(MyQuestionsCommand)]);
 
-                    // Text commands disabled because of missing MessageContent intent. It would require an application to Discord for privileged intent.
+                    // Text commands disabled because of missing MessageContent intent. It would require an application to Discord.
                     /*TextCommandProcessor textCommandProcessor = new(new()
                     {
                         PrefixResolver = new DefaultPrefixResolver(true, "qotd:").ResolvePrefixAsync

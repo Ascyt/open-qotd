@@ -26,7 +26,7 @@ namespace OpenQotd.Bot.Commands
             if (!allowedUsers.Contains(context.User.Id))
             {
                 await context.RespondAsync(
-                    MessageHelpers.GenericErrorEmbed("This command can only be executed by developers of OpenQOTD.")
+                    GenericEmbeds.Error("This command can only be executed by developers of OpenQOTD.")
                     );
                 return;
             }
@@ -381,7 +381,7 @@ namespace OpenQotd.Bot.Commands
                     response.AppendLine(newQuestion.ToString());
                 }
 
-                await context.Channel!.SendMessageAsync(MessageHelpers.GenericEmbed(title: "Added Questions", message: response.ToString()));
+                await context.Channel!.SendMessageAsync(GenericEmbeds.Custom(title: "Added Questions", message: response.ToString()));
             }
 
             await context.Channel.SendMessageAsync("Interception stopped because TTL expired.");

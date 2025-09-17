@@ -34,7 +34,7 @@ namespace OpenQotd.Bot.Commands
 
             if (questions.Length == 0 && !includePresets)
             {
-                await context.RespondAsync(MessageHelpers.GenericErrorEmbed(
+                await context.RespondAsync(GenericEmbeds.Error(
                     title: "No Sent QOTDs available",
                     message: "There are no QOTDs of type Sent available."));
                 return;
@@ -129,7 +129,7 @@ namespace OpenQotd.Bot.Commands
             {
                 Question question = questions[_random.Next(questions.Length)];
 
-                embed = MessageHelpers.GenericEmbed(
+                embed = GenericEmbeds.Custom(
                     title: question.Text!,
                     message: $"*Submitted by: <@!{question.SubmittedByUserId}>*")
                     .WithFooter($"Question ID: {question.GuildDependentId}");
@@ -139,7 +139,7 @@ namespace OpenQotd.Bot.Commands
                 int presetId = _random.Next(Presets.Values.Length);
                 string preset = Presets.Values[presetId];
 
-                embed = MessageHelpers.GenericEmbed(
+                embed = GenericEmbeds.Custom(
                     title: preset,
                     message: $"*Preset Question*"
                     )

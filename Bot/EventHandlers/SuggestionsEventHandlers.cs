@@ -97,7 +97,7 @@ namespace OpenQotd.Bot.EventHandlers
         {
             DiscordMessageBuilder builder = new DiscordMessageBuilder();
             builder.AddEmbed(
-                MessageHelpers.GenericErrorEmbed(error)
+                GenericEmbeds.Error(error)
                 );
 
             await args.Interaction.CreateResponseAsync(
@@ -108,7 +108,7 @@ namespace OpenQotd.Bot.EventHandlers
         {
             DiscordMessageBuilder builder = new DiscordMessageBuilder();
             builder.AddEmbed(
-                MessageHelpers.GenericErrorEmbed(error)
+                GenericEmbeds.Error(error)
                 );
 
             await args.Interaction.CreateResponseAsync(

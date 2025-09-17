@@ -68,7 +68,7 @@ namespace OpenQotd.Bot.EventHandlers
 
             if (!config.EnableSuggestions)
             {
-                DiscordEmbed errorEmbed = MessageHelpers.GenericErrorEmbed($"Suggestions are not enabled for this server.");
+                DiscordEmbed errorEmbed = GenericEmbeds.Error($"Suggestions are not enabled for this server.");
 
                 await args.Interaction.CreateResponseAsync(DiscordInteractionResponseType.ChannelMessageWithSource, new DiscordInteractionResponseBuilder()
                     .AddEmbed(errorEmbed)
@@ -96,7 +96,7 @@ namespace OpenQotd.Bot.EventHandlers
 
                 if (questionsCount >= CommandRequirements.MAX_QUESTIONS_AMOUNT)
                 {
-                    DiscordEmbed errorEmbed = MessageHelpers.GenericErrorEmbed($"The maximum amount of questions for this guild (**{CommandRequirements.MAX_QUESTIONS_AMOUNT}**) has been reached.");
+                    DiscordEmbed errorEmbed = GenericEmbeds.Error($"The maximum amount of questions for this guild (**{CommandRequirements.MAX_QUESTIONS_AMOUNT}**) has been reached.");
                     await args.Interaction.CreateResponseAsync(DiscordInteractionResponseType.ChannelMessageWithSource, new DiscordInteractionResponseBuilder()
                         .AddEmbed(errorEmbed)
                         .AsEphemeral());
@@ -109,7 +109,7 @@ namespace OpenQotd.Bot.EventHandlers
             }
             if (config is null)
             {
-                DiscordEmbed errorEmbed = MessageHelpers.GenericErrorEmbed("Config not found or not initialized yet.");
+                DiscordEmbed errorEmbed = GenericEmbeds.Error("Config not found or not initialized yet.");
 
                 await args.Interaction.CreateResponseAsync(DiscordInteractionResponseType.ChannelMessageWithSource, new DiscordInteractionResponseBuilder()
                     .AddEmbed(errorEmbed)
@@ -119,7 +119,7 @@ namespace OpenQotd.Bot.EventHandlers
 
             if (!config.EnableSuggestions)
             {
-                DiscordEmbed errorEmbed = MessageHelpers.GenericErrorEmbed($"Suggestions are not enabled for this server.");
+                DiscordEmbed errorEmbed = GenericEmbeds.Error($"Suggestions are not enabled for this server.");
 
                 await args.Interaction.CreateResponseAsync(DiscordInteractionResponseType.ChannelMessageWithSource, new DiscordInteractionResponseBuilder()
                     .AddEmbed(errorEmbed)

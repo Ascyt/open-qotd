@@ -122,7 +122,7 @@ namespace OpenQotd.Bot.QotdSending
             DiscordMessageBuilder messageBuilder = new();
 
             messageBuilder.AddEmbed(
-                MessageHelpers.GenericEmbed(title: "No QOTD Available", message: $"There is currently no Question Of The Day available." +
+                GenericEmbeds.Custom(title: "No QOTD Available", message: $"There is currently no Question Of The Day available." +
                 (d.config.EnableSuggestions ? $"\n\n*Suggest some using `/qotd`!*" : ""), color: "#dc5051"));
             QotdSenderHelpers.AddSuggestButtonIfEnabled(d.config, messageBuilder);
 
@@ -142,7 +142,7 @@ namespace OpenQotd.Bot.QotdSending
 
             DiscordMessageBuilder messageBuilder = new();
             messageBuilder.AddEmbed(
-                MessageHelpers.GenericEmbed($"Question Of The Day",
+                GenericEmbeds.Custom($"Question Of The Day",
                 $"**{Presets.Values[presetIndex]}**\n" +
                 $"\n" +
                 $"*Preset Question*",
@@ -192,7 +192,7 @@ namespace OpenQotd.Bot.QotdSending
             }
 
             messageBuilder.AddEmbed(
-                MessageHelpers.GenericEmbed($"Question Of The Day #{sentQuestionsCount}",
+                GenericEmbeds.Custom($"Question Of The Day #{sentQuestionsCount}",
                 $"**{question.Text}**\n" +
                 $"\n" +
                 $"*Submitted by <@{question.SubmittedByUserId}>*",
@@ -238,7 +238,7 @@ namespace OpenQotd.Bot.QotdSending
                 int presetsLeft = Presets.Values.Length - presetsSent;
 
                 lastQuestionWarning.AddEmbed(
-                    MessageHelpers.GenericWarningEmbed(title: "Warning: Last QOTD", message:
+                    GenericEmbeds.Warning(title: "Warning: Last QOTD", message:
                     "There is no more Accepted QOTD of this server left." +
                     (presetsLeft > 0 && d.config.EnableQotdAutomaticPresets ? $"\nIf none are added, one of **{presetsLeft} Presets** will start to be used instead." : "") +
                     (d.config.EnableSuggestions ? $"\n\n*More can be suggested using `/qotd`!*" : "")));
@@ -278,7 +278,7 @@ namespace OpenQotd.Bot.QotdSending
         private static async Task SendNotice(DiscordChannel qotdChannel, Notices.Notice notice)
         {
             DiscordMessageBuilder noticeMessageBuilder = new();
-            DiscordEmbedBuilder noticeEmbed = MessageHelpers.GenericEmbed(
+            DiscordEmbedBuilder noticeEmbed = GenericEmbeds.Custom(
                 notice.IsImportant ? "Important Notice" : "Notice",
                 notice.NoticeText, 
                 color:notice.IsImportant ? "#ef5658" : "#56efda");

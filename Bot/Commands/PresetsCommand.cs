@@ -65,7 +65,7 @@ namespace OpenQotd.Bot.Commands
 
             if (id < 0 || id >= Presets.Values.Length)
             {
-                await context.RespondAsync(MessageHelpers.GenericErrorEmbed($"ID must be between 0 and {Presets.Values.Length - 1}."));
+                await context.RespondAsync(GenericEmbeds.Error($"ID must be between 0 and {Presets.Values.Length - 1}."));
                 return;
             }
 
@@ -100,13 +100,13 @@ namespace OpenQotd.Bot.Commands
             if (changesMade)
             {
                 await context.RespondAsync(
-                    MessageHelpers.GenericSuccessEmbed(title:"Preset Set", presetString)
+                    GenericEmbeds.Success(title:"Preset Set", presetString)
                     );
             }
             else
             {
                 await context.RespondAsync(
-                    MessageHelpers.GenericErrorEmbed(title:"No Changes Made", 
+                    GenericEmbeds.Error(title:"No Changes Made", 
                     message:$"There are no changes that have been made to the preset:\n\n> {presetString}\n\n*The preset is already of the specified active type.*")
                     );
             }
@@ -131,7 +131,7 @@ namespace OpenQotd.Bot.Commands
             }
 
             await context.RespondAsync(
-                MessageHelpers.GenericSuccessEmbed(title: "Presets Reset", "All presets have been resetted and are now sendable as QOTDs again.")
+                GenericEmbeds.Success(title: "Presets Reset", "All presets have been resetted and are now sendable as QOTDs again.")
                 );
         }
 
@@ -156,7 +156,7 @@ namespace OpenQotd.Bot.Commands
                 return;
 
             await context.Channel.SendMessageAsync(
-                MessageHelpers.GenericWarningEmbed("Presets are currently disabled and will not be automatically sent.\n\n" +
+                GenericEmbeds.Warning("Presets are currently disabled and will not be automatically sent.\n\n" +
                 "*They can be enabled with `/config set enable_qotd_automatic_presets True`.*")
                 );
         }
