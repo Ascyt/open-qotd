@@ -435,7 +435,7 @@ namespace OpenQotd.Bot.Commands
         {
             const int itemsPerPage = 10;
 
-            await MessageHelpers.SendListMessage<Question>(context, page, type is null ? $"Questions List" : $"{type} Questions List", async Task<(Question[], int, int, int)> (int page) =>
+            await ListMessages.Send<Question>(context, page, type is null ? $"Questions List" : $"{type} Questions List", async Task<(Question[], int, int, int)> (int page) =>
             {
                 using AppDbContext dbContext = new();
 
@@ -483,7 +483,7 @@ namespace OpenQotd.Bot.Commands
                 return;
 
             const int itemsPerPage = 10;
-            await MessageHelpers.SendListMessage<Question>(context, page, $"{(type != null ? $"{type} " : "")}Questions Search for \"{query}\"", async Task<(Question[], int, int, int)> (int page) =>
+            await ListMessages.Send<Question>(context, page, $"{(type != null ? $"{type} " : "")}Questions Search for \"{query}\"", async Task<(Question[], int, int, int)> (int page) =>
             {
                 using AppDbContext dbContext = new();
 

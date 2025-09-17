@@ -61,7 +61,7 @@ namespace OpenQotd.Bot.Commands
                 .Select(pair => new LeaderboardEntry() { UserId = pair.Key, Count = pair.Value })];
 
             const int itemsPerPage = 10;
-            await MessageHelpers.SendListMessage(context, page, "QOTD Leaderboard",
+            await ListMessages.Send(context, page, "QOTD Leaderboard",
                 (int page) =>
                 {
                     LeaderboardEntry[] filteredEntries = [.. sortedEntries

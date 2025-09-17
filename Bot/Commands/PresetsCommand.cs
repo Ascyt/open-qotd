@@ -36,7 +36,7 @@ namespace OpenQotd.Bot.Commands
             List<Presets.GuildDependentPreset> guildDependentPresets = Presets.GetPresetsAsGuildDependent(presetSents);
 
             const int itemsPerPage = 10;
-            await MessageHelpers.SendListMessage(context, page, $"{(type != null ? $"{type} " : "")}Presets List",
+            await ListMessages.Send(context, page, $"{(type != null ? $"{type} " : "")}Presets List",
             (int page) =>
             {
                 int totalPresets = guildDependentPresets.Count;

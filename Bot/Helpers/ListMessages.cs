@@ -8,25 +8,25 @@ using DSharpPlus.EventArgs;
 namespace OpenQotd.Bot.Helpers
 {
     /// <summary>
-    /// Presets for embed response messages
+    /// Helper for sending list messages with pagination buttons.
     /// </summary>
-    public static class MessageHelpers
+    public static class ListMessages
     {
         /// <summary>
         /// Fetch the database for a list message with pagination.
         /// </summary>
         /// <returns>Elements, total elements, total pages, elements per page</returns>
-        public delegate Task<(T[], int, int, int)> ListMessageFetchDb<T>(int page);
+        public delegate Task<(T[], int, int, int)> FetchDb<T>(int page);
         /// <summary>
         /// Convert an element to a string for display in the list message.
         /// </summary>
-        public delegate string ListMessageElementToString<T>(T element, int rank);
+        public delegate string ElementToString<T>(T element, int rank);
         /// <summary>
         /// Automatic list message with pagination buttons.
         /// </summary>
         private static string DefaultElementToString<T>(T element, int rank) 
             => $"{rank}. {element}";
-        public static async Task SendListMessage<T>(CommandContext context, int initialPage, string title, ListMessageFetchDb<T> fetchDb, ListMessageElementToString<T>? elementToString=null)
+        public static async Task Send<T>(CommandContext context, int initialPage, string title, FetchDb<T> fetchDb, ElementToString<T>? elementToString=null)
         {
             int page = initialPage;
 
@@ -40,7 +40,7 @@ namespace OpenQotd.Bot.Helpers
             (T[] elements, int totalElements, int totalPages, int elementsPerPage) = await fetchDb(page);
 
             await context.RespondAsync(
-                MessageHelpers.GetListMessage(elements, title, page, totalPages, totalElements, elementsPerPage, elementToString)
+                Generate(elements, title, page, totalPages, totalElements, elementsPerPage, elementToString)
                 );
 
             if (totalPages == 0)
@@ -103,13 +103,13 @@ namespace OpenQotd.Bot.Helpers
                 if (messageDelete)
                 {
                     await message.DeleteAsync();
-                    DiscordMessageBuilder newMessageContent = MessageHelpers.GetListMessage(elements, title, page, totalPages, totalElements, elementsPerPage, elementToString);
+                    DiscordMessageBuilder newMessageContent = Generate(elements, title, page, totalPages, totalElements, elementsPerPage, elementToString);
                     message = await context.Channel.SendMessageAsync(newMessageContent);
                 }
                 else
                 {
                     DiscordInteractionResponseBuilder builder = new DiscordInteractionResponseBuilder();
-                    MessageHelpers.EditListMessage(elements, title, page, totalPages, totalElements, elementsPerPage, builder, elementToString);
+                    EditListMessage(elements, title, page, totalPages, totalElements, elementsPerPage, builder, elementToString);
 
                     await result.Result.Interaction.CreateResponseAsync(DiscordInteractionResponseType.UpdateMessage, builder);
                 }
@@ -117,13 +117,13 @@ namespace OpenQotd.Bot.Helpers
                 result = await message.WaitForButtonAsync();
             }
 
-            await message.ModifyAsync(MessageHelpers.GetListMessage(elements, title, page, totalPages, totalElements, elementsPerPage, elementToString, includeButtons: false));
+            await message.ModifyAsync(Generate(elements, title, page, totalPages, totalElements, elementsPerPage, elementToString, includeButtons: false));
         }
 
         /// <summary>
-        /// Get a message for a list of elements. Assumes it is already filtered by page
+        /// Generate a MessageBuilder for a list of elements. Assumes it is already filtered by page
         /// </summary>
-        private static DiscordMessageBuilder GetListMessage<T>(T[] elements, string title, int page, int totalPages, int totalElements, int elementsPerPage, ListMessageElementToString<T> elementToString, bool includeButtons = true)
+        private static DiscordMessageBuilder Generate<T>(T[] elements, string title, int page, int totalPages, int totalElements, int elementsPerPage, ElementToString<T> elementToString, bool includeButtons = true)
         {
             DiscordMessageBuilder message = new();
 
@@ -175,7 +175,7 @@ namespace OpenQotd.Bot.Helpers
         /// <summary>
         /// Edit a message for a list of elements. Assumes it is already filtered by page
         /// </summary>
-        public static void EditListMessage<T>(T[] elements, string title, int page, int totalPages, int totalElements, int elementsPerPage, DiscordInteractionResponseBuilder message, ListMessageElementToString<T> elementToString, bool includeButtons = true)
+        public static void EditListMessage<T>(T[] elements, string title, int page, int totalPages, int totalElements, int elementsPerPage, DiscordInteractionResponseBuilder message, ElementToString<T> elementToString, bool includeButtons = true)
         {
             if (totalPages == 0)
             {
