@@ -38,7 +38,7 @@ namespace OpenQotd
 #endif
 
             Console.WriteLine("Loading presets...");
-            await Presets.LoadPresets();
+            await Presets.LoadPresetsAsync();
             Console.WriteLine("Presets loaded.");
 
             string? discordToken = Environment.GetEnvironmentVariable("OPENQOTD_TOKEN");

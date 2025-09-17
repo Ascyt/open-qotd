@@ -20,7 +20,7 @@ namespace OpenQotd.Bot.Commands
         {
             Config? config = await CommandRequirements.TryGetConfig(context);
 
-            if (config is null || !await CommandRequirements.UserIsBasic(context, config) || !await CommandRequirements.WithinMaxQuestionsAmount(context, 1))
+            if (config is null || !await CommandRequirements.UserIsBasic(context, config) || !await CommandRequirements.IsWithinMaxQuestionsAmount(context, 1))
                 return;
 
             if (!config.EnableSuggestions)

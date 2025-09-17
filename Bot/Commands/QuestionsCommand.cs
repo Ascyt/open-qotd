@@ -71,7 +71,7 @@ namespace OpenQotd.Bot.Commands
         {
             Config? config = await CommandRequirements.TryGetConfig(context);
 
-            if (config is null || !await CommandRequirements.UserIsAdmin(context, null) || !await CommandRequirements.WithinMaxQuestionsAmount(context, 1))
+            if (config is null || !await CommandRequirements.UserIsAdmin(context, null) || !await CommandRequirements.IsWithinMaxQuestionsAmount(context, 1))
                 return;
 
             if (!await Question.CheckTextValidity(question, context, config))
@@ -173,7 +173,7 @@ namespace OpenQotd.Bot.Commands
 
             string[] lines = contents.Split('\n', StringSplitOptions.RemoveEmptyEntries);
 
-            if (!await CommandRequirements.WithinMaxQuestionsAmount(context, lines.Length))
+            if (!await CommandRequirements.IsWithinMaxQuestionsAmount(context, lines.Length))
                 return;
 
             for (int i = 0; i < lines.Length; i++)

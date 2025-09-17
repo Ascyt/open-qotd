@@ -240,7 +240,7 @@ namespace OpenQotd.Bot.Commands
                     }
                     if (argsSplit[1] == "reload" || argsSplit[1] == "load")
                     {
-                        await Notices.LoadNotices();
+                        await Notices.LoadNoticesAsync();
                         await context.RespondAsync("Successfully reloaded notices.");
                         return;
                     }
@@ -253,7 +253,7 @@ namespace OpenQotd.Bot.Commands
 
                     Notices.notices.Add(newNotice);
 
-                    await Notices.SaveNotices();
+                    await Notices.SaveNoticesAsync();
 
                     await context.RespondAsync("Successfully added new notice.");
                     return;

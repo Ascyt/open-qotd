@@ -7,13 +7,21 @@ namespace OpenQotd.Bot.EventHandlers
 {
     public class ErrorEventHandlers
     {
+        /// <summary>
+        /// Replies with an error message to the command context when a command errors.
+        /// </summary>
         public static async Task CommandErrored(CommandsExtension s, CommandErroredEventArgs e)
         {
             await SendCommandErroredMessage(e.Exception, e.Context);
         }
-        public static async Task SendCommandErroredMessage(Exception e, CommandContext context, string? info = null, IEnumerable<DiscordEmbed>? additionalEmbeds = null)
+
+        /// <summary>
+        /// Sends an error message to the specified command context.
+        /// </summary>
+        /// <param name="additionalEmbeds">Optionally provide additional embeds to append to the message.</param>
+        public static async Task SendCommandErroredMessage(Exception e, CommandContext context, string? errorSummary = null, IEnumerable<DiscordEmbed>? additionalEmbeds = null)
         {
-            string message = (info ?? $"An uncaught error occurred from the command you tried to execute.") + "\n" +
+            string message = (errorSummary ?? $"An uncaught error occurred from the command you tried to execute.") + "\n" +
                 $"If you're unsure what to do here, please feel free to join the [Support Server](<https://open-qotd.ascyt.com/community>) to reach out for help. " +
                 $"Make sure to include the below information when you do.\n\n" +
                 $"**{e.GetType().Name}**\n" +
@@ -56,6 +64,5 @@ namespace OpenQotd.Bot.EventHandlers
 
             await context.RespondAsync(messageBuilder);
         }
-
     }
 }

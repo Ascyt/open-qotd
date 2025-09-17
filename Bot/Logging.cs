@@ -8,10 +8,17 @@ namespace OpenQotd.Bot
 {
     public static class Logging
     {
+        /// <summary>
+        /// Logs a user action to the configured log channel, if set.
+        /// </summary>
         public static async Task LogUserAction(CommandContext context, string title, string? message = null)
         {
             await LogUserAction(context.Guild!.Id, context.Channel, context.User, title, message);
         }
+
+        /// <summary>
+        /// Logs a user action to the configured log channel, if set.
+        /// </summary>
         public static async Task LogUserAction(ulong guildId, DiscordChannel channel, DiscordUser user, string title, string? message = null)
         {
             ulong? logChannelId;

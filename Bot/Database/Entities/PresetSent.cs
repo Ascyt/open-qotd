@@ -1,10 +1,11 @@
-﻿using DSharpPlus.Entities;
-using DSharpPlus.Exceptions;
-using Newtonsoft.Json;
-using System.ComponentModel.DataAnnotations;
-
-namespace OpenQotd.Bot.Database.Entities
+﻿namespace OpenQotd.Bot.Database.Entities
 {
+    /// <summary>
+    /// Represents a record of a preset question that has been sent to a guild.
+    /// </summary>
+    /// <remarks>
+    /// Used to track which preset questions have already been sent to avoid repetition.
+    /// </remarks>
     public class PresetSent
     {
         public int Id { get; set; }

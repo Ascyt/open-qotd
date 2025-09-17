@@ -28,28 +28,26 @@ namespace OpenQotd.Bot.Commands
 
 
             HashSet<PresetSent> presetSents;
-
             using (AppDbContext dbContext = new())
             {
-                presetSents = [.. (await dbContext.PresetSents
-                        .Where(p => p.GuildId == context.Guild!.Id).ToListAsync())];
+                presetSents = [.. await dbContext.PresetSents
+                        .Where(p => p.GuildId == context.Guild!.Id).ToListAsync()];
             }
+            List<Presets.GuildDependentPreset> guildDependentPresets = Presets.GetPresetsAsGuildDependent(presetSents);
 
             const int itemsPerPage = 10;
             await MessageHelpers.SendListMessage(context, page, $"{(type != null ? $"{type} " : "")}Presets List",
             (int page) =>
             {
-                List<Presets.PresetBySent> presetsBySent = Presets.GetValuesBySent(presetSents);
-
-                int totalPresets = presetsBySent.Count;
+                int totalPresets = guildDependentPresets.Count;
 
                 int totalPages = (int)Math.Ceiling(totalPresets / (double)itemsPerPage);
 
-                Presets.PresetBySent[] presetsInPage = [.. presetsBySent
+                Presets.GuildDependentPreset[] presetsInPage = [.. guildDependentPresets
                     .Skip((page - 1) * itemsPerPage)
                     .Take(itemsPerPage)];
 
-                return Task.FromResult<(Presets.PresetBySent[], int, int, int)>((presetsInPage, totalPresets, totalPages, itemsPerPage));
+                return Task.FromResult<(Presets.GuildDependentPreset[], int, int, int)>((presetsInPage, totalPresets, totalPages, itemsPerPage));
             }, ListPresetToString);
         }
 
@@ -98,7 +96,7 @@ namespace OpenQotd.Bot.Commands
                     await dbContext.SaveChangesAsync();
             }
 
-            string presetString = (new Presets.PresetBySent(id, !active)).ToString();
+            string presetString = (new Presets.GuildDependentPreset(id, !active)).ToString();
             if (changesMade)
             {
                 await context.RespondAsync(
@@ -163,7 +161,7 @@ namespace OpenQotd.Bot.Commands
                 );
         }
 
-        private static string ListPresetToString(Presets.PresetBySent preset, int rank)
+        private static string ListPresetToString(Presets.GuildDependentPreset preset, int rank)
             => preset.ToString();
     }
 }
