@@ -123,9 +123,6 @@
         /// </summary>
         public DateTime? LastSentTimestamp { get; set; }
 
-        public int? CurrentSuggestStreak { get; set; }
-        public ulong? CurrentSuggestStreakUserId { get; set; }
-
         /// <summary>
         /// The ID of the last QOTD message sent. 
         /// </summary>

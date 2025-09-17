@@ -3,12 +3,12 @@ using DSharpPlus.Entities;
 using DSharpPlus.Commands;
 using DSharpPlus.Commands.Processors.SlashCommands;
 using OpenQotd.Bot;
-using OpenQotd.Features.Commands;
 using DSharpPlus.Interactivity.Extensions;
 using DSharpPlus.Interactivity;
 using OpenQotd.Bot.QotdSending;
 using OpenQotd.Bot.EventHandlers;
 using OpenQotd.Bot.Commands;
+using OpenQotd.Bot.UserCommands;
 
 namespace OpenQotd
 {
