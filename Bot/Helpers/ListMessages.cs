@@ -33,10 +33,14 @@ namespace OpenQotd.Bot.Helpers
         public delegate string ElementToString<T>(T element, int rank);
 
         /// <summary>
-        /// Automatic list message with pagination buttons.
+        /// Default value for <see cref="ElementToString{T}"/>.
         /// </summary>
         private static string DefaultElementToString<T>(T element, int rank) 
             => $"{rank}. {element}";
+
+        /// <summary>
+        /// Automatic list message with pagination buttons.
+        /// </summary>
         public static async Task SendNew<T>(CommandContext context, int initialPage, string title, FetchDb<T> fetchDb, ElementToString<T>? elementToString=null)
         {
             if (initialPage < 1)
@@ -148,36 +152,22 @@ namespace OpenQotd.Bot.Helpers
                 if (includeButtons)
                 {
                     message.AddActionRowComponent(
-                            new DiscordButtonComponent(DiscordButtonStyle.Secondary, "redirect", $"Go to last page")
+                            new DiscordButtonComponent(DiscordButtonStyle.Secondary, "redirect", "Go to last page")
                         );
                 }
                 return message;
             }
 
-            StringBuilder sb = new();
-
-            for (int i = 0; i < pi.Elements.Length; i++)
-            {
-                T element = pi.Elements[i];
-                sb.AppendLine(elementToString(element, (pi.CurrentPage - 1) * pi.ElementsPerPage + i + 1));
-            }
-
-            message.AddEmbed(
-                GenericEmbeds.Custom(message: sb.ToString(), title: title)
-                .WithFooter($"Page {pi.CurrentPage} of {pi.TotalPagesCount} \x2022 {pi.TotalElementsCount} elements"));
+            message.AddEmbed(GetMessageEmbed(pi, elementToString, title));
 
             if (!includeButtons || pi.TotalPagesCount < 2)
                 return message;
 
-            message.AddActionRowComponent(
-                new DiscordButtonComponent(DiscordButtonStyle.Secondary, "first", "<<", disabled: pi.CurrentPage == 1),
-                new DiscordButtonComponent(DiscordButtonStyle.Primary, "backward", "<", disabled: pi.CurrentPage == 1),
-                new DiscordButtonComponent(DiscordButtonStyle.Primary, "forward", ">", disabled: pi.CurrentPage == pi.TotalPagesCount),
-                new DiscordButtonComponent(DiscordButtonStyle.Secondary, "last", ">>", disabled: pi.CurrentPage == pi.TotalPagesCount)
-                );
+            AddPaginationButtonsToMessage(message, pi);
 
             return message;
         }
+        
         /// <summary>
         /// Edit a message for a list of elements. Assumes it is already filtered by page
         /// </summary>
@@ -201,6 +191,44 @@ namespace OpenQotd.Bot.Helpers
                 return;
             }
 
+            message.AddEmbed(GetMessageEmbed(pi, elementToString, title));
+
+            if (pi.TotalPagesCount < 2)
+                return;
+
+            if (includeButtons)
+            {
+                AddPaginationButtonsToMessage(message, pi);
+            }
+
+            return;
+        }
+
+        /// <summary>
+        /// Adds pagination buttons to a message.
+        /// </summary>
+        private static void AddPaginationButtonsToMessage<T, TMessage>(TMessage message, PageInfo<T> pi) where TMessage : IDiscordMessageBuilder
+        {
+            message.AddActionRowComponent(
+            new DiscordButtonComponent(DiscordButtonStyle.Secondary, "first", "<<", disabled: pi.CurrentPage == 1),
+            new DiscordButtonComponent(DiscordButtonStyle.Primary, "backward", "<", disabled: pi.CurrentPage == 1),
+            new DiscordButtonComponent(DiscordButtonStyle.Primary, "forward", ">", disabled: pi.CurrentPage == pi.TotalPagesCount),
+            new DiscordButtonComponent(DiscordButtonStyle.Secondary, "last", ">>", disabled: pi.CurrentPage == pi.TotalPagesCount)
+            );
+        }
+
+        /// <summary>
+        /// Generates the embed for the list message.
+        /// </summary>
+        private static DiscordEmbed GetMessageEmbed<T>(PageInfo<T> pi, ElementToString<T> elementToString, string title)
+        => GenericEmbeds.Custom(message: ElementListToString(pi, elementToString), title: title)
+                .WithFooter($"Page {pi.CurrentPage} of {pi.TotalPagesCount} \x2022 {pi.TotalElementsCount} elements");
+
+        /// <summary>
+        /// Converts a list of elements to a string for display in the list message.
+        /// </summary>
+        private static string ElementListToString<T>(PageInfo<T> pi, ElementToString<T> elementToString)
+        {
             StringBuilder sb = new();
 
             for (int i = 0; i < pi.Elements.Length; i++)
@@ -209,24 +237,7 @@ namespace OpenQotd.Bot.Helpers
                 sb.AppendLine(elementToString(element, (pi.CurrentPage - 1) * pi.ElementsPerPage + i + 1));
             }
 
-            message.AddEmbed(
-                GenericEmbeds.Custom(message:sb.ToString(), title:title)
-                .WithFooter($"Page {pi.CurrentPage} of {pi.TotalPagesCount} \x2022 {pi.TotalElementsCount} elements"));
-
-            if (pi.TotalPagesCount < 2)
-                return;
-
-            if (includeButtons)
-            {
-                message.AddActionRowComponent(
-                new DiscordButtonComponent(DiscordButtonStyle.Secondary, "first", "<<", disabled: pi.CurrentPage == 1),
-                new DiscordButtonComponent(DiscordButtonStyle.Primary, "backward", "<", disabled: pi.CurrentPage == 1),
-                new DiscordButtonComponent(DiscordButtonStyle.Primary, "forward", ">", disabled: pi.CurrentPage == pi.TotalPagesCount),
-                new DiscordButtonComponent(DiscordButtonStyle.Secondary, "last", ">>", disabled: pi.CurrentPage == pi.TotalPagesCount)
-                );
-            }
-
-            return;
+            return sb.ToString();
         }
     }
 }
