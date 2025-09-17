@@ -435,41 +435,52 @@ namespace OpenQotd.Bot.Commands
         {
             const int itemsPerPage = 10;
 
-            await ListMessages.Send<Question>(context, page, type is null ? $"Questions List" : $"{type} Questions List", async Task<(Question[], int, int, int)> (int page) =>
-            {
-                using AppDbContext dbContext = new();
-
-                IQueryable<Question> sqlQuery;
-                if (type is null)
+            await ListMessages.SendNew(context, page, type is null ? $"Questions List" : $"{type} Questions List", 
+                async Task<PageInfo<Question>> (int page) =>
                 {
-                    sqlQuery = dbContext.Questions
-                        .Where(q => q.GuildId == context.Guild!.Id)
-                        .OrderBy(q => q.Type)
-                        .ThenByDescending(q => q.Timestamp)
-                        .ThenByDescending(q => q.Id);
-                }
-                else
-                {
-                    sqlQuery = dbContext.Questions
-                        .Where(q => q.GuildId == context.Guild!.Id && q.Type == type)
-                        .OrderByDescending(q => q.Timestamp)
-                        .ThenByDescending(q => q.Id);
-                }
+                    using AppDbContext dbContext = new();
 
-                // Get the total number of questions
-                int totalElements = await sqlQuery
-                    .CountAsync();
+                    IQueryable<Question> sqlQuery;
+                    if (type is null)
+                    {
+                        sqlQuery = dbContext.Questions
+                            .Where(q => q.GuildId == context.Guild!.Id)
+                            .OrderBy(q => q.Type)
+                            .ThenByDescending(q => q.Timestamp)
+                            .ThenByDescending(q => q.Id);
+                    }
+                    else
+                    {
+                        sqlQuery = dbContext.Questions
+                            .Where(q => q.GuildId == context.Guild!.Id && q.Type == type)
+                            .OrderByDescending(q => q.Timestamp)
+                            .ThenByDescending(q => q.Id);
+                    }
 
-                // Calculate the total number of pages
-                int totalPages = (int)Math.Ceiling(totalElements / (double)itemsPerPage);
+                    // Get the total number of questions
+                    int totalElements = await sqlQuery
+                        .CountAsync();
 
-                // Fetch the questions for the current page
-                return (await sqlQuery
-                    .Skip((page - 1) * itemsPerPage)
-                    .Take(itemsPerPage)
-                    .ToArrayAsync(),
-                    totalElements, totalPages, itemsPerPage);
-            });
+                    // Calculate the total number of pages
+                    int totalPages = (int)Math.Ceiling(totalElements / (double)itemsPerPage);
+
+                    Question[] currentPageQuestions = await sqlQuery
+                        .Skip((page - 1) * itemsPerPage)
+                        .Take(itemsPerPage)
+                        .ToArrayAsync();
+
+                    PageInfo<Question> pageInfo = new()
+                    {
+                        Elements = currentPageQuestions,
+                        CurrentPage = page,
+                        ElementsPerPage = itemsPerPage,
+                        TotalElementsCount = totalElements,
+                        TotalPagesCount = totalPages,
+                    };
+
+                    // Fetch the questions for the current page
+                    return pageInfo;
+                });
         }
 
         [Command("search")]
@@ -483,29 +494,39 @@ namespace OpenQotd.Bot.Commands
                 return;
 
             const int itemsPerPage = 10;
-            await ListMessages.Send<Question>(context, page, $"{(type != null ? $"{type} " : "")}Questions Search for \"{query}\"", async Task<(Question[], int, int, int)> (int page) =>
-            {
-                using AppDbContext dbContext = new();
+            await ListMessages.SendNew<Question>(context, page, $"{(type != null ? $"{type} " : "")}Questions Search for \"{query}\"", 
+                async Task<PageInfo<Question>> (int page) =>
+                {
+                    using AppDbContext dbContext = new();
 
-                // Build the base query
-                IQueryable<Question> sqlQuery = dbContext.Questions
-                    .Where(q => q.GuildId == context.Guild!.Id && (type == null || q.Type == type))
-                    .Where(q => EF.Functions.Like(q.Text, $"%{query}%"));
+                    // Build the base query
+                    IQueryable<Question> sqlQuery = dbContext.Questions
+                        .Where(q => q.GuildId == context.Guild!.Id && (type == null || q.Type == type))
+                        .Where(q => EF.Functions.Like(q.Text, $"%{query}%"));
 
-                // Get the total number of questions
-                int totalQuestions = await sqlQuery.CountAsync();
+                    // Get the total number of questions
+                    int totalQuestions = await sqlQuery.CountAsync();
 
-                // Calculate the total number of pages
-                int totalPages = (int)Math.Ceiling(totalQuestions / (double)itemsPerPage);
+                    // Calculate the total number of pages
+                    int totalPages = (int)Math.Ceiling(totalQuestions / (double)itemsPerPage);
 
-                // Fetch the questions for the current page
-                Question[] questions = await sqlQuery
-                    .Skip((page - 1) * itemsPerPage)
-                    .Take(itemsPerPage)
-                    .ToArrayAsync();
+                    // Fetch the questions for the current page
+                    Question[] questions = await sqlQuery
+                        .Skip((page - 1) * itemsPerPage)
+                        .Take(itemsPerPage)
+                        .ToArrayAsync();
 
-                return (questions, totalQuestions, totalPages, itemsPerPage);
-            });
+                    PageInfo<Question> pageInfo = new()
+                    {
+                        Elements = questions,
+                        CurrentPage = page,
+                        ElementsPerPage = itemsPerPage,
+                        TotalElementsCount = totalPages,
+                        TotalPagesCount = totalPages,
+                    };
+
+                    return pageInfo;
+                });
         }
     }
 }

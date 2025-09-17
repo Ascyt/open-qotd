@@ -36,19 +36,28 @@ namespace OpenQotd.Bot.Commands
             List<Presets.GuildDependentPreset> guildDependentPresets = Presets.GetPresetsAsGuildDependent(presetSents);
 
             const int itemsPerPage = 10;
-            await ListMessages.Send(context, page, $"{(type != null ? $"{type} " : "")}Presets List",
-            (int page) =>
-            {
-                int totalPresets = guildDependentPresets.Count;
+            await ListMessages.SendNew(context, page, $"{(type != null ? $"{type} " : "")}Presets List",
+                Task<PageInfo<Presets.GuildDependentPreset>> (int page) =>
+                {
+                    int totalPresets = guildDependentPresets.Count;
 
-                int totalPages = (int)Math.Ceiling(totalPresets / (double)itemsPerPage);
+                    int totalPages = (int)Math.Ceiling(totalPresets / (double)itemsPerPage);
 
-                Presets.GuildDependentPreset[] presetsInPage = [.. guildDependentPresets
-                    .Skip((page - 1) * itemsPerPage)
-                    .Take(itemsPerPage)];
+                    Presets.GuildDependentPreset[] presetsInPage = [.. guildDependentPresets
+                        .Skip((page - 1) * itemsPerPage)
+                        .Take(itemsPerPage)];
 
-                return Task.FromResult<(Presets.GuildDependentPreset[], int, int, int)>((presetsInPage, totalPresets, totalPages, itemsPerPage));
-            }, ListPresetToString);
+                    PageInfo<Presets.GuildDependentPreset> pageInfo = new()
+                    {
+                        Elements = presetsInPage,
+                        CurrentPage = page,
+                        ElementsPerPage = itemsPerPage,
+                        TotalElementsCount = totalPresets,
+                        TotalPagesCount = totalPages,
+                    };
+
+                    return Task.FromResult(pageInfo);
+                }, ListPresetToString);
         }
 
 

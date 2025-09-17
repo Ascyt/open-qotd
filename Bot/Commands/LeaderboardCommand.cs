@@ -61,7 +61,7 @@ namespace OpenQotd.Bot.Commands
                 .Select(pair => new LeaderboardEntry() { UserId = pair.Key, Count = pair.Value })];
 
             const int itemsPerPage = 10;
-            await ListMessages.Send(context, page, "QOTD Leaderboard",
+            await ListMessages.SendNew(context, page, "QOTD Leaderboard",
                 (int page) =>
                 {
                     LeaderboardEntry[] filteredEntries = [.. sortedEntries
@@ -72,7 +72,16 @@ namespace OpenQotd.Bot.Commands
 
                     int totalPages = (int)Math.Ceiling(totalEntries / (double)itemsPerPage);
 
-                    return Task.FromResult<(LeaderboardEntry[], int, int, int)>((filteredEntries, totalEntries, totalPages, itemsPerPage));
+                    PageInfo<LeaderboardEntry> pageInfo = new()
+                    {
+                        Elements = filteredEntries,
+                        CurrentPage = page,
+                        ElementsPerPage = itemsPerPage,
+                        TotalElementsCount = totalEntries,
+                        TotalPagesCount = totalPages,
+                    };
+
+                    return Task.FromResult(pageInfo);
                 }, ListLeaderboardEntryToString);
         }
 
