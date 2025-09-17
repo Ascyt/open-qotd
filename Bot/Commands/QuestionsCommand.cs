@@ -163,7 +163,7 @@ namespace OpenQotd.Bot.Commands
                             );
                     }
 
-                    await EventHandlers.EventHandlers.SendCommandErroredMessage(ex, context, "An error occurred while trying to fetch the file contents.", additionalEmbeds);
+                    await EventHandlers.ErrorEventHandlers.SendCommandErroredMessage(ex, context, "An error occurred while trying to fetch the file contents.", additionalEmbeds);
                     return;
                 }
             }

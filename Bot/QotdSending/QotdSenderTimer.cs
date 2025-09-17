@@ -3,8 +3,17 @@ using Microsoft.EntityFrameworkCore;
 
 namespace OpenQotd.Bot.QotdSending
 {
+    /// <summary>
+    /// Periodic timer that checks which guilds need to be sent a QOTD and sends them.
+    /// </summary>
     public class QotdSenderTimer
     {
+        const int MAX_DEGREE_OF_PARALLELISM = 10;
+
+        /// <summary>
+        /// Sends all available QOTDs, maximum MAX_DEGREE_OF_PARALLELISM at a time.
+        /// </summary>
+        /// <returns></returns>
         public static async Task SendQotdsAsync()
         {
             int currentDay = DateTime.UtcNow.Day;
@@ -31,7 +40,7 @@ namespace OpenQotd.Bot.QotdSending
             // Send QOTDs in parallel, but limit the degree of parallelism to avoid overwhelming the database or Discord API
             ParallelOptions options = new() 
             {
-                MaxDegreeOfParallelism = 10 
+                MaxDegreeOfParallelism = MAX_DEGREE_OF_PARALLELISM 
             };
             await Parallel.ForEachAsync(guildIds, options, async (id, ct) =>
             {
@@ -41,6 +50,9 @@ namespace OpenQotd.Bot.QotdSending
             await Console.Out.WriteLineAsync($"[{DateTime.UtcNow:O}] Sent {guildIds.Length}");
         }
 
+        /// <summary>
+        /// Send the next QOTD for the guild and catch and ignore/print all exceptions.
+        /// </summary>
         private static async Task SendNextQotdIgnoreExceptions(ulong guildId, Notices.Notice? latestAvailableNotice)
         {
             try
@@ -58,6 +70,9 @@ namespace OpenQotd.Bot.QotdSending
             }
         }
 
+        /// <summary>
+        /// Continuously filters by available QOTDs to send every minute.
+        /// </summary>
         public static async Task FetchLoopAsync()
         {
             Console.WriteLine("Started fetch loop.");

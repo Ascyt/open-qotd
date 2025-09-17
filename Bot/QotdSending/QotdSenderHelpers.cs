@@ -7,6 +7,9 @@ using OpenQotd.Bot.Helpers;
 
 namespace OpenQotd.Bot.QotdSending
 {
+    /// <summary>
+    /// Data required to send a QOTD to a guild.
+    /// </summary>
     internal struct SendQotdData
     {
         public Config config;
@@ -35,11 +38,19 @@ namespace OpenQotd.Bot.QotdSending
         }
     }
 
-
+    /// <summary>
+    /// Provides helper methods for managing and sending QOTD messages.
+    /// </summary>
     internal class QotdSenderHelpers
     {
+        /// <summary>
+        /// Used for selecting random questions and presets.
+        /// </summary>
         private static readonly Random _random = new();
 
+        /// <summary>
+        /// Selects a random accepted question from the database for the specified guild.
+        /// </summary>
         public static async Task<Question?> GetRandomQotd(ulong guildId)
         {
             Question[] questions;
@@ -55,6 +66,16 @@ namespace OpenQotd.Bot.QotdSending
 
             return questions[_random.Next(questions.Length)];
         }
+        /// <summary>
+        /// Selects a random preset index from the available presets that has not been marked as used.
+        /// </summary>
+        /// <remarks>This method ensures that the returned preset index is not already marked as used in
+        /// the provided list. If all presets are marked as used, the method will attempt to find an unused preset up to
+        /// a predefined limit (time-to-live). If the limit is reached, an exception is thrown to prevent an infinite
+        /// loop.</remarks>
+        /// <param name="presetSents">A list of <see cref="PresetSent"/> objects, each representing a preset that has already been used.</param>
+        /// <returns>An integer representing the index of a randomly selected preset that has not been used.</returns>
+        /// <exception cref="Exception">Thrown if the method fails to find an unused preset within a reasonable number of attempts.</exception>
         public static int GetRandomPreset(List<PresetSent> presetSents)
         {
             bool[] isPresetUsed = new bool[Presets.Values.Length];

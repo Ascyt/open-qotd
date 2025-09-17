@@ -54,6 +54,7 @@ namespace OpenQotd
             Console.WriteLine("Token set.");
             Console.WriteLine("Building client...");
 
+            // Create a sharded (https://dsharpplus.github.io/DSharpPlus/articles/beyond_basics/sharding.html) client.
             DiscordClientBuilder builder = DiscordClientBuilder.CreateSharded(discordToken, SlashCommandProcessor.RequiredIntents);
 
             // Use the commands extension
@@ -74,6 +75,8 @@ namespace OpenQotd
                         typeof(TopicCommand),
                         typeof(SimpleCommands),
                         typeof(MyQuestionsCommand)]);
+
+                    // Text commands disabled because of missing MessageContent intent. It would require an application to Discord for privileged intent.
                     /*TextCommandProcessor textCommandProcessor = new(new()
                     {
                         PrefixResolver = new DefaultPrefixResolver(true, "qotd:").ResolvePrefixAsync
@@ -82,7 +85,7 @@ namespace OpenQotd
                     // Add text commands with a custom prefix 
                     extension.AddProcessors(textCommandProcessor);*/
 
-                    extension.CommandErrored += EventHandlers.CommandErrored;
+                    extension.CommandErrored += ErrorEventHandlers.CommandErrored;
                 },
                 new CommandsConfiguration()
                 {

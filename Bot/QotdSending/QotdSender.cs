@@ -7,8 +7,14 @@ using Microsoft.EntityFrameworkCore;
 
 namespace OpenQotd.Bot.QotdSending
 {
+    /// <summary>
+    /// Sends QOTD messages to guilds based on their configuration and available questions.
+    /// </summary>
     public class QotdSender
     {
+        /// <summary>
+        /// Fetches the guild by ID and tries to send the next QOTD.
+        /// </summary>
         /// <exception cref="QotdSendException"></exception>
         public static async Task FetchGuildAndSendNextQotdAsync(ulong guildId, Notices.Notice? latestAvailableNotice)
         {
@@ -35,12 +41,18 @@ namespace OpenQotd.Bot.QotdSending
             await SendNextQotdAsync(guild, latestAvailableNotice);
         }
 
+        /// <summary>
+        /// Sends the next QOTD to the specified guild.
+        /// </summary>
         /// <exception cref="QotdSendException"></exception>
         public static async Task SendNextQotdAsync(DiscordGuild guild, Notices.Notice? latestAvaliableNotice)
         {
             await SendQotdAsync(guild, await QotdSenderHelpers.GetRandomQotd(guild.Id), latestAvaliableNotice);
         }
 
+        /// <summary>
+        /// Sends the specified QOTD or a preset/unavailable message if null.
+        /// </summary>
         public static async Task SendQotdAsync(DiscordGuild guild, Question? question, Notices.Notice? latestAvailableNotice)
         {
             // Fetch the config and update the last sent timestamp
@@ -69,33 +81,37 @@ namespace OpenQotd.Bot.QotdSending
                 latestAvailableNotice = latestAvailableNotice
             };
 
-            if (question == null)
+            // Try to send a question if available
+            if (question != null)
             {
-                if (config.EnableQotdAutomaticPresets)
-                {
-                    List<PresetSent> presetSents;
-                    using (AppDbContext dbContext = new())
-                    {
-                        presetSents = await dbContext.PresetSents
-                            .Where(ps => ps.GuildId == guild.Id)
-                            .ToListAsync();
-                    }
-
-                    if (presetSents.Count < Presets.Values.Length)
-                    {
-                        await SendQotdPresetAsync(sendQotdData, presetSents);
-                        return;
-                    }
-                }
-
-                await SendQotdUnavailableMessageIfEnabledAsync(sendQotdData);
-
+                await SendQotdQuestionAsync(sendQotdData, question);
                 return;
             }
 
+            // If no question is available, try to send a preset if enabled and available
+            if (config.EnableQotdAutomaticPresets)
+            {
+                List<PresetSent> presetSents;
+                using (AppDbContext dbContext = new())
+                {
+                    presetSents = await dbContext.PresetSents
+                        .Where(ps => ps.GuildId == guild.Id)
+                        .ToListAsync();
+                }
 
-            await SendQotdQuestionAsync(sendQotdData, question);
+                if (presetSents.Count < Presets.Values.Length)
+                {
+                    await SendQotdPresetAsync(sendQotdData, presetSents);
+                    return;
+                }
+            }
+
+            // If no question or preset is available, send the unavailable message if enabled
+            await SendQotdUnavailableMessageIfEnabledAsync(sendQotdData);
         }
+        /// <summary>
+        /// Tries to send the "no QOTD available" message if enabled in config.
+        /// </summary>
         private static async Task SendQotdUnavailableMessageIfEnabledAsync(SendQotdData d)
         {
             if (!d.config.EnableQotdUnavailableMessage)
@@ -113,6 +129,9 @@ namespace OpenQotd.Bot.QotdSending
             await qotdChannel.SendMessageAsync(messageBuilder);
             await SendNoticeIfAvailable(d);
         }
+        /// <summary>
+        /// Tries to send a preset QOTD. Does not check if presets are enabled or available.
+        /// </summary>
         /// <returns>Whether or not sending was successful</returns>
         private static async Task SendQotdPresetAsync(SendQotdData d, List<PresetSent> presetSents)
         {
@@ -153,6 +172,9 @@ namespace OpenQotd.Bot.QotdSending
             await QotdSenderHelpers.PinMessageIfEnabled(d, sentMessage);
             await QotdSenderHelpers.CreateThreadIfEnabled(d, sentMessage, null);
         }
+        /// <summary>
+        /// Send a custom QOTD question to the specified guild.
+        /// </summary>
         private static async Task SendQotdQuestionAsync(SendQotdData d, Question question)
         {
             DiscordMessageBuilder messageBuilder = new();
@@ -180,9 +202,11 @@ namespace OpenQotd.Bot.QotdSending
 
             DiscordChannel qotdChannel = await d.GetQotdChannelAsync();
 
+            // Send the message
             DiscordMessage sentMessage = await qotdChannel.SendMessageAsync(messageBuilder);
             using (AppDbContext dbContext = new())
             {
+                // Update the question and config in the database
                 Config? foundConfig = await dbContext.Configs.Where(c => c.GuildId == d.guild.Id).FirstOrDefaultAsync();
                 if (foundConfig != null)
                 {
@@ -201,6 +225,7 @@ namespace OpenQotd.Bot.QotdSending
                 await dbContext.SaveChangesAsync();
             }
 
+            // Warn if this was the last question available
             if (acceptedQuestionsCount == 0)
             {
                 DiscordMessageBuilder lastQuestionWarning = new();
@@ -227,6 +252,9 @@ namespace OpenQotd.Bot.QotdSending
             await QotdSenderHelpers.CreateThreadIfEnabled(d, sentMessage, sentQuestionsCount);
         }
 
+        /// <summary>
+        /// If a recent notice is available and the config allows it, send it to the guild's QOTD channel.
+        /// </summary>
         private static async Task SendNoticeIfAvailable(SendQotdData d)
         {
             if (d.latestAvailableNotice is null)
@@ -239,11 +267,14 @@ namespace OpenQotd.Bot.QotdSending
                 return;
 
             if (d.previousLastSentTimestamp is null && d.latestAvailableNotice.Date >= DateTime.UtcNow.AddDays(-2) || // not sent a qotd yet? send if notice is less than 2 days old
-                d.previousLastSentTimestamp is not null && d.latestAvailableNotice.Date > d.previousLastSentTimestamp.Value) // sent a qotd? send if notice is before the day the last qotd was sent
+                d.previousLastSentTimestamp is not null && d.latestAvailableNotice.Date > d.previousLastSentTimestamp.Value && d.latestAvailableNotice.Date >= DateTime.UtcNow.AddDays(-7)) // sent a qotd? send if notice is before the day the last qotd was sent if it is less than 7 days old
             {
                 await SendNotice(await d.GetQotdChannelAsync(), d.latestAvailableNotice);
             }
         }
+        /// <summary>
+        /// Sends a specified notice to the specified channel.
+        /// </summary>
         private static async Task SendNotice(DiscordChannel qotdChannel, Notices.Notice notice)
         {
             DiscordMessageBuilder noticeMessageBuilder = new();
