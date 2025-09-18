@@ -4,7 +4,6 @@ using DSharpPlus.Interactivity.Extensions;
 using System.Text;
 using DSharpPlus.Interactivity;
 using DSharpPlus.EventArgs;
-using System.Runtime.CompilerServices;
 
 namespace OpenQotd.Bot.Helpers
 {
@@ -52,9 +51,10 @@ namespace OpenQotd.Bot.Helpers
 
             PageInfo<T> pi = await fetchDb(initialPage);
 
-            await context.RespondAsync(
-                GenerateNew(pi, title, elementToString)
-                );
+            DiscordMessageBuilder newMessage = new();
+            AddComponents(newMessage, pi, title, elementToString);
+
+            await context.RespondAsync(newMessage);
 
             if (pi.TotalPagesCount == 0)
                 return;
@@ -90,7 +90,6 @@ namespace OpenQotd.Bot.Helpers
 
             while (!result.TimedOut && result.Result?.Id != null)
             {
-                bool messageDelete = false;
                 switch (result.Result.Id)
                 {
                     case "first":
@@ -107,43 +106,34 @@ namespace OpenQotd.Bot.Helpers
                         break;
                     case "redirect":
                         pi.CurrentPage = pi.TotalPagesCount;
-                        messageDelete = true;
                         break;
                 }
 
                 pi = await fetchDb(pi.CurrentPage);
 
-                if (messageDelete)
-                {
-                    await message.DeleteAsync();
-                    DiscordMessageBuilder newMessageContent = GenerateNew(pi, title, elementToString);
-                    message = await context.Channel.SendMessageAsync(newMessageContent);
-                }
-                else
-                {
-                    DiscordInteractionResponseBuilder builder = new DiscordInteractionResponseBuilder();
-                    EditExisting(pi, title, builder, elementToString);
+                DiscordInteractionResponseBuilder builder = new();
+                AddComponents(builder, pi, title, elementToString);
 
-                    await result.Result.Interaction.CreateResponseAsync(DiscordInteractionResponseType.UpdateMessage, builder);
-                }
+                await result.Result.Interaction.CreateResponseAsync(DiscordInteractionResponseType.UpdateMessage, builder);
 
                 result = await message.WaitForButtonAsync();
             }
 
-            await message.ModifyAsync(GenerateNew(pi, title, elementToString, includeButtons: false));
+            DiscordMessageBuilder editedMessage = new();
+            AddComponents(editedMessage, pi, title, elementToString, includeButtons: false);
+
+            await message.ModifyAsync(editedMessage);
         }
 
         /// <summary>
-        /// Generate a MessageBuilder for a list of elements. Assumes it is already filtered by page
+        /// Add an embed and buttons (if enabled) with the listing to a MessageBuilder. 
         /// </summary>
-        private static DiscordMessageBuilder GenerateNew<T>(PageInfo<T> pi, string title, ElementToString<T> elementToString, bool includeButtons = true)
+        private static void AddComponents<T>(IDiscordMessageBuilder message, PageInfo<T> pi, string title, ElementToString<T> elementToString, bool includeButtons = true)
         {
-            DiscordMessageBuilder message = new();
-
             if (pi.TotalPagesCount == 0)
             {
                 message.AddEmbed(GenericEmbeds.Error($"No elements.", title: title));
-                return message;
+                return;
             }
 
             if (pi.Elements.Length == 0)
@@ -151,69 +141,33 @@ namespace OpenQotd.Bot.Helpers
                 message.AddEmbed(GenericEmbeds.Error($"Page {pi.CurrentPage} does not exist.", title: title));
                 if (includeButtons)
                 {
-                    message.AddActionRowComponent(
-                            new DiscordButtonComponent(DiscordButtonStyle.Secondary, "redirect", "Go to last page")
-                        );
+                    // Disabled because of https://github.com/DSharpPlus/DSharpPlus/issues/2376
+
+                    //message.AddActionRowComponent(
+                    //        new DiscordButtonComponent(DiscordButtonStyle.Secondary, "redirect", "Go to last page")
+                    //    );
                 }
-                return message;
+                return;
             }
 
             message.AddEmbed(GetMessageEmbed(pi, elementToString, title));
 
             if (!includeButtons || pi.TotalPagesCount < 2)
-                return message;
+                return;
 
             AddPaginationButtonsToMessage(message, pi);
-
-            return message;
         }
         
         /// <summary>
-        /// Edit a message for a list of elements. Assumes it is already filtered by page
-        /// </summary>
-        public static void EditExisting<T>(PageInfo<T> pi, string title, DiscordInteractionResponseBuilder message, ElementToString<T> elementToString, bool includeButtons = true)
-        {
-            if (pi.TotalPagesCount == 0)
-            {
-                message.AddEmbed(GenericEmbeds.Error($"No elements.", title: title));
-                return;
-            }
-
-            if (pi.Elements.Length == 0)
-            {
-                message.AddEmbed(GenericEmbeds.Error($"Page {pi.CurrentPage} does not exist.", title: title));
-                if (includeButtons)
-                {
-                    message.AddActionRowComponent(
-                        new DiscordButtonComponent(DiscordButtonStyle.Secondary, "redirect", "Go to last page")
-                    );
-                }
-                return;
-            }
-
-            message.AddEmbed(GetMessageEmbed(pi, elementToString, title));
-
-            if (pi.TotalPagesCount < 2)
-                return;
-
-            if (includeButtons)
-            {
-                AddPaginationButtonsToMessage(message, pi);
-            }
-
-            return;
-        }
-
-        /// <summary>
         /// Adds pagination buttons to a message.
         /// </summary>
-        private static void AddPaginationButtonsToMessage<T, TMessage>(TMessage message, PageInfo<T> pi) where TMessage : IDiscordMessageBuilder
+        private static void AddPaginationButtonsToMessage<T>(IDiscordMessageBuilder messageBuilder, PageInfo<T> pi)
         {
-            message.AddActionRowComponent(
-            new DiscordButtonComponent(DiscordButtonStyle.Secondary, "first", "<<", disabled: pi.CurrentPage == 1),
-            new DiscordButtonComponent(DiscordButtonStyle.Primary, "backward", "<", disabled: pi.CurrentPage == 1),
-            new DiscordButtonComponent(DiscordButtonStyle.Primary, "forward", ">", disabled: pi.CurrentPage == pi.TotalPagesCount),
-            new DiscordButtonComponent(DiscordButtonStyle.Secondary, "last", ">>", disabled: pi.CurrentPage == pi.TotalPagesCount)
+            messageBuilder.AddActionRowComponent(
+                new DiscordButtonComponent(DiscordButtonStyle.Secondary, "first", "<<", disabled: pi.CurrentPage == 1),
+                new DiscordButtonComponent(DiscordButtonStyle.Primary, "backward", "<", disabled: pi.CurrentPage == 1),
+                new DiscordButtonComponent(DiscordButtonStyle.Primary, "forward", ">", disabled: pi.CurrentPage == pi.TotalPagesCount),
+                new DiscordButtonComponent(DiscordButtonStyle.Secondary, "last", ">>", disabled: pi.CurrentPage == pi.TotalPagesCount)
             );
         }
 
@@ -221,7 +175,7 @@ namespace OpenQotd.Bot.Helpers
         /// Generates the embed for the list message.
         /// </summary>
         private static DiscordEmbed GetMessageEmbed<T>(PageInfo<T> pi, ElementToString<T> elementToString, string title)
-        => GenericEmbeds.Custom(message: ElementListToString(pi, elementToString), title: title)
+            => GenericEmbeds.Custom(message: ElementListToString(pi, elementToString), title: title)
                 .WithFooter($"Page {pi.CurrentPage} of {pi.TotalPagesCount} \x2022 {pi.TotalElementsCount} elements");
 
         /// <summary>
