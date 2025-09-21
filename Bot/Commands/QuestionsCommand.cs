@@ -521,7 +521,7 @@ namespace OpenQotd.Bot.Commands
                         Elements = questions,
                         CurrentPage = page,
                         ElementsPerPage = itemsPerPage,
-                        TotalElementsCount = totalPages,
+                        TotalElementsCount = totalQuestions,
                         TotalPagesCount = totalPages,
                     };
 
