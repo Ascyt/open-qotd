@@ -21,7 +21,7 @@ namespace OpenQotd.Bot.Commands
                 return;
 
             Question? question;
-            using (var dbContext = new AppDbContext())
+            using (AppDbContext dbContext = new())
             {
                 question = await dbContext.Questions
                     .Where(q => q.GuildId == context.Guild!.Id && q.GuildDependentId == questionId)
@@ -31,7 +31,7 @@ namespace OpenQotd.Bot.Commands
             if (question == null)
             {
                 await context.RespondAsync(
-                    MessageHelpers.GenericErrorEmbed(title:"Question Not Found", message:$"The question with ID `{questionId}` could not be found."));
+                    GenericEmbeds.Error(title:"Question Not Found", message:$"The question with ID `{questionId}` could not be found."));
                 return;
             }
 
@@ -60,7 +60,7 @@ namespace OpenQotd.Bot.Commands
             }
 
             await context.RespondAsync(
-                MessageHelpers.GenericEmbed(question.Text!, sb.ToString()));
+                GenericEmbeds.Custom(question.Text!, sb.ToString()));
         }
 
         [Command("add")]
@@ -71,7 +71,7 @@ namespace OpenQotd.Bot.Commands
         {
             Config? config = await CommandRequirements.TryGetConfig(context);
 
-            if (config is null || !await CommandRequirements.UserIsAdmin(context, null) || !await CommandRequirements.WithinMaxQuestionsAmount(context, 1))
+            if (config is null || !await CommandRequirements.UserIsAdmin(context, null) || !await CommandRequirements.IsWithinMaxQuestionsAmount(context, 1))
                 return;
 
             if (!await Question.CheckTextValidity(question, context, config))
@@ -82,7 +82,7 @@ namespace OpenQotd.Bot.Commands
 
             Question newQuestion;
 
-            using (var dbContext = new AppDbContext())
+            using (AppDbContext dbContext = new())
             {
                 newQuestion = new Question()
                 {
@@ -100,7 +100,7 @@ namespace OpenQotd.Bot.Commands
             string body = newQuestion.ToString(longType: true);
 
 			await context.RespondAsync(
-                MessageHelpers.GenericSuccessEmbed("Added Question", body)
+                GenericEmbeds.Success("Added Question", body)
                 );
             await Logging.LogUserAction(context, "Added Question", body);
         }
@@ -121,7 +121,7 @@ namespace OpenQotd.Bot.Commands
             if (questionsFile.MediaType is null || !questionsFile.MediaType.Contains("text/plain"))
             {
                 await context.RespondAsync(
-                    MessageHelpers.GenericErrorEmbed(title: "Incorrect filetype", message: $"The questions file must be of type `text/plain` (not \"{(questionsFile.MediaType ?? "*null*")}\").\n\n" +
+                    GenericEmbeds.Error(title: "Incorrect filetype", message: $"The questions file must be of type `text/plain` (not \"{(questionsFile.MediaType ?? "*null*")}\").\n\n" +
                     $"If this is a file containing questions seperated by line-breaks, make sure it is using UTF-8 encoding and has a `.txt` file extension."));
                 return;
             }
@@ -129,13 +129,13 @@ namespace OpenQotd.Bot.Commands
             if (questionsFile.FileSize > 1024 * 1024)
             {
                 await context.RespondAsync(
-                    MessageHelpers.GenericErrorEmbed(title: "File too large", message: $"The questions file size cannot exceed 1MiB (yours is approx. {(questionsFile.FileSize / 1024f / 1024f):f2}MiB).")
+                    GenericEmbeds.Error(title: "File too large", message: $"The questions file size cannot exceed 1MiB (yours is approx. {(questionsFile.FileSize / 1024f / 1024f):f2}MiB).")
                     );
                 return;
             }
 
             string contents;
-            using (HttpClient client = new HttpClient())
+            using (HttpClient client = new())
             {
                 try
                 {
@@ -147,7 +147,23 @@ namespace OpenQotd.Bot.Commands
                 }
                 catch (Exception ex)
                 {
-                    await EventHandlers.EventHandlers.SendCommandErroredMessage(ex, context, "An error occurred while trying to fetch the file contents.");
+                    List<DiscordEmbed> additionalEmbeds = [];
+                    if (ex is InvalidOperationException)
+                    {
+                        additionalEmbeds.Add(
+                            GenericEmbeds.Warning(title:"Hint", message:
+                            $"If you're encountering the error \"The character set provided in ContentType is invalid\", " +
+                            $"it likely means that there are characters in your file that are invalid in your encoding or that your encoding is not supported.\n" +
+                            $"\n" +
+                            $"This is a common issue that can occurr when you've exported a Google Docs file (or similar) to `.txt`. " +
+                            $"A simple fix for this is to manually create a `.txt` file using **Windows Notepad**, **Notepad++** or a similar plain text editor, paste your text into there and then use that file. " +
+                            $"Also, ensure that it says \"UTF-8\" (not \"UTF-8-BOM\" or similar) and something along the lines of \"plain text file\" at the bottom of your open `.txt` file.\n" +
+                            $"\n" +
+                            $"If you are still experiencing issues with this, don't hesitate to let me know! I'll do my best to be quick to help with any issues.")
+                            );
+                    }
+
+                    await EventHandlers.ErrorEventHandlers.SendCommandErroredMessage(ex, context, "An error occurred while trying to fetch the file contents.", additionalEmbeds);
                     return;
                 }
             }
@@ -157,7 +173,7 @@ namespace OpenQotd.Bot.Commands
 
             string[] lines = contents.Split('\n', StringSplitOptions.RemoveEmptyEntries);
 
-            if (!await CommandRequirements.WithinMaxQuestionsAmount(context, lines.Length))
+            if (!await CommandRequirements.IsWithinMaxQuestionsAmount(context, lines.Length))
                 return;
 
             for (int i = 0; i < lines.Length; i++)
@@ -178,7 +194,7 @@ namespace OpenQotd.Bot.Commands
                 Timestamp = now
             });
 
-            using (var dbContext = new AppDbContext())
+            using (AppDbContext dbContext = new())
             {
                 await dbContext.Questions.AddRangeAsync(questions);
                 await dbContext.SaveChangesAsync();
@@ -186,7 +202,7 @@ namespace OpenQotd.Bot.Commands
 
             string body = $"Added {lines.Length} question{(lines.Length == 1 ? "" : "s")} ({Question.TypeToStyledString(type)}).";
             await context.RespondAsync(
-                MessageHelpers.GenericSuccessEmbed("Added Bulk Questions", body)
+                GenericEmbeds.Success("Added Bulk Questions", body)
                 );
         }
 
@@ -203,14 +219,14 @@ namespace OpenQotd.Bot.Commands
 
             Question? question;
             string body;
-            using (var dbContext = new AppDbContext())
+            using (AppDbContext dbContext = new())
             {
                 question = await dbContext.Questions.Where(q => q.GuildId == guildId && q.GuildDependentId == questionId).FirstOrDefaultAsync();
 
                 if (question == null)
                 {
                     await context.RespondAsync(
-                        MessageHelpers.GenericErrorEmbed(title: "Question Not Found", message: $"The question with ID `{questionId}` could not be found."));
+                        GenericEmbeds.Error(title: "Question Not Found", message: $"The question with ID `{questionId}` could not be found."));
                     return;
                 }
 
@@ -224,7 +240,7 @@ namespace OpenQotd.Bot.Commands
             }
 
             await context.RespondAsync(
-                MessageHelpers.GenericSuccessEmbed("Set Question Type", body)
+                GenericEmbeds.Success("Set Question Type", body)
                 );
             await Logging.LogUserAction(context, "Set Question Type", body);
 		}
@@ -241,14 +257,14 @@ namespace OpenQotd.Bot.Commands
 			if (fromType == toType)
 			{
 				await context.RespondAsync(
-					MessageHelpers.GenericErrorEmbed(message: $"Arguments `from_type` and `to_type` cannot be the same."));
+					GenericEmbeds.Error(message: $"Arguments `from_type` and `to_type` cannot be the same."));
 				return;
 			}
 
 			ulong guildId = context.Guild!.Id;
 
 			List<Question>? questions;
-			using (var dbContext = new AppDbContext())
+			using (AppDbContext dbContext = new())
 			{
 				questions = await dbContext.Questions.Where(q => q.GuildId == guildId && q.Type == fromType).ToListAsync();
 
@@ -262,7 +278,7 @@ namespace OpenQotd.Bot.Commands
 			string body = $"Changed {questions.Count} question{(questions.Count == 1 ? "" : "s")} from {Question.TypeToStyledString(fromType)} to {Question.TypeToStyledString(toType)}.";
 
 			await context.RespondAsync(
-				MessageHelpers.GenericSuccessEmbed("Set Bulk Question Types", body)
+				GenericEmbeds.Success("Set Bulk Question Types", body)
 				);
 			await Logging.LogUserAction(context, "Set Bulk Question Types", body);
 		}
@@ -279,7 +295,7 @@ namespace OpenQotd.Bot.Commands
 
 			List<Question>? questions;
             Config? config;
-			using (var dbContext = new AppDbContext())
+			using (AppDbContext dbContext = new())
 			{
 				questions = await dbContext.Questions.Where(q => q.GuildId == guildId && q.Type == type).ToListAsync();
 
@@ -287,7 +303,7 @@ namespace OpenQotd.Bot.Commands
                 if (config == null)
                 {
                     await context.RespondAsync(
-                        MessageHelpers.GenericErrorEmbed(title: "Config Not Found", message: "The bot configuration could not be found."));
+                        GenericEmbeds.Error(title: "Config Not Found", message: "The bot configuration could not be found."));
                     return;
                 }
 
@@ -310,7 +326,7 @@ namespace OpenQotd.Bot.Commands
 			string title = config.EnableDeletedToStash && type != QuestionType.Stashed ? "Removed Bulk Questions to Stash" : "Removed Bulk Questions";
 
 			await context.RespondAsync(
-				MessageHelpers.GenericSuccessEmbed(title, body)
+				GenericEmbeds.Success(title, body)
 				);
 			await Logging.LogUserAction(context, title, body);
 		}
@@ -325,7 +341,7 @@ namespace OpenQotd.Bot.Commands
 
 			List<Question>? questions;
 			Config? config;
-			using (var dbContext = new AppDbContext())
+			using (AppDbContext dbContext = new())
 			{
 				questions = await dbContext.Questions.Where(q => q.GuildId == guildId && q.Type == QuestionType.Stashed).ToListAsync();
 
@@ -333,7 +349,7 @@ namespace OpenQotd.Bot.Commands
 				if (config == null)
 				{
 					await context.RespondAsync(
-						MessageHelpers.GenericErrorEmbed(title: "Config Not Found", message: "The bot configuration could not be found."));
+						GenericEmbeds.Error(title: "Config Not Found", message: "The bot configuration could not be found."));
 					return;
 				}
 
@@ -345,7 +361,7 @@ namespace OpenQotd.Bot.Commands
 			string title = "Cleared Stash";
 
 			await context.RespondAsync(
-				MessageHelpers.GenericSuccessEmbed(title, body)
+				GenericEmbeds.Success(title, body)
 				);
 			await Logging.LogUserAction(context, title, body);
 		}
@@ -363,14 +379,14 @@ namespace OpenQotd.Bot.Commands
             Question? question;
             string body;
             Config? config;
-            using (var dbContext = new AppDbContext())
+            using (AppDbContext dbContext = new())
             {
                 question = await dbContext.Questions.Where(q => q.GuildId == guildId && q.GuildDependentId == questionId).FirstOrDefaultAsync();
 
                 if (question == null)
                 {
                     await context.RespondAsync(
-                        MessageHelpers.GenericErrorEmbed(title:"Question Not Found", message:$"The question with ID `{questionId}` could not be found."));
+                        GenericEmbeds.Error(title:"Question Not Found", message:$"The question with ID `{questionId}` could not be found."));
                     return;
                 }
                 body = question.ToString();
@@ -379,7 +395,7 @@ namespace OpenQotd.Bot.Commands
                 if (config == null)
                 {
 					await context.RespondAsync(
-						MessageHelpers.GenericErrorEmbed(title: "Config Not Found", message: "The bot configuration could not be found."));
+						GenericEmbeds.Error(title: "Config Not Found", message: "The bot configuration could not be found."));
 					return;
 				}
 
@@ -397,7 +413,7 @@ namespace OpenQotd.Bot.Commands
             string title = config.EnableDeletedToStash && question.Type != QuestionType.Stashed ? "Removed Question to Stash" : "Removed Question";
 
 			await context.RespondAsync(
-                MessageHelpers.GenericSuccessEmbed(title, body)
+                GenericEmbeds.Success(title, body)
                 );
             await Logging.LogUserAction(context, title, body);
         }
@@ -419,10 +435,11 @@ namespace OpenQotd.Bot.Commands
         {
             const int itemsPerPage = 10;
 
-            await MessageHelpers.ListMessageComplete<Question>(context, page, type is null ? $"Questions List" : $"{type} Questions List", async Task<(Question[], int, int, int)> (int page) =>
-            {
-                using (var dbContext = new AppDbContext())
+            await ListMessages.SendNew(context, page, type is null ? $"Questions List" : $"{type} Questions List", 
+                async Task<PageInfo<Question>> (int page) =>
                 {
+                    using AppDbContext dbContext = new();
+
                     IQueryable<Question> sqlQuery;
                     if (type is null)
                     {
@@ -447,14 +464,23 @@ namespace OpenQotd.Bot.Commands
                     // Calculate the total number of pages
                     int totalPages = (int)Math.Ceiling(totalElements / (double)itemsPerPage);
 
-                    // Fetch the questions for the current page
-                    return (await sqlQuery
+                    Question[] currentPageQuestions = await sqlQuery
                         .Skip((page - 1) * itemsPerPage)
                         .Take(itemsPerPage)
-                        .ToArrayAsync(),
-                        totalElements, totalPages, itemsPerPage);
-                }
-            });
+                        .ToArrayAsync();
+
+                    PageInfo<Question> pageInfo = new()
+                    {
+                        Elements = currentPageQuestions,
+                        CurrentPage = page,
+                        ElementsPerPage = itemsPerPage,
+                        TotalElementsCount = totalElements,
+                        TotalPagesCount = totalPages,
+                    };
+
+                    // Fetch the questions for the current page
+                    return pageInfo;
+                });
         }
 
         [Command("search")]
@@ -468,13 +494,13 @@ namespace OpenQotd.Bot.Commands
                 return;
 
             const int itemsPerPage = 10;
-            await MessageHelpers.ListMessageComplete<Question>(context, page, $"{(type != null ? $"{type} " : "")}Questions Search for \"{query}\"", async Task<(Question[], int, int, int)> (int page) =>
-            {
-
-                using (var dbContext = new AppDbContext())
+            await ListMessages.SendNew<Question>(context, page, $"{(type != null ? $"{type} " : "")}Questions Search for \"{query}\"", 
+                async Task<PageInfo<Question>> (int page) =>
                 {
+                    using AppDbContext dbContext = new();
+
                     // Build the base query
-                    var sqlQuery = dbContext.Questions
+                    IQueryable<Question> sqlQuery = dbContext.Questions
                         .Where(q => q.GuildId == context.Guild!.Id && (type == null || q.Type == type))
                         .Where(q => EF.Functions.Like(q.Text, $"%{query}%"));
 
@@ -490,9 +516,17 @@ namespace OpenQotd.Bot.Commands
                         .Take(itemsPerPage)
                         .ToArrayAsync();
 
-                    return (questions, totalQuestions, totalPages, itemsPerPage);
-                }
-            });
+                    PageInfo<Question> pageInfo = new()
+                    {
+                        Elements = questions,
+                        CurrentPage = page,
+                        ElementsPerPage = itemsPerPage,
+                        TotalElementsCount = totalQuestions,
+                        TotalPagesCount = totalPages,
+                    };
+
+                    return pageInfo;
+                });
         }
     }
 }

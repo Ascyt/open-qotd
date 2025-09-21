@@ -36,7 +36,7 @@ namespace OpenQotd.Bot.Commands
             if (!context.Member!.Permissions.HasPermission(DiscordPermission.Administrator))
             {
                 await context.RespondAsync(
-                    MessageHelpers.GenericErrorEmbed("Server Administrator permission is required to run this command.")
+                    GenericEmbeds.Error("Server Administrator permission is required to run this command.")
                     );
                 return;
             }
@@ -66,7 +66,7 @@ namespace OpenQotd.Bot.Commands
 				LogsChannelId = LogsChannel?.Id
             };
             bool reInitialized = false;
-            using (var dbContext = new AppDbContext())
+            using (AppDbContext dbContext = new())
             {
                 Config? existingConfig = await dbContext.Configs.FirstOrDefaultAsync(c => c.GuildId == context!.Guild.Id);
 
@@ -83,7 +83,7 @@ namespace OpenQotd.Bot.Commands
             string configString = config.ToString();
 
             await context.RespondAsync(
-                    MessageHelpers.GenericSuccessEmbed($"Successfully {(reInitialized ? "re-" : "")}initialized config", configString)
+                    GenericEmbeds.Success($"Successfully {(reInitialized ? "re-" : "")}initialized config", configString)
                 );
 
             // Can cause issues
@@ -97,7 +97,7 @@ namespace OpenQotd.Bot.Commands
             if (!context.Member!.Permissions.HasPermission(DiscordPermission.Administrator))
             {
                 await context.RespondAsync(
-                    MessageHelpers.GenericErrorEmbed("Server Administrator permission is required to run this command.")
+                    GenericEmbeds.Error("Server Administrator permission is required to run this command.")
                     );
                 return;
             }
@@ -110,7 +110,7 @@ namespace OpenQotd.Bot.Commands
             string configString = config.ToString();
 
             await context.RespondAsync(
-                    MessageHelpers.GenericEmbed($"Config values", $"{configString}")
+                    GenericEmbeds.Custom($"Config values", $"{configString}")
                 );
         }
 
@@ -138,7 +138,7 @@ namespace OpenQotd.Bot.Commands
             if (!context.Member!.Permissions.HasPermission(DiscordPermission.Administrator))
             {
                 await context.RespondAsync(
-                    MessageHelpers.GenericErrorEmbed("Server Administrator permission is required to run this command.")
+                    GenericEmbeds.Error("Server Administrator permission is required to run this command.")
                     );
                 return;
             }
@@ -152,7 +152,7 @@ namespace OpenQotd.Bot.Commands
             if (QotdTimeHourUtc is not null)
                 QotdTimeHourUtc = Math.Clamp(QotdTimeHourUtc.Value, 0, 23);
 
-            using (var dbContext = new AppDbContext())
+            using (AppDbContext dbContext = new())
             {
                 // Without extra retrieval config changes don't get saved
                 config = dbContext.Configs
@@ -165,7 +165,7 @@ namespace OpenQotd.Bot.Commands
 
                     if (config.LastSentTimestamp?.Day == currentDay)
                     {
-                        await context.Channel!.SendMessageAsync(MessageHelpers.GenericWarningEmbed("Since a QOTD has already been sent today, the next one will be sent tomorrow at the specified time.\n\n" +
+                        await context.Channel!.SendMessageAsync(GenericEmbeds.Warning("Since a QOTD has already been sent today, the next one will be sent tomorrow at the specified time.\n\n" +
                             "*Use `/trigger` to send a QOTD anyways!*"));
                     }
                 }
@@ -211,7 +211,7 @@ namespace OpenQotd.Bot.Commands
             string configString = config.ToString();
 
             await context.RespondAsync(
-                    MessageHelpers.GenericSuccessEmbed("Successfully set config values", $"{configString}")
+                    GenericEmbeds.Success("Successfully set config values", $"{configString}")
                 );
 
             await LogUserAction(context, "Set config values", configString);
@@ -234,13 +234,13 @@ namespace OpenQotd.Bot.Commands
             if (!context.Member!.Permissions.HasPermission(DiscordPermission.Administrator))
             {
                 await context.RespondAsync(
-                    MessageHelpers.GenericErrorEmbed("Server Administrator permission is required to run this command.")
+                    GenericEmbeds.Error("Server Administrator permission is required to run this command.")
                     );
                 return;
             }
 
             Config config;
-            using (var dbContext = new AppDbContext())
+            using (AppDbContext dbContext = new())
             {
                 config = dbContext.Configs
                     .Where(c => c.GuildId == context.Guild!.Id)
@@ -263,7 +263,7 @@ namespace OpenQotd.Bot.Commands
             string configString = config.ToString();
 
             await context.RespondAsync(
-                    MessageHelpers.GenericSuccessEmbed("Successfully set config values", $"{configString}")
+                    GenericEmbeds.Success("Successfully set config values", $"{configString}")
                 );
 
             await LogUserAction(context, "Set config values", configString);

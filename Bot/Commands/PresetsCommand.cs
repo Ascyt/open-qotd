@@ -4,7 +4,6 @@ using OpenQotd.Bot.Helpers;
 using DSharpPlus.Commands;
 using Microsoft.EntityFrameworkCore;
 using System.ComponentModel;
-using static Microsoft.EntityFrameworkCore.DbLoggerCategory;
 
 namespace OpenQotd.Bot.Commands
 {
@@ -27,31 +26,38 @@ namespace OpenQotd.Bot.Commands
 
             await PrintPresetDisabledWarningIfRequired(context);
 
-            const int itemsPerPage = 10;
-            await MessageHelpers.ListMessageComplete(context, page, $"{(type != null ? $"{type} " : "")}Presets List", 
-                async Task<(Presets.PresetBySent[], int, int, int)> (int page) =>
+
+            HashSet<PresetSent> presetSents;
+            using (AppDbContext dbContext = new())
             {
-                HashSet<PresetSent> presetSents;
+                presetSents = [.. await dbContext.PresetSents
+                        .Where(p => p.GuildId == context.Guild!.Id).ToListAsync()];
+            }
+            List<Presets.GuildDependentPreset> guildDependentPresets = Presets.GetPresetsAsGuildDependent(presetSents);
 
-                using (var dbContext = new AppDbContext())
+            const int itemsPerPage = 10;
+            await ListMessages.SendNew(context, page, $"{(type != null ? $"{type} " : "")}Presets List",
+                Task<PageInfo<Presets.GuildDependentPreset>> (int page) =>
                 {
-                    presetSents = (await dbContext.PresetSents
-                        .Where(p => p.GuildId == context.Guild!.Id).ToListAsync()).ToHashSet();
-                }
+                    int totalPresets = guildDependentPresets.Count;
 
-                List<Presets.PresetBySent> presetsBySent = Presets.GetValuesBySent(presetSents);
+                    int totalPages = (int)Math.Ceiling(totalPresets / (double)itemsPerPage);
 
-                int totalPresets = presetsBySent.Count;
+                    Presets.GuildDependentPreset[] presetsInPage = [.. guildDependentPresets
+                        .Skip((page - 1) * itemsPerPage)
+                        .Take(itemsPerPage)];
 
-                int totalPages = (int)Math.Ceiling(totalPresets / (double)itemsPerPage);
+                    PageInfo<Presets.GuildDependentPreset> pageInfo = new()
+                    {
+                        Elements = presetsInPage,
+                        CurrentPage = page,
+                        ElementsPerPage = itemsPerPage,
+                        TotalElementsCount = totalPresets,
+                        TotalPagesCount = totalPages,
+                    };
 
-                Presets.PresetBySent[] presetsInPage = presetsBySent
-                    .Skip((page - 1) * itemsPerPage)
-                    .Take(itemsPerPage)
-                    .ToArray();
-
-                return (presetsInPage, totalPresets, totalPages, itemsPerPage);
-            });
+                    return Task.FromResult(pageInfo);
+                }, ListPresetToString);
         }
 
 
@@ -68,13 +74,13 @@ namespace OpenQotd.Bot.Commands
 
             if (id < 0 || id >= Presets.Values.Length)
             {
-                await context.RespondAsync(MessageHelpers.GenericErrorEmbed($"ID must be between 0 and {Presets.Values.Length - 1}."));
+                await context.RespondAsync(GenericEmbeds.Error($"ID must be between 0 and {Presets.Values.Length - 1}."));
                 return;
             }
 
             bool changesMade = false;
 
-            using (var dbContext = new AppDbContext())
+            using (AppDbContext dbContext = new())
             {
                 PresetSent? preset = await dbContext.PresetSents.FirstOrDefaultAsync(p => p.GuildId == context.Guild!.Id && p.PresetIndex == id);
 
@@ -99,17 +105,17 @@ namespace OpenQotd.Bot.Commands
                     await dbContext.SaveChangesAsync();
             }
 
-            string presetString = (new Presets.PresetBySent(id, !active)).ToString();
+            string presetString = (new Presets.GuildDependentPreset(id, !active)).ToString();
             if (changesMade)
             {
                 await context.RespondAsync(
-                    MessageHelpers.GenericSuccessEmbed(title:"Preset Set", presetString)
+                    GenericEmbeds.Success(title:"Preset Set", presetString)
                     );
             }
             else
             {
                 await context.RespondAsync(
-                    MessageHelpers.GenericErrorEmbed(title:"No Changes Made", 
+                    GenericEmbeds.Error(title:"No Changes Made", 
                     message:$"There are no changes that have been made to the preset:\n\n> {presetString}\n\n*The preset is already of the specified active type.*")
                     );
             }
@@ -124,7 +130,7 @@ namespace OpenQotd.Bot.Commands
 
             await PrintPresetDisabledWarningIfRequired(context);
 
-            using (var dbContext = new AppDbContext())
+            using (AppDbContext dbContext = new())
             {
                 List<PresetSent> toRemove = await dbContext.PresetSents.Where(ps => ps.GuildId == context.Guild!.Id).ToListAsync();
 
@@ -134,7 +140,7 @@ namespace OpenQotd.Bot.Commands
             }
 
             await context.RespondAsync(
-                MessageHelpers.GenericSuccessEmbed(title: "Presets Reset", "All presets have been resetted and are now sendable as QOTDs again.")
+                GenericEmbeds.Success(title: "Presets Reset", "All presets have been resetted and are now sendable as QOTDs again.")
                 );
         }
 
@@ -147,7 +153,7 @@ namespace OpenQotd.Bot.Commands
         private static async Task PrintPresetDisabledWarningIfRequired(CommandContext context)
         {
             bool enableQotdAutomaticPresets;
-            using (var dbContext = new AppDbContext())
+            using (AppDbContext dbContext = new())
             {
                 enableQotdAutomaticPresets = dbContext.Configs
                     .Where(c => c.GuildId == context.Guild!.Id)
@@ -159,9 +165,12 @@ namespace OpenQotd.Bot.Commands
                 return;
 
             await context.Channel.SendMessageAsync(
-                MessageHelpers.GenericWarningEmbed("Presets are currently disabled and will not be automatically sent.\n\n" +
+                GenericEmbeds.Warning("Presets are currently disabled and will not be automatically sent.\n\n" +
                 "*They can be enabled with `/config set enable_qotd_automatic_presets True`.*")
                 );
         }
+
+        private static string ListPresetToString(Presets.GuildDependentPreset preset, int rank)
+            => preset.ToString();
     }
 }

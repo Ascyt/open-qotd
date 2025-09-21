@@ -25,7 +25,7 @@ namespace OpenQotd.Bot.Commands
                 return;
 
             Question[] questions;
-            using (var dbContext = new AppDbContext())
+            using (AppDbContext dbContext = new())
             {
                 questions = await dbContext.Questions
                     .Where(q => q.GuildId == context.Guild!.Id && q.Type == QuestionType.Sent)
@@ -34,7 +34,7 @@ namespace OpenQotd.Bot.Commands
 
             if (questions.Length == 0 && !includePresets)
             {
-                await context.RespondAsync(MessageHelpers.GenericErrorEmbed(
+                await context.RespondAsync(GenericEmbeds.Error(
                     title: "No Sent QOTDs available",
                     message: "There are no QOTDs of type Sent available."));
                 return;
@@ -77,7 +77,7 @@ namespace OpenQotd.Bot.Commands
                     return;
                 }
 
-                var result = resultNullable!.Value;
+                InteractivityResult<ComponentInteractionCreatedEventArgs> result = resultNullable!.Value;
 
                 if (result.Result.User.Id != context.User.Id)
                 {
@@ -101,7 +101,7 @@ namespace OpenQotd.Bot.Commands
                 messageBuilderNoButtons = new DiscordMessageBuilder();
                 messageBuilderNoButtons.AddEmbed(embed);
 
-                DiscordInteractionResponseBuilder interactionResponseBuilder = new DiscordInteractionResponseBuilder();
+                DiscordInteractionResponseBuilder interactionResponseBuilder = new();
                 interactionResponseBuilder.AddEmbed(embed);
                 interactionResponseBuilder.AddActionRowComponent(
                     rerollButton
@@ -129,7 +129,7 @@ namespace OpenQotd.Bot.Commands
             {
                 Question question = questions[_random.Next(questions.Length)];
 
-                embed = MessageHelpers.GenericEmbed(
+                embed = GenericEmbeds.Custom(
                     title: question.Text!,
                     message: $"*Submitted by: <@!{question.SubmittedByUserId}>*")
                     .WithFooter($"Question ID: {question.GuildDependentId}");
@@ -139,7 +139,7 @@ namespace OpenQotd.Bot.Commands
                 int presetId = _random.Next(Presets.Values.Length);
                 string preset = Presets.Values[presetId];
 
-                embed = MessageHelpers.GenericEmbed(
+                embed = GenericEmbeds.Custom(
                     title: preset,
                     message: $"*Preset Question*"
                     )

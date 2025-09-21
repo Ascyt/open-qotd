@@ -16,7 +16,7 @@ namespace OpenQotd.Bot.EventHandlers
         public static async Task<(Config, Question, DiscordMessage?)?> GetSuggestionData(DiscordClient client, ComponentInteractionCreatedEventArgs args, int questionGuildDepedentId)
         {
             Config? config;
-            using (var dbContext = new AppDbContext())
+            using (AppDbContext dbContext = new())
             {
                 config = await dbContext.Configs
                     .Where(q => q.GuildId == args.Guild.Id)
@@ -29,7 +29,7 @@ namespace OpenQotd.Bot.EventHandlers
             }
 
             Question? question;
-            using (var dbContext = new AppDbContext())
+            using (AppDbContext dbContext = new())
             {
                 question = await dbContext.Questions
                     .Where(q => q.GuildId == args.Guild.Id && q.GuildDependentId == questionGuildDepedentId)
@@ -56,7 +56,7 @@ namespace OpenQotd.Bot.EventHandlers
         public static async Task<(Config, Question, DiscordMessage?)?> GetSuggestionData(DiscordClient client, ModalSubmittedEventArgs args, int questionGuildDepedentId)
         {
             Config? config;
-            using (var dbContext = new AppDbContext())
+            using (AppDbContext dbContext = new())
             {
                 config = await dbContext.Configs
                     .Where(q => q.GuildId == args.Interaction.Guild!.Id)
@@ -69,7 +69,7 @@ namespace OpenQotd.Bot.EventHandlers
             }
 
             Question? question;
-            using (var dbContext = new AppDbContext())
+            using (AppDbContext dbContext = new())
             {
                 question = await dbContext.Questions
                     .Where(q => q.GuildId == args.Interaction.Guild!.Id && q.GuildDependentId == questionGuildDepedentId)
@@ -97,7 +97,7 @@ namespace OpenQotd.Bot.EventHandlers
         {
             DiscordMessageBuilder builder = new DiscordMessageBuilder();
             builder.AddEmbed(
-                MessageHelpers.GenericErrorEmbed(error)
+                GenericEmbeds.Error(error)
                 );
 
             await args.Interaction.CreateResponseAsync(
@@ -108,7 +108,7 @@ namespace OpenQotd.Bot.EventHandlers
         {
             DiscordMessageBuilder builder = new DiscordMessageBuilder();
             builder.AddEmbed(
-                MessageHelpers.GenericErrorEmbed(error)
+                GenericEmbeds.Error(error)
                 );
 
             await args.Interaction.CreateResponseAsync(
@@ -127,7 +127,7 @@ namespace OpenQotd.Bot.EventHandlers
         public static async Task SuggestionsDenyButtonClicked(DiscordClient client, ComponentInteractionCreatedEventArgs args, int guildDependentId)
         {
             Question? question;
-            using (var dbContext = new AppDbContext())
+            using (AppDbContext dbContext = new())
             {
                 question = await dbContext.Questions
                     .Where(q => q.GuildId == args.Guild.Id && q.GuildDependentId == guildDependentId)

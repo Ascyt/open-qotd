@@ -15,7 +15,7 @@ namespace OpenQotd.Bot.Commands
             public int Count { get; set; }
 
             public override string ToString()
-                => $"%index%. <@!{UserId}>: **{Count}**";
+                => $"<@!{UserId}>: **{Count}**";
         }
         [Command("lb")]
         [Description("View a leaderboard of who wrote the most sent QOTDs.")]
@@ -32,7 +32,7 @@ namespace OpenQotd.Bot.Commands
                 return;
 
             List<Question> sentQuestions;
-            using (var dbContext = new AppDbContext())
+            using (AppDbContext dbContext = new())
             {
                 sentQuestions = await dbContext.Questions
                     .Where(q => q.GuildId == context.Guild!.Id && q.Type == QuestionType.Sent)
@@ -41,11 +41,11 @@ namespace OpenQotd.Bot.Commands
 
             Dictionary<ulong, int> entries = [];
 
-            foreach (var question in sentQuestions)
+            foreach (Question question in sentQuestions)
             {
-                if (entries.ContainsKey(question.SubmittedByUserId))
+                if (entries.TryGetValue(question.SubmittedByUserId, out int value))
                 {
-                    entries[question.SubmittedByUserId]++;
+                    entries[question.SubmittedByUserId] = ++value;
                 }
                 else
                 {
@@ -53,12 +53,15 @@ namespace OpenQotd.Bot.Commands
                 }
             }
 
+            Random _random = new();
+
             List<LeaderboardEntry> sortedEntries = [.. entries
                 .OrderByDescending(pair => pair.Value)
+                .ThenBy(pair => (_random.Next() % 2 == 0) ? -1 : 1) // Randomize order of users with same count
                 .Select(pair => new LeaderboardEntry() { UserId = pair.Key, Count = pair.Value })];
 
             const int itemsPerPage = 10;
-            await MessageHelpers.ListMessageComplete(context, page, "QOTD Leaderboard",
+            await ListMessages.SendNew(context, page, "QOTD Leaderboard",
                 (int page) =>
                 {
                     LeaderboardEntry[] filteredEntries = [.. sortedEntries
@@ -69,8 +72,30 @@ namespace OpenQotd.Bot.Commands
 
                     int totalPages = (int)Math.Ceiling(totalEntries / (double)itemsPerPage);
 
-                    return Task.FromResult<(LeaderboardEntry[], int, int, int)>((filteredEntries, totalEntries, totalPages, itemsPerPage));
-                });
+                    PageInfo<LeaderboardEntry> pageInfo = new()
+                    {
+                        Elements = filteredEntries,
+                        CurrentPage = page,
+                        ElementsPerPage = itemsPerPage,
+                        TotalElementsCount = totalEntries,
+                        TotalPagesCount = totalPages,
+                    };
+
+                    return Task.FromResult(pageInfo);
+                }, ListLeaderboardEntryToString);
+        }
+
+        private static string ListLeaderboardEntryToString(LeaderboardEntry leaderboardEntry, int rank)
+        {
+            string rankEmoji = rank switch
+            {
+                1 => ":yellow_circle:",
+                2 => ":white_circle:",
+                3 => ":brown_circle:",
+                _ => $":black_small_square:"
+            };
+
+            return $"{rankEmoji} **#{rank}** - {leaderboardEntry}";
         }
     }
 }

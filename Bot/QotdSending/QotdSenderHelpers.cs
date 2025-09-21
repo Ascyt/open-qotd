@@ -7,6 +7,9 @@ using OpenQotd.Bot.Helpers;
 
 namespace OpenQotd.Bot.QotdSending
 {
+    /// <summary>
+    /// Data required to send a QOTD to a guild.
+    /// </summary>
     internal struct SendQotdData
     {
         public Config config;
@@ -35,15 +38,23 @@ namespace OpenQotd.Bot.QotdSending
         }
     }
 
-
+    /// <summary>
+    /// Provides helper methods for managing and sending QOTD messages.
+    /// </summary>
     internal class QotdSenderHelpers
     {
+        /// <summary>
+        /// Used for selecting random questions and presets.
+        /// </summary>
         private static readonly Random _random = new();
 
+        /// <summary>
+        /// Selects a random accepted question from the database for the specified guild.
+        /// </summary>
         public static async Task<Question?> GetRandomQotd(ulong guildId)
         {
             Question[] questions;
-            using (var dbContext = new AppDbContext())
+            using (AppDbContext dbContext = new())
             {
                 questions = await dbContext.Questions
                     .Where(q => q.GuildId == guildId && q.Type == QuestionType.Accepted)
@@ -55,12 +66,22 @@ namespace OpenQotd.Bot.QotdSending
 
             return questions[_random.Next(questions.Length)];
         }
+        /// <summary>
+        /// Selects a random preset index from the available presets that has not been marked as used.
+        /// </summary>
+        /// <remarks>This method ensures that the returned preset index is not already marked as used in
+        /// the provided list. If all presets are marked as used, the method will attempt to find an unused preset up to
+        /// a predefined limit (time-to-live). If the limit is reached, an exception is thrown to prevent an infinite
+        /// loop.</remarks>
+        /// <param name="presetSents">A list of <see cref="PresetSent"/> objects, each representing a preset that has already been used.</param>
+        /// <returns>An integer representing the index of a randomly selected preset that has not been used.</returns>
+        /// <exception cref="Exception">Thrown if the method fails to find an unused preset within a reasonable number of attempts.</exception>
         public static int GetRandomPreset(List<PresetSent> presetSents)
         {
             bool[] isPresetUsed = new bool[Presets.Values.Length];
-            foreach (var presetSent in presetSents)
+            foreach (PresetSent ps in presetSents)
             {
-                isPresetUsed[presetSent.PresetIndex] = true;
+                isPresetUsed[ps.PresetIndex] = true;
             }
 
             int index;
@@ -141,7 +162,7 @@ namespace OpenQotd.Bot.QotdSending
             catch (NotFoundException)
             {
                 await (await d.GetQotdChannelAsync()).SendMessageAsync(
-                    MessageHelpers.GenericWarningEmbed("QOTD ping role is set, but not found.\n\n" +
+                    GenericEmbeds.Warning("QOTD ping role is set, but not found.\n\n" +
                     "*It can be set using `/config set qotd_ping_role [channel]`, or unset using `/config reset qotd_ping_role`.*")
                     );
                 return;

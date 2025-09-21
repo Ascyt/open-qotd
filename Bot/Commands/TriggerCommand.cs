@@ -19,7 +19,7 @@ namespace OpenQotd.Bot.Commands
             await QotdSender.SendNextQotdAsync(context.Guild!, Notices.GetLatestAvailableNotice());
 
             await context.RespondAsync(
-                MessageHelpers.GenericSuccessEmbed(title:"Successfully triggered QOTD", "QOTD sent to current QOTD channel."));
+                GenericEmbeds.Success(title:"Successfully triggered QOTD", "QOTD sent to current QOTD channel."));
 
             await Logging.LogUserAction(context, "Trigger QOTD");
         }

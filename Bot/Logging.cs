@@ -8,14 +8,21 @@ namespace OpenQotd.Bot
 {
     public static class Logging
     {
+        /// <summary>
+        /// Logs a user action to the configured log channel, if set.
+        /// </summary>
         public static async Task LogUserAction(CommandContext context, string title, string? message = null)
         {
             await LogUserAction(context.Guild!.Id, context.Channel, context.User, title, message);
         }
+
+        /// <summary>
+        /// Logs a user action to the configured log channel, if set.
+        /// </summary>
         public static async Task LogUserAction(ulong guildId, DiscordChannel channel, DiscordUser user, string title, string? message = null)
         {
             ulong? logChannelId;
-            using (var dbContext = new AppDbContext())
+            using (AppDbContext dbContext = new())
             {
                 logChannelId = await dbContext.Configs.Where(c => c.GuildId == guildId).Select(c => c.LogsChannelId).FirstOrDefaultAsync();
             }
@@ -48,7 +55,7 @@ namespace OpenQotd.Bot
         private static async Task PrintNotFoundWarning(DiscordChannel channel)
         {
             await channel.SendMessageAsync(
-                MessageHelpers.GenericWarningEmbed("Log channel is set, but not found.\n\n" +
+                GenericEmbeds.Warning("Log channel is set, but not found.\n\n" +
                 "*It can be set using `/config set log_channel [channel]`, or unset using `/config reset log_channel`.*")
                 );
         }

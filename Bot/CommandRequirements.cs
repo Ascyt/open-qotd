@@ -12,8 +12,11 @@ namespace OpenQotd.Bot
     public static class CommandRequirements
     {
         /// <summary>
-        /// Check if the config has been initialized using /config initialize for the current guild. This function also handles sending error messages, so it's recommended to end the function if it retuns false.
+        /// Checks if the config has been initialized using `/config initialize` for the current guild.
         /// </summary>
+        /// <remarks>
+        /// This also handles sending error messages, so it's recommended to end your function if it retuns false.
+        /// </remarks>
         public static async Task<Config?> TryGetConfig(CommandContext context)
         {
             (Config?, string?) result = await IsConfigInitialized(context.Guild!);
@@ -21,11 +24,15 @@ namespace OpenQotd.Bot
             if (result.Item1 is null)
             {
                 await context.RespondAsync(
-                    MessageHelpers.GenericErrorEmbed(result.Item2!));
+                    GenericEmbeds.Error(result.Item2!));
             }
 
             return result.Item1;
         }
+
+        /// <summary>
+        /// See <see cref="IsConfigInitialized(DiscordGuild)"/>.
+        /// </summary>
         public static async Task<Config?> TryGetConfig(ComponentInteractionCreatedEventArgs args)
         {
             (Config?, string?) result = await IsConfigInitialized(args.Guild!);
@@ -34,7 +41,7 @@ namespace OpenQotd.Bot
             {
                 DiscordInteractionResponseBuilder response = new();
                 response.AddEmbed(
-                    MessageHelpers.GenericErrorEmbed(result.Item2!));
+                    GenericEmbeds.Error(result.Item2!));
                 response.IsEphemeral = true;
 
                 await args.Interaction.CreateResponseAsync(DiscordInteractionResponseType.ChannelMessageWithSource, response);
@@ -42,10 +49,14 @@ namespace OpenQotd.Bot
 
             return result.Item1;
         }
+
+        /// <summary>
+        /// Checks whether or not the config has been initialized using `/config initialize` for the specified guild.
+        /// </summary>
         /// <returns>(config if initialized, error if not)</returns>
         public static async Task<(Config?, string?)> IsConfigInitialized(DiscordGuild guild)
         {
-            using (var dbContext = new AppDbContext())
+            using (AppDbContext dbContext = new())
             {
                 Config? c = await dbContext.Configs.FirstOrDefaultAsync(c => c.GuildId == guild.Id);
 
@@ -58,9 +69,7 @@ namespace OpenQotd.Bot
         /// <summary>
         /// Check if a user has admin permission. This function also handles sending error messages, so it's recommended to end the function if it retuns false.
         /// </summary>
-        /// <param name="config">
-        /// Config if already fetched, if `null` it will be fetched from the database.
-        /// </param>
+        /// <param name="config">Config if already fetched, if null it will be fetched from the database.</param>
         public static async Task<bool> UserIsAdmin(CommandContext context, Config? config, bool responseOnError = true)
         {
             (bool, string?) result = await UserIsAdmin(context.Guild!, context.Member!, config);
@@ -68,11 +77,14 @@ namespace OpenQotd.Bot
             if (!result.Item1 && responseOnError)
             {
                 await context.RespondAsync(
-                    MessageHelpers.GenericErrorEmbed(result.Item2!));
+                    GenericEmbeds.Error(result.Item2!));
             }
 
             return result.Item1;
         }
+        /// <summary>
+        /// See <see cref="UserIsAdmin(CommandContext, Config?, bool)"/>.
+        /// </summary>
         /// <returns>(If config is initialized, error message if not)</returns>
         public static async Task<(bool, string?)> UserIsAdmin(DiscordGuild guild, DiscordMember member, Config? config)
         {
@@ -81,15 +93,14 @@ namespace OpenQotd.Bot
 
             if (config is null)
             {
-                using (var dbContext = new AppDbContext())
-                {
-                    config = await dbContext.Configs
-                        .Where(c => c.GuildId == guild.Id)
-                        .FirstOrDefaultAsync();
+                using AppDbContext dbContext = new();
 
-                    if (config is null)
-                        return (false, "The QOTD bot configuration has not been initialized yet. Use `/config initialize` to initialize.");
-                }
+                config = await dbContext.Configs
+                    .Where(c => c.GuildId == guild.Id)
+                    .FirstOrDefaultAsync();
+
+                if (config is null)
+                    return (false, "The QOTD bot configuration has not been initialized yet. Use `/config initialize` to initialize.");
             }
 
             ulong roleId = config.AdminRoleId;
@@ -116,8 +127,11 @@ namespace OpenQotd.Bot
         }
 
         /// <summary>
-        /// Check if a user has basic or admin permission. This function also handles sending error messages, so it's recommended to end the function if it retuns false.
+        /// Checks if a user has basic or admin permission.
         /// </summary>
+        /// <remarks>
+        /// This also handles sending error messages, so it's recommended to end your function if it retuns false.
+        /// </remarks>
         public static async Task<bool> UserIsBasic(CommandContext context, Config? config, bool responseOnError = true)
         {
             (bool, string?) result = await UserIsBasic(context.Guild!, context.Member!, config);
@@ -125,12 +139,15 @@ namespace OpenQotd.Bot
             if (!result.Item1 && responseOnError)
             {
                 await context.RespondAsync(
-                    MessageHelpers.GenericErrorEmbed(result.Item2!));
+                    GenericEmbeds.Error(result.Item2!));
             }
 
             return result.Item1;
         }
 
+        /// <summary>
+        /// See <see cref="UserIsBasic(CommandContext, Config?, bool)"/>.
+        /// </summary>
         public static async Task<bool> UserIsBasic(ComponentInteractionCreatedEventArgs args, Config? config)
         {
             (bool, string?) result = await UserIsBasic(args.Guild!, await args.Guild.GetMemberAsync(args.User.Id), config);
@@ -139,7 +156,7 @@ namespace OpenQotd.Bot
             {
                 DiscordInteractionResponseBuilder response = new();
                 response.AddEmbed(
-                    MessageHelpers.GenericErrorEmbed(result.Item2!));
+                    GenericEmbeds.Error(result.Item2!));
                 response.IsEphemeral = true;
 
                 await args.Interaction.CreateResponseAsync(DiscordInteractionResponseType.ChannelMessageWithSource, response);
@@ -148,6 +165,9 @@ namespace OpenQotd.Bot
             return result.Item1;
         }
 
+        /// <summary>
+        /// See <see cref="UserIsBasic(CommandContext, Config?, bool)"/>.
+        /// </summary>
         public static async Task<(bool, string?)> UserIsBasic(DiscordGuild guild, DiscordMember member, Config? config)
         {
             if (member.Permissions.HasPermission(DiscordPermission.Administrator))
@@ -155,15 +175,13 @@ namespace OpenQotd.Bot
 
             if (config is null)
             {
-                using (var dbContext = new AppDbContext())
-                {
-                    config = await dbContext.Configs
-                        .Where(c => c.GuildId == guild.Id)
-                        .FirstOrDefaultAsync();
+                using AppDbContext dbContext = new();
+                config = await dbContext.Configs
+                    .Where(c => c.GuildId == guild.Id)
+                    .FirstOrDefaultAsync();
 
-                    if (config is null)
-                        return (false, "The QOTD bot configuration has not been initialized yet. Use `/config initialize` to initialize.");
-                }
+                if (config is null)
+                    return (false, "The QOTD bot configuration has not been initialized yet. Use `/config initialize` to initialize.");
             }
 
             ulong? roleId = config.BasicRoleId;
@@ -193,29 +211,31 @@ namespace OpenQotd.Bot
         }
 
         public const int MAX_QUESTIONS_AMOUNT = 1024 * 64; // 65k questions per guild
-        public static async Task<bool> WithinMaxQuestionsAmount(CommandContext context, int additionalAmount)
+        /// <summary>
+        /// Check if adding <see cref="additionalAmount"/> questions would exceed the maximum allowed amount of questions per guild.
+        /// </summary>
+        public static async Task<bool> IsWithinMaxQuestionsAmount(CommandContext context, int additionalAmount)
         {
             if (additionalAmount < 0)
                 return false;
 
-            using (var dbContext = new AppDbContext())
+            using AppDbContext dbContext = new();
+
+            int currentAmount = dbContext.Questions
+                .Where(q => q.GuildId == context.Guild!.Id)
+                .Count();
+
+            bool isWithinLimit = currentAmount + additionalAmount <= MAX_QUESTIONS_AMOUNT;
+
+            if (!isWithinLimit)
             {
-                int currentAmount = dbContext.Questions
-                    .Where(q => q.GuildId == context.Guild!.Id)
-                    .Count();
-
-                bool isWithinLimit = currentAmount + additionalAmount <= MAX_QUESTIONS_AMOUNT;
-
-                if (!isWithinLimit)
-                {
-                    await context.RespondAsync(
-                        MessageHelpers.GenericErrorEmbed(
-                            $"It is not allowed to have more than **{MAX_QUESTIONS_AMOUNT}** questions in a guild. " +
-                            $"There are currently {currentAmount} questions, and adding {additionalAmount} more would exceed the limit, therefore no questions have been added."));
-                }
-
-                return isWithinLimit;
+                await context.RespondAsync(
+                    GenericEmbeds.Error(
+                        $"It is not allowed to have more than **{MAX_QUESTIONS_AMOUNT}** questions in a guild. " +
+                        $"There are currently {currentAmount} questions, and adding {additionalAmount} more would exceed the limit, therefore no questions have been added."));
             }
+
+            return isWithinLimit;
         }
     }
 }

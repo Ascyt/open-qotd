@@ -3,12 +3,12 @@ using DSharpPlus.Entities;
 using DSharpPlus.Commands;
 using DSharpPlus.Commands.Processors.SlashCommands;
 using OpenQotd.Bot;
-using OpenQotd.Features.Commands;
 using DSharpPlus.Interactivity.Extensions;
 using DSharpPlus.Interactivity;
 using OpenQotd.Bot.QotdSending;
 using OpenQotd.Bot.EventHandlers;
 using OpenQotd.Bot.Commands;
+using OpenQotd.Bot.UserCommands;
 
 namespace OpenQotd
 {
@@ -38,7 +38,7 @@ namespace OpenQotd
 #endif
 
             Console.WriteLine("Loading presets...");
-            await Presets.LoadPresets();
+            await Presets.LoadPresetsAsync();
             Console.WriteLine("Presets loaded.");
 
             string? discordToken = Environment.GetEnvironmentVariable("OPENQOTD_TOKEN");
@@ -54,6 +54,7 @@ namespace OpenQotd
             Console.WriteLine("Token set.");
             Console.WriteLine("Building client...");
 
+            // Create a sharded (https://dsharpplus.github.io/DSharpPlus/articles/beyond_basics/sharding.html) client.
             DiscordClientBuilder builder = DiscordClientBuilder.CreateSharded(discordToken, SlashCommandProcessor.RequiredIntents);
 
             // Use the commands extension
@@ -74,6 +75,8 @@ namespace OpenQotd
                         typeof(TopicCommand),
                         typeof(SimpleCommands),
                         typeof(MyQuestionsCommand)]);
+
+                    // Text commands disabled because of missing MessageContent intent. It would require an application to Discord.
                     /*TextCommandProcessor textCommandProcessor = new(new()
                     {
                         PrefixResolver = new DefaultPrefixResolver(true, "qotd:").ResolvePrefixAsync
@@ -82,7 +85,7 @@ namespace OpenQotd
                     // Add text commands with a custom prefix 
                     extension.AddProcessors(textCommandProcessor);*/
 
-                    extension.CommandErrored += EventHandlers.CommandErrored;
+                    extension.CommandErrored += ErrorEventHandlers.CommandErrored;
                 },
                 new CommandsConfiguration()
                 {
