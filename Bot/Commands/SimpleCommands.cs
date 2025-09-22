@@ -56,7 +56,7 @@ namespace OpenQotd.Bot.Commands
 
 
             DiscordChannel? feedbackChannel = await (await Program.Client.GetGuildAsync(Program.AppSettings.FeedbackGuildId))
-                .GetChannelAsync(Program.AppSettings.FeedbackGuildId);
+                .GetChannelAsync(Program.AppSettings.FeedbackChannelId);
 
             if (feedbackChannel is not null)
             {
