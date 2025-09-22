@@ -13,3 +13,5 @@ feedback.txt
 
 .env
 pgdata/
+
+appsettings.json

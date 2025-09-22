@@ -28,6 +28,10 @@ namespace OpenQotd
             Console.WriteLine("Environment variables loaded.");
 
             Console.WriteLine("Loading configuration...");
+            if (!File.Exists("appsettings.json"))
+            {
+                File.Copy("appsettings.defaults.json", "appsettings.json");
+            }
             IConfigurationRoot config = new ConfigurationBuilder()
                 .SetBasePath(Directory.GetCurrentDirectory()) 
                 .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
