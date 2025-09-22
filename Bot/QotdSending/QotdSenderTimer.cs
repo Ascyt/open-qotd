@@ -8,12 +8,9 @@ namespace OpenQotd.Bot.QotdSending
     /// </summary>
     public class QotdSenderTimer
     {
-        const int MAX_DEGREE_OF_PARALLELISM = 10;
-
         /// <summary>
-        /// Sends all available QOTDs, maximum MAX_DEGREE_OF_PARALLELISM at a time.
+        /// Sends all available QOTDs, maximum <see cref="AppSettings.QotdSendingMaxDegreeOfParallelism"/> at a time.
         /// </summary>
-        /// <returns></returns>
         public static async Task SendQotdsAsync()
         {
             int currentDay = DateTime.UtcNow.Day;
@@ -40,7 +37,7 @@ namespace OpenQotd.Bot.QotdSending
             // Send QOTDs in parallel, but limit the degree of parallelism to avoid overwhelming the database or Discord API
             ParallelOptions options = new() 
             {
-                MaxDegreeOfParallelism = MAX_DEGREE_OF_PARALLELISM 
+                MaxDegreeOfParallelism = Program.AppSettings.QotdSendingMaxDegreeOfParallelism
             };
             await Parallel.ForEachAsync(guildIds, options, async (id, ct) =>
             {
@@ -71,8 +68,11 @@ namespace OpenQotd.Bot.QotdSending
         }
 
         /// <summary>
-        /// Continuously filters by available QOTDs to send every minute.
+        /// Continuously filters by available QOTDs to send every <see cref="AppSettings.QotdSendingFetchLoopDelayMs"/> milliseconds.
         /// </summary>
+        /// <remarks>
+        /// Another check will not occur unless all QOTDs of the previous one have been sent.
+        /// </remarks>
         public static async Task FetchLoopAsync()
         {
             Console.WriteLine("Started fetch loop.");
@@ -80,7 +80,7 @@ namespace OpenQotd.Bot.QotdSending
             {
                 try
                 {
-                    await Task.Delay(100);
+                    await Task.Delay(Program.AppSettings.QotdSendingFetchLoopDelayMs);
                     //await Console.Out.WriteLineAsync($"[{DateTime.UtcNow:O}] Check time");
                     await SendQotdsAsync();
                 }

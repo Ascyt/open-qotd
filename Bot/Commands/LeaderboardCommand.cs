@@ -60,7 +60,7 @@ namespace OpenQotd.Bot.Commands
                 .ThenBy(pair => (_random.Next() % 2 == 0) ? -1 : 1) // Randomize order of users with same count
                 .Select(pair => new LeaderboardEntry() { UserId = pair.Key, Count = pair.Value })];
 
-            const int itemsPerPage = 10;
+            int itemsPerPage = Program.AppSettings.ListMessageItemsPerPage;
             await ListMessages.SendNew(context, page, "QOTD Leaderboard",
                 (int page) =>
                 {

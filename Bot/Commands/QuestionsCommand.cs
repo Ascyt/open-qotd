@@ -433,7 +433,7 @@ namespace OpenQotd.Bot.Commands
             [Description("The type of questions to show.")] QuestionType? type = null,
             [Description("The page of the listing (default 1).")] int page = 1)
         {
-            const int itemsPerPage = 10;
+            int itemsPerPage = Program.AppSettings.ListMessageItemsPerPage;
 
             await ListMessages.SendNew(context, page, type is null ? $"Questions List" : $"{type} Questions List", 
                 async Task<PageInfo<Question>> (int page) =>
@@ -493,7 +493,7 @@ namespace OpenQotd.Bot.Commands
             if (!await CommandRequirements.UserIsAdmin(context, null))
                 return;
 
-            const int itemsPerPage = 10;
+            int itemsPerPage = Program.AppSettings.ListMessageItemsPerPage;
             await ListMessages.SendNew<Question>(context, page, $"{(type != null ? $"{type} " : "")}Questions Search for \"{query}\"", 
                 async Task<PageInfo<Question>> (int page) =>
                 {
