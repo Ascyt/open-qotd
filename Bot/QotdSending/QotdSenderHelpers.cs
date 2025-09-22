@@ -106,7 +106,7 @@ namespace OpenQotd.Bot.QotdSending
             if (!config.EnableSuggestions)
                 return;
 
-            DiscordButtonComponent suggestButton = new(DiscordButtonStyle.Secondary, "suggest-qotd", "Suggest a new QOTD");
+            DiscordButtonComponent suggestButton = new(DiscordButtonStyle.Secondary, "suggest-qotd", $"Suggest a new {config.QotdTitle ?? "QOTD"}");
 
             messageBuilder.AddActionRowComponent(suggestButton);
         }
@@ -148,13 +148,13 @@ namespace OpenQotd.Bot.QotdSending
         }
 
         public static async Task AddPingRoleIfEnabledAndExistent(SendQotdData d, DiscordMessageBuilder builder)
-        {
-            DiscordRole? pingRole = null;
+        { 
             if (d.config.QotdPingRoleId == null)
             {
                 return;
             }
 
+            DiscordRole? pingRole;
             try
             {
                 pingRole = await d.guild.GetRoleAsync(d.config.QotdPingRoleId.Value);

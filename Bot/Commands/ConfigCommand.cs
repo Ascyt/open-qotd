@@ -238,7 +238,7 @@ namespace OpenQotd.Bot.Commands
         [Description("Reset optional config values to be unset")]
         public static async Task ResetAsync(CommandContext context,
             [Description("The role a user needs to have to execute any basic commands (allows anyone by default).")] SingleOption? BasicRole = null,
-            [Description("The title that is displayed in QOTD messages. (defaults to \"Question Of The Day\") if unset)")] string? QotdTitle = null,
+            [Description("The title that is displayed in QOTD messages. (defaults to \"Question Of The Day\") if unset)")] SingleOption? QotdTitle = null,
             [Description("The role that will get pinged when a new QOTD is sent.")] SingleOption? QotdPingRole = null,
             [Description("The channel new QOTD suggestions get announced in.")] SingleOption? SuggestionsChannel = null,
             [Description("The role that will get pinged when a new QOTD is suggested.")] SingleOption? SuggestionsPingRole = null,
@@ -286,10 +286,10 @@ namespace OpenQotd.Bot.Commands
 
         private static async Task<bool> IsQotdTitleValid(CommandContext context, string qotdTitle)
         {
-            if (qotdTitle.Length > 128)
+            if (qotdTitle.Length > 64)
             {
                 await context.RespondAsync(
-                    GenericEmbeds.Error($"The provided QOTD Title must not exceed 128 characters in length (provided length is {qotdTitle.Length}).")
+                    GenericEmbeds.Error($"The provided QOTD Title must not exceed 64 characters in length (provided length is {qotdTitle.Length}).")
                     );
                 return false; 
             }

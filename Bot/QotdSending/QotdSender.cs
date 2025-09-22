@@ -180,7 +180,9 @@ namespace OpenQotd.Bot.QotdSending
         {
             DiscordMessageBuilder messageBuilder = new();
 
-            await QotdSenderHelpers.AddPingRoleIfEnabledAndExistent(d, messageBuilder);
+            await QotdSenderHelpers.AddPingRoleIfEnabledAndExistent(d, messageBuilder); 
+
+            QotdSenderHelpers.AddSuggestButtonIfEnabled(d.config, messageBuilder);
 
             int acceptedQuestionsCount;
             int sentQuestionsCount;
