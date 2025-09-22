@@ -45,7 +45,7 @@
         /// <remarks>
         /// Changing this to a value greater than 66 is likely to cause issues upon sending QOTDs due to Discord's length limit on buttons. 
         /// </remarks>
-        public int ConfigQotdTitleMaxLength = 64;
+        public int ConfigQotdTitleMaxLength { get; set; } = 64;
 
         /// <summary>
         /// The maximum amount of characters that Question.Text can be. Does not add a database constraint.
