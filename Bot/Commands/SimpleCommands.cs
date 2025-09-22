@@ -81,7 +81,7 @@ namespace OpenQotd.Bot.Commands
                 $"- QOTD time: {DSharpPlus.Formatter.Timestamp(DateTime.Today + new TimeSpan(config.QotdTimeHourUtc, config.QotdTimeMinuteUtc, 0), DSharpPlus.TimestampFormat.ShortTime)}\n" +
                 $"- Suggestions enabled: **{config.EnableSuggestions}**";
 
-            DiscordEmbed responseEmbed = GenericEmbeds.Custom($"OpenQOTD v{Program.VERSION} - Help", 
+            DiscordEmbed responseEmbed = GenericEmbeds.Custom($"OpenQOTD v{Program.AppSettings.Version} - Help", 
                 $"*OpenQOTD is an open-source Question Of The Day Discord bot with a strong focus on a random sending of QOTDs, custom questions, suggestions, presets and more.*\n" +
                 $"# Basic Commands\n" +
                 $"- `/qotd` or `/suggest`: Suggest a QOTD to the current server if suggestions are enabled.\n" +

@@ -15,14 +15,12 @@ namespace OpenQotd
 {
     class Program
     {
-        public const string VERSION = "2.0.0";
-
         public static DiscordClient Client { get; private set; } = null!;
         public static AppSettings AppSettings { get; private set; } = null!;
 
         public static async Task Main(string[] args)
         {
-            Console.WriteLine($"OpenQOTD v{VERSION}");
+            Console.WriteLine($"OpenQOTD - Questions Of The Day done right");
             Console.WriteLine();
 
             Console.WriteLine("Loading environment variables...");
@@ -48,6 +46,11 @@ namespace OpenQotd
                 Console.WriteLine("Database migration mode; not starting client");
                 return; // The reason that doing this is important, is because otherwise attempting to migrate would start the bot which would run indefinitely
             }
+
+            Console.WriteLine();
+            Console.WriteLine($"Version: {AppSettings.Version}");
+            Console.WriteLine();
+
             Console.WriteLine("Loading presets...");
             await Presets.LoadPresetsAsync();
             Console.WriteLine("Presets loaded.");
