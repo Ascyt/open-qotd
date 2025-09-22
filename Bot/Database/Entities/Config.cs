@@ -85,7 +85,6 @@ namespace OpenQotd.Bot.Database.Entities
         /// <summary>
         /// The title of the QOTD message. If null the default is used which is "Question Of The Day"
         /// </summary>
-        [MaxLength(64)]
         public string? QotdTitle { get; set; } = null;
         public const string DEFAULT_QOTD_TITLE = "Question Of The Day";
 

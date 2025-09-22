@@ -210,10 +210,12 @@ namespace OpenQotd.Bot
             return (true, null);
         }
 
-        public const int MAX_QUESTIONS_AMOUNT = 1024 * 64; // 65k questions per guild
         /// <summary>
         /// Check if adding <see cref="additionalAmount"/> questions would exceed the maximum allowed amount of questions per guild.
         /// </summary>
+        /// <remarks>
+        /// The maximum amount is given by <see cref="AppSettings.QuestionsPerGuildMaxAmount"/>.
+        /// </remarks>
         public static async Task<bool> IsWithinMaxQuestionsAmount(CommandContext context, int additionalAmount)
         {
             if (additionalAmount < 0)
@@ -225,13 +227,13 @@ namespace OpenQotd.Bot
                 .Where(q => q.GuildId == context.Guild!.Id)
                 .Count();
 
-            bool isWithinLimit = currentAmount + additionalAmount <= MAX_QUESTIONS_AMOUNT;
+            bool isWithinLimit = currentAmount + additionalAmount <= Program.AppSettings.QuestionsPerGuildMaxAmount;
 
             if (!isWithinLimit)
             {
                 await context.RespondAsync(
                     GenericEmbeds.Error(
-                        $"It is not allowed to have more than **{MAX_QUESTIONS_AMOUNT}** questions in a guild. " +
+                        $"It is not allowed to have more than **{Program.AppSettings.QuestionsPerGuildMaxAmount}** questions in a guild. " +
                         $"There are currently {currentAmount} questions, and adding {additionalAmount} more would exceed the limit, therefore no questions have been added."));
             }
 

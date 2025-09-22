@@ -9,25 +9,21 @@ using System.Text;
 using DSharpPlus.Interactivity.Extensions;
 using OpenQotd.Bot.Helpers;
 using DSharpPlus.Interactivity;
+using DSharpPlus.Commands.Processors.SlashCommands;
 
 namespace OpenQotd.Bot.Commands
 {
     public class DebugCommand
     {
-        private readonly static HashSet<ulong> allowedUsers =
-        [
-            417669404537520128
-        ];
-
         [Command("debug")]
         [Description("Debug command that can only be executed by developers of OpenQOTD.")]
         public static async Task DebugAsync(CommandContext context, [Description("Debug arguments")] string args)
         {
-            if (!allowedUsers.Contains(context.User.Id))
+            if (!Program.AppSettings.DebugAllowedUserIds.Contains(context.User.Id))
             {
-                await context.RespondAsync(
-                    GenericEmbeds.Error("This command can only be executed by developers of OpenQOTD.")
-                    );
+                await (context as SlashCommandContext)!.RespondAsync(
+                    GenericEmbeds.Error("This command can only be executed by developers of OpenQOTD."),
+                    ephemeral: true);
                 return;
             }
 

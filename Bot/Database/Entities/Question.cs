@@ -67,7 +67,6 @@ namespace OpenQotd.Bot.Database.Entities
         /// The text contents of the question.
         /// </summary>
         [Required]
-        [MaxLength(256)]
         public string? Text { get; set; }
 
         /// <summary>
@@ -160,15 +159,10 @@ namespace OpenQotd.Bot.Database.Entities
         }
 
         /// <summary>
-        /// The maximum allowed length for a question's text.
-        /// </summary>
-        const int MAX_LENGTH = 256;
-
-        /// <summary>
         /// Checks if the provided text is valid for a question, responding with an error message if not.
         /// </summary>
         /// <remarks>
-        /// A question is considered valid if it is non-empty, does not exceed <see cref="MAX_LENGTH"/> characters,
+        /// A question is considered valid if it is non-empty, does not exceed <see cref="AppSettings.QuestionTextMaxLength"/> characters,
         /// and does not contain any line-breaks. If the text is invalid and a <see cref="CommandContext"/> is provided,
         /// an appropriate error message is sent to the context.
         /// </remarks>
@@ -184,11 +178,11 @@ namespace OpenQotd.Bot.Database.Entities
                 return false;
             }
 
-            if (text.Length > MAX_LENGTH)
+            if (text.Length > Program.AppSettings.QuestionTextMaxLength)
             {
                 if (context is not null)
                     await context.RespondAsync(
-                        GenericEmbeds.Error(title: "Maximum Length Exceeded", message: $"Your question{lineNumberString} is {text.Length} characters in length, however it must not exceed **{MAX_LENGTH}** characters."));
+                        GenericEmbeds.Error(title: "Maximum Length Exceeded", message: $"Your question{lineNumberString} is {text.Length} characters in length, however it must not exceed **{Program.AppSettings.QuestionTextMaxLength}** characters."));
                 return false;
             }
 

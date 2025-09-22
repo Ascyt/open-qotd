@@ -283,13 +283,17 @@ namespace OpenQotd.Bot.Commands
 
             await LogUserAction(context, "Set config values", configString);
         }
-
+        
+        /// <summary>
+        /// Checks whether or not the <paramref name="qotdTitle"/> is within valid length (provided by <see cref="AppSettings.ConfigQotdTitleMaxLength"/>)
+        /// and does not contain any forbidden characters.
+        /// </summary>
         private static async Task<bool> IsQotdTitleValid(CommandContext context, string qotdTitle)
         {
-            if (qotdTitle.Length > 64)
+            if (qotdTitle.Length > Program.AppSettings.ConfigQotdTitleMaxLength)
             {
                 await context.RespondAsync(
-                    GenericEmbeds.Error($"The provided QOTD Title must not exceed 64 characters in length (provided length is {qotdTitle.Length}).")
+                    GenericEmbeds.Error($"The provided QOTD Title must not exceed {Program.AppSettings.ConfigQotdTitleMaxLength} characters in length (provided length is {qotdTitle.Length}).")
                     );
                 return false; 
             }

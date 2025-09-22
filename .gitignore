@@ -1,7 +1,6 @@
 .vs
 bin
 obj
-appsettings.json
 *.db
 *.db-shm
 *.db-wal
@@ -14,3 +13,5 @@ feedback.txt
 
 .env
 pgdata/
+
+appsettings.json

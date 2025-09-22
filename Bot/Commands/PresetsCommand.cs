@@ -35,7 +35,7 @@ namespace OpenQotd.Bot.Commands
             }
             List<Presets.GuildDependentPreset> guildDependentPresets = Presets.GetPresetsAsGuildDependent(presetSents);
 
-            const int itemsPerPage = 10;
+            int itemsPerPage = Program.AppSettings.ListMessageItemsPerPage;
             await ListMessages.SendNew(context, page, $"{(type != null ? $"{type} " : "")}Presets List",
                 Task<PageInfo<Presets.GuildDependentPreset>> (int page) =>
                 {

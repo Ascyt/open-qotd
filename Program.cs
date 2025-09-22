@@ -9,33 +9,51 @@ using OpenQotd.Bot.QotdSending;
 using OpenQotd.Bot.EventHandlers;
 using OpenQotd.Bot.Commands;
 using OpenQotd.Bot.UserCommands;
+using Microsoft.Extensions.Configuration;
 
 namespace OpenQotd
 {
     class Program
     {
-        public const string VERSION = "2.0.0";
-
         public static DiscordClient Client { get; private set; } = null!;
+        public static AppSettings AppSettings { get; private set; } = null!;
 
         public static async Task Main(string[] args)
         {
-            Console.WriteLine($"OpenQOTD v{VERSION}");
+            Console.WriteLine($"OpenQOTD - Questions Of The Day done right");
             Console.WriteLine();
 
             Console.WriteLine("Loading environment variables...");
             DotNetEnv.Env.Load();
             Console.WriteLine("Environment variables loaded.");
 
-            /* When making changes to the database, change the `#if false` to `#if true`, then run:
+            Console.WriteLine("Loading configuration...");
+            if (!File.Exists("appsettings.json"))
+            {
+                File.Copy("appsettings.defaults.json", "appsettings.json");
+            }
+            IConfigurationRoot config = new ConfigurationBuilder()
+                .SetBasePath(Directory.GetCurrentDirectory()) 
+                .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
+                .Build();
+            AppSettings = new AppSettings();
+            config.Bind(AppSettings);
+            Console.WriteLine("Configuration loaded.");
+
+            /* When making changes to the database, in appsettings.json change the EnableDbMigrationMode flag to true, then run:
                 dotnet ef migrations add [MIGRATION_NAME] 
                 dotnet ef database update
             Replace [MIGRATION_NAME] with a name that describes the migration.
-            Then set it back to `false` and you're good to go. */
-#if false
-            Console.WriteLine("Database migration mode; not starting client");
+            Then set it back to false and you're good to go. */
+            if (AppSettings.EnableDbMigrationMode)
+            {
+                Console.WriteLine("Database migration mode; not starting client");
                 return; // The reason that doing this is important, is because otherwise attempting to migrate would start the bot which would run indefinitely
-#endif
+            }
+
+            Console.WriteLine();
+            Console.WriteLine($"Version: {AppSettings.Version}");
+            Console.WriteLine();
 
             Console.WriteLine("Loading presets...");
             await Presets.LoadPresetsAsync();

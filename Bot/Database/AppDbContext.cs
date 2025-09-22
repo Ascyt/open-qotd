@@ -1,6 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using OpenQotd.Bot.Database.Entities;
+using System.Text;
 
 namespace OpenQotd.Bot.Database
 {
@@ -13,9 +14,11 @@ namespace OpenQotd.Bot.Database
         public DbSet<Question> Questions { get; set; }
         public DbSet<PresetSent> PresetSents { get; set; }
 
+        private static string? _postgresConnectionString = null;
+
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
-            if (!optionsBuilder.IsConfigured)
+            if (_postgresConnectionString == null)
             {
                 string? password = Environment.GetEnvironmentVariable("POSTGRES_PASSWORD");
                 if (string.IsNullOrEmpty(password))
@@ -23,9 +26,19 @@ namespace OpenQotd.Bot.Database
                     throw new InvalidOperationException("POSTGRES_PASSWORD environment variable is not set.");
                 }
 
-                string connection = $"User ID=root;Password={password};Host=localhost;Port=5432;Database=openqotd;Pooling=true;MaxPoolSize=100;Connection Lifetime=0;";
+                StringBuilder connection = new(Program.AppSettings.PostgresConnectionStringNoPassword.Trim());
+                if (!connection.ToString().EndsWith(';'))
+                {
+                    connection.Append(';');
+                }
+                connection.Append($"Password={password}");
 
-                optionsBuilder.UseNpgsql(connection);
+                _postgresConnectionString = connection.ToString();
+            }
+
+            if (!optionsBuilder.IsConfigured)
+            {
+                optionsBuilder.UseNpgsql(_postgresConnectionString);
             }
         }
 

@@ -94,9 +94,9 @@ namespace OpenQotd.Bot.EventHandlers
                     .Where(q => q.GuildId == args.Interaction.GuildId)
                     .CountAsync();
 
-                if (questionsCount >= CommandRequirements.MAX_QUESTIONS_AMOUNT)
+                if (questionsCount >= Program.AppSettings.QuestionsPerGuildMaxAmount)
                 {
-                    DiscordEmbed errorEmbed = GenericEmbeds.Error($"The maximum amount of questions for this guild (**{CommandRequirements.MAX_QUESTIONS_AMOUNT}**) has been reached.");
+                    DiscordEmbed errorEmbed = GenericEmbeds.Error($"The maximum amount of questions for this guild (**{Program.AppSettings.QuestionsPerGuildMaxAmount}**) has been reached.");
                     await args.Interaction.CreateResponseAsync(DiscordInteractionResponseType.ChannelMessageWithSource, new DiscordInteractionResponseBuilder()
                         .AddEmbed(errorEmbed)
                         .AsEphemeral());
@@ -131,10 +131,12 @@ namespace OpenQotd.Bot.EventHandlers
 
             (bool, DiscordEmbed) result = await SuggestCommand.SuggestNoContextAsync(question, args.Interaction.Guild!, args.Interaction.Channel, args.Interaction.User, config);
 
-            DiscordMessageBuilder messageBuilder = new DiscordMessageBuilder();
+            DiscordMessageBuilder messageBuilder = new();
             messageBuilder.AddEmbed(result.Item2);
-            DiscordInteractionResponseBuilder responseBuilder = new DiscordInteractionResponseBuilder(messageBuilder);
-            responseBuilder.IsEphemeral = true;
+            DiscordInteractionResponseBuilder responseBuilder = new DiscordInteractionResponseBuilder(messageBuilder)
+            {
+                IsEphemeral = true
+            };
 
             await args.Interaction.CreateResponseAsync(DiscordInteractionResponseType.ChannelMessageWithSource, responseBuilder);
 
