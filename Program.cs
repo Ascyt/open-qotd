@@ -9,6 +9,7 @@ using OpenQotd.Bot.QotdSending;
 using OpenQotd.Bot.EventHandlers;
 using OpenQotd.Bot.Commands;
 using OpenQotd.Bot.UserCommands;
+using Microsoft.Extensions.Configuration;
 
 namespace OpenQotd
 {
@@ -17,6 +18,7 @@ namespace OpenQotd
         public const string VERSION = "2.0.0";
 
         public static DiscordClient Client { get; private set; } = null!;
+        public static IConfigurationRoot Config { get; private set; } = null!;
 
         public static async Task Main(string[] args)
         {
@@ -26,6 +28,15 @@ namespace OpenQotd
             Console.WriteLine("Loading environment variables...");
             DotNetEnv.Env.Load();
             Console.WriteLine("Environment variables loaded.");
+
+            Console.WriteLine("Loading configuration...");
+            IConfigurationRoot config = new ConfigurationBuilder()
+                .SetBasePath(Directory.GetCurrentDirectory()) 
+                .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
+                .Build();
+            AppSettings appSettings = new();
+            config.GetSection("AppSettings").Bind(appSettings);
+            Console.WriteLine("Configuration loaded.");
 
             /* When making changes to the database, change the `#if false` to `#if true`, then run:
                 dotnet ef migrations add [MIGRATION_NAME] 
