@@ -18,7 +18,7 @@ namespace OpenQotd
         public const string VERSION = "2.0.0";
 
         public static DiscordClient Client { get; private set; } = null!;
-        public static IConfigurationRoot Config { get; private set; } = null!;
+        public static AppSettings AppSettings { get; private set; } = null!;
 
         public static async Task Main(string[] args)
         {
@@ -34,8 +34,8 @@ namespace OpenQotd
                 .SetBasePath(Directory.GetCurrentDirectory()) 
                 .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
                 .Build();
-            AppSettings appSettings = new();
-            config.GetSection("AppSettings").Bind(appSettings);
+            AppSettings = new();
+            config.Bind(AppSettings);
             Console.WriteLine("Configuration loaded.");
 
             /* When making changes to the database, change the `#if false` to `#if true`, then run:
