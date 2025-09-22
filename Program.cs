@@ -34,20 +34,20 @@ namespace OpenQotd
                 .SetBasePath(Directory.GetCurrentDirectory()) 
                 .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
                 .Build();
-            AppSettings = new();
+            AppSettings = new AppSettings();
             config.Bind(AppSettings);
             Console.WriteLine("Configuration loaded.");
 
-            /* When making changes to the database, change the `#if false` to `#if true`, then run:
+            /* When making changes to the database, in appsettings.json change the EnableDbMigrationMode flag to true, then run:
                 dotnet ef migrations add [MIGRATION_NAME] 
                 dotnet ef database update
             Replace [MIGRATION_NAME] with a name that describes the migration.
-            Then set it back to `false` and you're good to go. */
-#if false
-            Console.WriteLine("Database migration mode; not starting client");
+            Then set it back to false and you're good to go. */
+            if (AppSettings.EnableDbMigrationMode)
+            {
+                Console.WriteLine("Database migration mode; not starting client");
                 return; // The reason that doing this is important, is because otherwise attempting to migrate would start the bot which would run indefinitely
-#endif
-
+            }
             Console.WriteLine("Loading presets...");
             await Presets.LoadPresetsAsync();
             Console.WriteLine("Presets loaded.");
