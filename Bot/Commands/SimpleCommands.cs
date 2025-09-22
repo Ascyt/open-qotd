@@ -20,13 +20,20 @@ namespace OpenQotd.Bot.Commands
             await QuestionsCommand.ListQuestionsNoPermcheckAsync(context, Database.Entities.QuestionType.Sent, page);
         }
 
-        const ulong FEEDBACK_SERVER_ID = 1281622725223514145;
-        const ulong FEEDBACK_CHANNEL_ID = 1310316617032401018;
         [Command("feedback")]
         [Description("Leave feedback or suggestions or report bugs for the developers of OpenQOTD.")]
         public static async Task FeedbackAsync(CommandContext context,
             [Description("The feedback, suggestion or bug.")] string feedback)
         {
+            if (Program.AppSettings.FeedbackBlockedUserIds.Contains(context.User.Id))
+            {
+                await (context as SlashCommandContext)!
+                    .RespondAsync(
+                        GenericEmbeds.Error(title: "Forbidden", message: "You have been blocked from suggesting feedback with `/feedback` or `/presets suggest`."),
+                        ephemeral: true);
+                return;
+            }
+
             string contents = $"[FEEDBACK] @{context!.User.Username} ({context!.User.Id}):\n\t{feedback}\n\n";
 
             await File.AppendAllTextAsync("feedback.txt", contents);
@@ -48,14 +55,15 @@ namespace OpenQotd.Bot.Commands
             }
 
 
-            DiscordChannel? feedbackChannel = await (await Program.Client.GetGuildAsync(FEEDBACK_SERVER_ID))
-                .GetChannelAsync(FEEDBACK_CHANNEL_ID);
+            DiscordChannel? feedbackChannel = await (await Program.Client.GetGuildAsync(Program.AppSettings.FeedbackGuildId))
+                .GetChannelAsync(Program.AppSettings.FeedbackGuildId);
 
             if (feedbackChannel is not null)
             {
                 await feedbackChannel.SendMessageAsync(GenericEmbeds.Custom(title: "New Feedback", message:
                     $"**{feedback}**\n\n" +
-                    $"*Submitted by {context.User.Mention} in \"{context.Guild!.Name}\"*"));
+                    $"*Submitted by {context.User.Mention} in \"{context.Guild!.Name}\"*")
+                    .WithFooter($"User ID: {context.User.Id}"));
             }
         }
 
