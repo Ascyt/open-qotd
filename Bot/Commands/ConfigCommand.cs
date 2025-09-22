@@ -5,6 +5,7 @@ using OpenQotd.Bot.Database;
 using OpenQotd.Bot.Database.Entities;
 using OpenQotd.Bot.Helpers;
 using System.ComponentModel;
+using System.Threading.Tasks;
 using static OpenQotd.Bot.Logging;
 
 namespace OpenQotd.Bot.Commands
@@ -21,6 +22,7 @@ namespace OpenQotd.Bot.Commands
             [Description("The UTC minute of the day the QOTDs should get sent (0-59).")] int QotdTimeMinuteUtc,
             [Description("The role a user needs to have to execute any basic commands (allows anyone by default).")] DiscordRole? BasicRole = null,
             [Description("The role that will get pinged when a new QOTD is sent.")] DiscordRole? QotdPingRole = null,
+            [Description("The title that is displayed in QOTD messages. (defaults to \"Question Of The Day\") if unset)")] string? QotdTitle = null,
             [Description("Whether to send a QOTD daily automatically, if disabled `/trigger` is needed (true by default).")] bool EnableAutomaticQotd = true,
             [Description("Whether to pin the most recent QOTD to the channel or not (true by default).")] bool EnableQotdPinMessage = true,
             [Description("Whether to automatically create a thread for every QOTD that gets sent (false by default).")] bool EnableQotdCreateThread = false,
@@ -44,6 +46,9 @@ namespace OpenQotd.Bot.Commands
             QotdTimeMinuteUtc = Math.Clamp(QotdTimeMinuteUtc, 0, 59);
             QotdTimeHourUtc = Math.Clamp(QotdTimeHourUtc, 0, 23);
 
+            if (QotdTitle is not null && !await IsQotdTitleValid(context, QotdTitle))
+                return;
+
             Config config = new()
             {
                 GuildId = context!.Guild!.Id,
@@ -51,6 +56,7 @@ namespace OpenQotd.Bot.Commands
                 AdminRoleId = AdminRole.Id,
                 QotdChannelId = QotdChannel.Id,
                 QotdPingRoleId = QotdPingRole?.Id,
+                QotdTitle = QotdTitle,
                 EnableAutomaticQotd = EnableAutomaticQotd,
                 EnableQotdPinMessage = EnableQotdPinMessage,
                 EnableQotdCreateThread = EnableQotdCreateThread,
@@ -123,6 +129,7 @@ namespace OpenQotd.Bot.Commands
             [Description("The UTC hour of the day the QOTDs should get sent (0-23).")] int? QotdTimeHourUtc = null,
             [Description("The UTC minute of the day the QOTDs should get sent (0-59).")] int? QotdTimeMinuteUtc = null,
             [Description("The role that will get pinged when a new QOTD is sent.")] DiscordRole? QotdPingRole = null,
+            [Description("The title that is displayed in QOTD messages. (defaults to \"Question Of The Day\") if unset)")] string? QotdTitle = null,
             [Description("Whether to send a QOTD daily automatically, if disabled `/trigger` is needed (true by default).")] bool? EnableAutomaticQotd = null,
             [Description("Whether to pin the most recent QOTD to the channel or not (true by default).")] bool? EnableQotdPinMessage = null,
             [Description("Whether to automatically create a thread for every QOTD that gets sent (false by default).")] bool? EnableQotdCreateThread = null,
@@ -152,6 +159,9 @@ namespace OpenQotd.Bot.Commands
             if (QotdTimeHourUtc is not null)
                 QotdTimeHourUtc = Math.Clamp(QotdTimeHourUtc.Value, 0, 23);
 
+            if (QotdTitle is not null && !await IsQotdTitleValid(context, QotdTitle))
+                return;
+
             using (AppDbContext dbContext = new())
             {
                 // Without extra retrieval config changes don't get saved
@@ -176,6 +186,8 @@ namespace OpenQotd.Bot.Commands
                     config.AdminRoleId = AdminRole.Id;
                 if (QotdChannel is not null)
                     config.QotdChannelId = QotdChannel.Id;
+                if (QotdTitle is not null)
+                    config.QotdTitle = QotdTitle;
                 if (EnableAutomaticQotd is not null)
                     config.EnableAutomaticQotd = EnableAutomaticQotd.Value;
                 if (EnableQotdPinMessage is not null)
@@ -226,6 +238,7 @@ namespace OpenQotd.Bot.Commands
         [Description("Reset optional config values to be unset")]
         public static async Task ResetAsync(CommandContext context,
             [Description("The role a user needs to have to execute any basic commands (allows anyone by default).")] SingleOption? BasicRole = null,
+            [Description("The title that is displayed in QOTD messages. (defaults to \"Question Of The Day\") if unset)")] string? QotdTitle = null,
             [Description("The role that will get pinged when a new QOTD is sent.")] SingleOption? QotdPingRole = null,
             [Description("The channel new QOTD suggestions get announced in.")] SingleOption? SuggestionsChannel = null,
             [Description("The role that will get pinged when a new QOTD is suggested.")] SingleOption? SuggestionsPingRole = null,
@@ -248,6 +261,8 @@ namespace OpenQotd.Bot.Commands
 
                 if (BasicRole is not null)
                     config.BasicRoleId = null;
+                if (QotdTitle is not null)  
+                    config.QotdTitle = null;
                 if (QotdPingRole is not null)
                     config.QotdPingRoleId = null;
                 if (SuggestionsChannel is not null)
@@ -267,6 +282,25 @@ namespace OpenQotd.Bot.Commands
                 );
 
             await LogUserAction(context, "Set config values", configString);
+        }
+
+        private static async Task<bool> IsQotdTitleValid(CommandContext context, string qotdTitle)
+        {
+            if (qotdTitle.Length > 128)
+            {
+                await context.RespondAsync(
+                    GenericEmbeds.Error($"The provided QOTD Title must not exceed 128 characters in length (provided length is {qotdTitle.Length}).")
+                    );
+                return false; 
+            }
+
+            if (qotdTitle.Contains('\n'))
+            {
+                await context.RespondAsync($"The provided QOTD title must not contain any line-breaks.");
+                return false;
+            }
+
+            return true;
         }
     }
 }

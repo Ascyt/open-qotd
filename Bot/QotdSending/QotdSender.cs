@@ -122,7 +122,8 @@ namespace OpenQotd.Bot.QotdSending
             DiscordMessageBuilder messageBuilder = new();
 
             messageBuilder.AddEmbed(
-                GenericEmbeds.Custom(title: "No QOTD Available", message: $"There is currently no Question Of The Day available." +
+                GenericEmbeds.Custom(title: $"No {d.config.QotdTitle ?? Config.DEFAULT_QOTD_TITLE} Available", message: $"There is currently no {d.config.QotdTitle ?? Config.DEFAULT_QOTD_TITLE}" +
+                $"{(d.config.EnableQotdAutomaticPresets ? " or Preset question" : "")} available." +
                 (d.config.EnableSuggestions ? $"\n\n*Suggest some using `/qotd`!*" : ""), color: "#dc5051"));
             QotdSenderHelpers.AddSuggestButtonIfEnabled(d.config, messageBuilder);
 
@@ -142,7 +143,7 @@ namespace OpenQotd.Bot.QotdSending
 
             DiscordMessageBuilder messageBuilder = new();
             messageBuilder.AddEmbed(
-                GenericEmbeds.Custom($"Question Of The Day",
+                GenericEmbeds.Custom($"{d.config.QotdTitle ?? Config.DEFAULT_QOTD_TITLE}",
                 $"**{Presets.Values[presetIndex]}**\n" +
                 $"\n" +
                 $"*Preset Question*",
@@ -192,7 +193,7 @@ namespace OpenQotd.Bot.QotdSending
             }
 
             messageBuilder.AddEmbed(
-                GenericEmbeds.Custom($"Question Of The Day #{sentQuestionsCount}",
+                GenericEmbeds.Custom($"{d.config.QotdTitle ?? Config.DEFAULT_QOTD_TITLE} #{sentQuestionsCount}",
                 $"**{question.Text}**\n" +
                 $"\n" +
                 $"*Submitted by <@{question.SubmittedByUserId}>*",
@@ -237,11 +238,12 @@ namespace OpenQotd.Bot.QotdSending
                 }
                 int presetsLeft = Presets.Values.Length - presetsSent;
 
-                lastQuestionWarning.AddEmbed(
-                    GenericEmbeds.Warning(title: "Warning: Last QOTD", message:
-                    "There is no more Accepted QOTD of this server left." +
-                    (presetsLeft > 0 && d.config.EnableQotdAutomaticPresets ? $"\nIf none are added, one of **{presetsLeft} Presets** will start to be used instead." : "") +
-                    (d.config.EnableSuggestions ? $"\n\n*More can be suggested using `/qotd`!*" : "")));
+                // TODO: Enable once #65 is added
+                //lastQuestionWarning.AddEmbed(
+                //    GenericEmbeds.Warning(title: $"Warning: Last {d.config.QotdTitle ?? Config.DEFAULT_QOTD_TITLE}", message:
+                //    "There is no more Accepted QOTD of this server left." +
+                //    (presetsLeft > 0 && d.config.EnableQotdAutomaticPresets ? $"\nIf none are added, one of **{presetsLeft} Presets** will start to be used instead." : "") +
+                //    (d.config.EnableSuggestions ? $"\n\n*More can be suggested using `/qotd`!*" : "")));
 
                 await qotdChannel.SendMessageAsync(lastQuestionWarning);
             }

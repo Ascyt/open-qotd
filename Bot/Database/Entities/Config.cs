@@ -1,4 +1,6 @@
-﻿namespace OpenQotd.Bot.Database.Entities
+﻿using System.ComponentModel.DataAnnotations;
+
+namespace OpenQotd.Bot.Database.Entities
 {
     public class Config
     {
@@ -81,6 +83,13 @@
         public int QotdTimeMinuteUtc { get; set; }
 
         /// <summary>
+        /// The title of the QOTD message. If null the default is used which is "Question Of The Day"
+        /// </summary>
+        [MaxLength(128)]
+        public string? QotdTitle { get; set; } = null;
+        public const string DEFAULT_QOTD_TITLE = "Question Of The Day";
+
+        /// <summary>
         /// If true, users can suggest questions using /suggest or /qotd.
         /// </summary>
         public bool EnableSuggestions { get; set; } = true;
@@ -138,6 +147,7 @@
                 $"- admin_role: {FormatRole(AdminRoleId)}\n" +
                 $"- qotd_channel: {FormatChannel(QotdChannelId)}\n" +
                 $"- qotd_ping_role: {FormatRole(QotdPingRoleId)}\n" +
+                $"- qotd_title: *{QotdTitle ?? DEFAULT_QOTD_TITLE}*\n" +
                 $"- enable_automatic_qotd: **{EnableAutomaticQotd}**\n" +
                 $"- enable_qotd_pin_message: **{EnableQotdPinMessage}**\n" +
                 $"- enable_qotd_create_thread: **{EnableQotdCreateThread}**\n" +
