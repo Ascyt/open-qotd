@@ -54,7 +54,7 @@ namespace OpenQotd.Bot.Commands
             int profileIdNotNull = profileId ?? 0;
             Config config = new()
             {
-                GuildIdx = context!.Guild!.Id,
+                GuildId = context!.Guild!.Id,
                 ProfileId = profileIdNotNull,
                 ProfileName = ProfileHelpers.GenerateProfileName(profileId),
                 BasicRoleId = BasicRole?.Id,
@@ -81,7 +81,7 @@ namespace OpenQotd.Bot.Commands
             using (AppDbContext dbContext = new())
             {
                 Config? existingConfig = await dbContext.Configs
-                    .FirstOrDefaultAsync(c => c.GuildIdx == context.Guild.Id && c.ProfileId == profileIdNotNull);
+                    .FirstOrDefaultAsync(c => c.GuildId == context.Guild.Id && c.ProfileId == profileIdNotNull);
 
                 if (existingConfig != null)
                 {

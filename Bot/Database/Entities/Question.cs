@@ -48,7 +48,7 @@ namespace OpenQotd.Bot.Database.Entities
     public class Question
     {
         public int Id { get; set; }
-        public int ConfigIdx { get; set; }
+        public int ConfigId { get; set; }
 
         /// <summary>
         /// For convenience, could otherwise be fetched from a join using <see cref="ConfigId"/>
@@ -153,7 +153,7 @@ namespace OpenQotd.Bot.Database.Entities
             try
             {
                 return await dbContext.Questions
-                    .Where(q => q.ConfigIdx == config.Id)
+                    .Where(q => q.ConfigId == config.Id)
                     .Select(q => q.GuildDependentId)
                     .MaxAsync() + 1;
             }

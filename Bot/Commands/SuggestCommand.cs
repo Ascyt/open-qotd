@@ -57,7 +57,7 @@ namespace OpenQotd.Bot.Commands
             {
                 newQuestion = new Question()
                 {
-                    ConfigIdx = config.Id,
+                    ConfigId = config.Id,
                     GuildId = guild.Id,
                     GuildDependentId = await Question.GetNextGuildDependentId(config),
                     Type = QuestionType.Suggested,

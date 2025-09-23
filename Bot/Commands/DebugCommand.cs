@@ -70,7 +70,7 @@ namespace OpenQotd.Bot.Commands
                             string guildSpecificData;
                             using (AppDbContext dbContext = new())
                             {
-                                guildSpecificData = JsonConvert.SerializeObject(await dbContext.Configs.Where(c => c.GuildIdx == guildId).ToArrayAsync(), Formatting.Indented);
+                                guildSpecificData = JsonConvert.SerializeObject(await dbContext.Configs.Where(c => c.GuildId == guildId).ToArrayAsync(), Formatting.Indented);
                             }
                             DiscordMessageBuilder builder1 = new();
 
@@ -89,7 +89,7 @@ namespace OpenQotd.Bot.Commands
 
                             using (AppDbContext dbContext = new())
                             {
-                                Config? config = await dbContext.Configs.Where(c => c.GuildIdx == guildId1).FirstOrDefaultAsync();
+                                Config? config = await dbContext.Configs.Where(c => c.GuildId == guildId1).FirstOrDefaultAsync();
 
                                 if (config == null)
                                 {

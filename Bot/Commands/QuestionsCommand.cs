@@ -25,7 +25,7 @@ namespace OpenQotd.Bot.Commands
             using (AppDbContext dbContext = new())
             {
                 question = await dbContext.Questions
-                    .Where(q => q.ConfigIdx == config.Id && q.GuildDependentId == questionId)
+                    .Where(q => q.ConfigId == config.Id && q.GuildDependentId == questionId)
                     .FirstOrDefaultAsync();
             }
 
@@ -86,7 +86,7 @@ namespace OpenQotd.Bot.Commands
             {
                 newQuestion = new Question()
                 {
-                    ConfigIdx = config.Id,
+                    ConfigId = config.Id,
                     GuildId = guildId,
                     GuildDependentId = await Question.GetNextGuildDependentId(config),
                     Type = type,
@@ -186,7 +186,7 @@ namespace OpenQotd.Bot.Commands
             DateTime now = DateTime.UtcNow;
             IEnumerable<Question> questions = lines.Select((line, index) => new Question()
             {
-                ConfigIdx = config.Id,
+                ConfigId = config.Id,
                 GuildId = context.Guild!.Id,
                 GuildDependentId = startId + index,
                 Type = type,
@@ -223,7 +223,7 @@ namespace OpenQotd.Bot.Commands
             string body;
             using (AppDbContext dbContext = new())
             {
-                question = await dbContext.Questions.Where(q => q.ConfigIdx == config.Id && q.GuildDependentId == questionId).FirstOrDefaultAsync();
+                question = await dbContext.Questions.Where(q => q.ConfigId == config.Id && q.GuildDependentId == questionId).FirstOrDefaultAsync();
 
                 if (question == null)
                 {
@@ -269,7 +269,7 @@ namespace OpenQotd.Bot.Commands
 			List<Question>? questions;
 			using (AppDbContext dbContext = new())
 			{
-				questions = await dbContext.Questions.Where(q => q.ConfigIdx == config.Id && q.Type == fromType).ToListAsync();
+				questions = await dbContext.Questions.Where(q => q.ConfigId == config.Id && q.Type == fromType).ToListAsync();
 
 				foreach (Question question in questions)
 				{
@@ -298,7 +298,7 @@ namespace OpenQotd.Bot.Commands
 			List<Question>? questions;
 			using (AppDbContext dbContext = new())
 			{
-				questions = await dbContext.Questions.Where(q => q.ConfigIdx == config.Id && q.Type == type).ToListAsync();
+				questions = await dbContext.Questions.Where(q => q.ConfigId == config.Id && q.Type == type).ToListAsync();
 
 				if (config.EnableDeletedToStash && type != QuestionType.Stashed) 
 				{
@@ -336,7 +336,7 @@ namespace OpenQotd.Bot.Commands
 			List<Question>? questions;
 			using (AppDbContext dbContext = new())
 			{
-				questions = await dbContext.Questions.Where(q => q.ConfigIdx == config.Id && q.Type == QuestionType.Stashed).ToListAsync();
+				questions = await dbContext.Questions.Where(q => q.ConfigId == config.Id && q.Type == QuestionType.Stashed).ToListAsync();
 
 				dbContext.Questions.RemoveRange(questions);
 				await dbContext.SaveChangesAsync();
@@ -366,7 +366,7 @@ namespace OpenQotd.Bot.Commands
             string body;
             using (AppDbContext dbContext = new())
             {
-                question = await dbContext.Questions.Where(q => q.ConfigIdx == config.Id && q.GuildDependentId == questionId).FirstOrDefaultAsync();
+                question = await dbContext.Questions.Where(q => q.ConfigId == config.Id && q.GuildDependentId == questionId).FirstOrDefaultAsync();
 
                 if (question == null)
                 {
@@ -420,7 +420,7 @@ namespace OpenQotd.Bot.Commands
                     if (type is null)
                     {
                         sqlQuery = dbContext.Questions
-                            .Where(q => q.ConfigIdx == config.Id)
+                            .Where(q => q.ConfigId == config.Id)
                             .OrderBy(q => q.Type)
                             .ThenByDescending(q => q.Timestamp)
                             .ThenByDescending(q => q.Id);
@@ -428,7 +428,7 @@ namespace OpenQotd.Bot.Commands
                     else
                     {
                         sqlQuery = dbContext.Questions
-                            .Where(q => q.ConfigIdx == config.Id && q.Type == type)
+                            .Where(q => q.ConfigId == config.Id && q.Type == type)
                             .OrderByDescending(q => q.Timestamp)
                             .ThenByDescending(q => q.Id);
                     }
@@ -478,7 +478,7 @@ namespace OpenQotd.Bot.Commands
 
                     // Build the base query
                     IQueryable<Question> sqlQuery = dbContext.Questions
-                        .Where(q => q.ConfigIdx == config.Id && (type == null || q.Type == type))
+                        .Where(q => q.ConfigId == config.Id && (type == null || q.Type == type))
                         .Where(q => EF.Functions.Like(q.Text, $"%{query}%"));
 
                     // Get the total number of questions

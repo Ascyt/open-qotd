@@ -172,7 +172,7 @@ namespace OpenQotd.Bot.Helpers
             try
             {
                 Config? c = await dbContext.Configs
-                    .Where(c => c.GuildIdx == guildId && c.ProfileId == profileId)
+                    .Where(c => c.GuildId == guildId && c.ProfileId == profileId)
                     .FirstOrDefaultAsync();
 
                 return (c, null);
@@ -197,7 +197,7 @@ namespace OpenQotd.Bot.Helpers
                 .Join(
                     dbContext.Configs,
                     guildUser => new { guildUser.GuildId, ProfileId = guildUser.SelectedProfileId },
-                    config => new { config.GuildIdx, config.ProfileId },
+                    config => new { config.GuildId, config.ProfileId },
                     (guildUser, config) => config
                 )
                 .FirstOrDefaultAsync();
@@ -235,7 +235,7 @@ namespace OpenQotd.Bot.Helpers
             using AppDbContext dbContext = new();
 
             Config? defaultConfig = await dbContext.Configs
-                .Where(config => config.GuildIdx == guildId && config.IsDefaultProfile)
+                .Where(config => config.GuildId == guildId && config.IsDefaultProfile)
                 .FirstOrDefaultAsync();
             if (defaultConfig is not null)
             {
@@ -243,7 +243,7 @@ namespace OpenQotd.Bot.Helpers
             }
 
             Config? existingConfig = await dbContext.Configs
-                .Where(config => config.GuildIdx == guildId)
+                .Where(config => config.GuildId == guildId)
                 .FirstOrDefaultAsync();
 
             if (existingConfig is not null)

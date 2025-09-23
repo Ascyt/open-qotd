@@ -52,13 +52,13 @@ namespace OpenQotd.Bot.QotdSending
         /// <summary>
         /// Selects a random accepted question from the database for the specified guild.
         /// </summary>
-        public static async Task<Question?> GetRandomQotd(ulong guildId)
+        public static async Task<Question?> GetRandomQotd(Config config)
         {
             Question[] questions;
             using (AppDbContext dbContext = new())
             {
                 questions = await dbContext.Questions
-                    .Where(q => q.ConfigId == guildId && q.Type == QuestionType.Accepted)
+                    .Where(q => q.ConfigId == config.Id && q.Type == QuestionType.Accepted)
                     .ToArrayAsync();
             }
 
@@ -107,7 +107,7 @@ namespace OpenQotd.Bot.QotdSending
             if (!config.EnableSuggestions)
                 return;
 
-            DiscordButtonComponent suggestButton = new(DiscordButtonStyle.Secondary, "suggest-qotd", $"Suggest a new {config.QotdTitle ?? "QOTD"}");
+            DiscordButtonComponent suggestButton = new(DiscordButtonStyle.Secondary, $"suggest-qotd/{config.ProfileId}", $"Suggest a new {config.QotdTitle ?? "QOTD"}");
 
             messageBuilder.AddActionRowComponent(suggestButton);
         }

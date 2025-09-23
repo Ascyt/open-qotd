@@ -129,7 +129,7 @@ namespace OpenQotd.Bot.EventHandlers
             using (AppDbContext dbContext = new())
             {
                 int questionsCount = await dbContext.Questions
-                    .Where(q => q.ConfigIdx == config.Id)
+                    .Where(q => q.ConfigId == config.Id)
                     .CountAsync();
 
                 if (questionsCount >= Program.AppSettings.QuestionsPerGuildMaxAmount)

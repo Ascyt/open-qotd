@@ -34,7 +34,7 @@ namespace OpenQotd.Bot.Commands
             using (AppDbContext dbContext = new())
             {
                 presetSents = [.. await dbContext.PresetSents
-                        .Where(p => p.ConfigIdx == config.Id).ToListAsync()];
+                        .Where(p => p.ConfigId == config.Id).ToListAsync()];
             }
             List<Presets.GuildDependentPreset> guildDependentPresets = Presets.GetPresetsAsGuildDependent(presetSents);
 
@@ -89,7 +89,7 @@ namespace OpenQotd.Bot.Commands
 
             using (AppDbContext dbContext = new())
             {
-                PresetSent? preset = await dbContext.PresetSents.FirstOrDefaultAsync(p => p.ConfigIdx == config.Id && p.PresetIndex == id);
+                PresetSent? preset = await dbContext.PresetSents.FirstOrDefaultAsync(p => p.ConfigId == config.Id && p.PresetIndex == id);
 
                 if (preset != null) // Preset sent and disabled
                 {
@@ -103,7 +103,7 @@ namespace OpenQotd.Bot.Commands
                 {
                     if (!active)
                     {
-                        await dbContext.PresetSents.AddAsync(new PresetSent() { ConfigIdx = config.Id, PresetIndex = id });
+                        await dbContext.PresetSents.AddAsync(new PresetSent() { ConfigId = config.Id, PresetIndex = id });
                         changesMade = true;
                     }
                 }
@@ -143,7 +143,7 @@ namespace OpenQotd.Bot.Commands
 
             using (AppDbContext dbContext = new())
             {
-                List<PresetSent> toRemove = await dbContext.PresetSents.Where(ps => ps.ConfigIdx == config.Id).ToListAsync();
+                List<PresetSent> toRemove = await dbContext.PresetSents.Where(ps => ps.ConfigId == config.Id).ToListAsync();
 
                 dbContext.RemoveRange(toRemove);
 

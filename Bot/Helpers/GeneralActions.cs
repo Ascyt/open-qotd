@@ -13,18 +13,14 @@ namespace OpenQotd.Bot.Helpers
         {
             using AppDbContext dbContext = new();
 
-            Config? delConfig = await dbContext.Configs.Where(c => c.GuildId == guildId).FirstOrDefaultAsync();
-
-            if (delConfig != null)
-            {
-                dbContext.Remove(delConfig);
-            }
-
-            List<Question> delQuestions = await dbContext.Questions.Where(q => q.ConfigId == guildId).ToListAsync();
+            List<Question> delQuestions = await dbContext.Questions.Where(q => q.GuildId == guildId).ToListAsync();
             dbContext.RemoveRange(delQuestions);
 
-            List<PresetSent> delPresets = await dbContext.PresetSents.Where(ps => ps.ConfigId == guildId).ToListAsync();
+            List<PresetSent> delPresets = await dbContext.PresetSents.Where(ps => ps.GuildId == guildId).ToListAsync();
             dbContext.RemoveRange(delPresets);
+
+            Config[] delConfigs = await dbContext.Configs.Where(c => c.GuildId == guildId).ToArrayAsync();
+            dbContext.RemoveRange(delConfigs);
 
             await dbContext.SaveChangesAsync();
         }

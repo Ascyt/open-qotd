@@ -16,7 +16,7 @@ namespace OpenQotd.Bot.Database.Entities
 
         public int Id { get; set; }
 
-        public ulong GuildIdx { get; set; }
+        public ulong GuildId { get; set; }
 
         /// <summary>
         /// Guild-dependent ID of the profile this config belongs to. 
