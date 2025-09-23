@@ -1,5 +1,6 @@
 ﻿using OpenQotd.Bot.Database;
 using Microsoft.EntityFrameworkCore;
+using OpenQotd.Bot.Exceptions;
 
 namespace OpenQotd.Bot.QotdSending
 {

@@ -4,6 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using DSharpPlus.Entities;
 using DSharpPlus.Exceptions;
 using OpenQotd.Bot.Helpers;
+using OpenQotd.Bot.Exceptions;
 
 namespace OpenQotd.Bot.QotdSending
 {

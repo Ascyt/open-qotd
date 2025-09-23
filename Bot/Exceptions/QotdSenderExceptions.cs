@@ -1,9 +1,9 @@
-﻿namespace OpenQotd.Bot.QotdSending
+﻿namespace OpenQotd.Bot.Exceptions
 {
     /// <summary>
     /// General exception for errors that occur during the QOTD sending process.
     /// </summary>
-    public abstract class QotdSenderException : Exception
+    public abstract class QotdSenderException : BotException
     {
         public QotdSenderException() : base() { }
         public QotdSenderException(string message) : base(message) { }
