@@ -145,21 +145,21 @@ namespace OpenQotd.Bot.Database.Entities
                 $"{GetEmoji(Type)} \"**{Text}**\" (by: <@{SubmittedByUserId}>; ID: `{GuildDependentId}`)";
 		}
         /// <summary>
-        /// Generates the next available GuildDependentId for a new question in the specified guild.
+        /// Generates the next available GuildDependentId for a new question in the specified config.
         /// </summary>
-        public static async Task<int> GetNextGuildDependentId(ulong guildId)
+        public static async Task<int> GetNextGuildDependentId(Config config)
         {
             using AppDbContext dbContext = new();
             try
             {
                 return await dbContext.Questions
-                    .Where(q => q.ConfigId == guildId)
+                    .Where(q => q.ConfigIdx == config.Id)
                     .Select(q => q.GuildDependentId)
                     .MaxAsync() + 1;
             }
             catch (InvalidOperationException)
             {
-                return 1; // No questions yet for this guild
+                return 1; // No questions yet for this config
             }
         }
 

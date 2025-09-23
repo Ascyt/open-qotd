@@ -88,7 +88,7 @@ namespace OpenQotd.Bot.Commands
                 {
                     ConfigIdx = config.Id,
                     GuildId = guildId,
-                    GuildDependentId = await Question.GetNextGuildDependentId(guildId),
+                    GuildDependentId = await Question.GetNextGuildDependentId(config),
                     Type = type,
                     Text = question,
                     SubmittedByUserId = submittedByUserId,
@@ -182,7 +182,7 @@ namespace OpenQotd.Bot.Commands
                     return;
             }
 
-            int startId = await Question.GetNextGuildDependentId(context.Guild!.Id);
+            int startId = await Question.GetNextGuildDependentId(config);
             DateTime now = DateTime.UtcNow;
             IEnumerable<Question> questions = lines.Select((line, index) => new Question()
             {

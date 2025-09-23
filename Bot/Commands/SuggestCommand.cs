@@ -59,7 +59,7 @@ namespace OpenQotd.Bot.Commands
                 {
                     ConfigIdx = config.Id,
                     GuildId = guild.Id,
-                    GuildDependentId = await Question.GetNextGuildDependentId(guild.Id),
+                    GuildDependentId = await Question.GetNextGuildDependentId(config),
                     Type = QuestionType.Suggested,
                     Text = question,
                     SubmittedByUserId = user.Id,
@@ -131,8 +131,8 @@ namespace OpenQotd.Bot.Commands
                 color: "#f0b132"));
 
             messageBuilder.AddActionRowComponent(
-                new DiscordButtonComponent(DiscordButtonStyle.Success, $"suggestions-accept/{newQuestion.GuildDependentId}", "Accept"),
-                new DiscordButtonComponent(DiscordButtonStyle.Danger, $"suggestions-deny/{newQuestion.GuildDependentId}", "Deny")
+                new DiscordButtonComponent(DiscordButtonStyle.Success, $"suggestions-accept/{config.ProfileId}/{newQuestion.GuildDependentId}", "Accept"),
+                new DiscordButtonComponent(DiscordButtonStyle.Danger, $"suggestions-deny/{config.ProfileId}/{newQuestion.GuildDependentId}", "Deny")
             );
 
             DiscordMessage message = await channel.SendMessageAsync(

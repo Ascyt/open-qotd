@@ -90,9 +90,9 @@ namespace OpenQotd.Bot
         /// <summary>
         /// See <see cref="UserIsBasic(CommandContext, Config?, bool)"/>.
         /// </summary>
-        public static async Task<bool> UserIsBasic(ComponentInteractionCreatedEventArgs args, Config? config)
+        public static async Task<bool> UserIsBasic(InteractionCreatedEventArgs args, Config? config)
         {
-            (bool, string?) result = await UserIsBasic(args.Guild!, await args.Guild.GetMemberAsync(args.User.Id), config);
+            (bool, string?) result = await UserIsBasic(args.Interaction.Guild!, await args.Interaction.Guild!.GetMemberAsync(args.Interaction.User!.Id), config);
 
             if (!result.Item1)
             {
