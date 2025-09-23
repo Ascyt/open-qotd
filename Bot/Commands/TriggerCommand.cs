@@ -12,7 +12,7 @@ namespace OpenQotd.Bot.Commands
         [Description("Trigger a QOTD prematurely.")]
         public static async Task TriggerAsync(CommandContext context)
         {
-            Config? config = await ProfileHelpers.TryGetConfigAsync(context);
+            Config? config = await ProfileHelpers.TryGetSelectedConfigAsync(context);
             if (config is null || !await CommandRequirements.UserIsAdmin(context, config))
                 return;
 

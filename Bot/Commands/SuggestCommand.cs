@@ -18,11 +18,11 @@ namespace OpenQotd.Bot.Commands
         public static async Task SuggestAsync(CommandContext context,
             [Description ("The question to be added.")] string question)
         {
-            Config? config = await ProfileHelpers.TryGetConfigAsync(context);
-            if (config is null)
+            Config? config = await ProfileHelpers.TryGetDefaultConfigAsync(context);
+            if (config is null || !await CommandRequirements.UserIsBasic(context, config))
                 return;
 
-            if (!await CommandRequirements.UserIsBasic(context, config) || !await CommandRequirements.IsWithinMaxQuestionsAmount(context, 1))
+            if (!await CommandRequirements.IsWithinMaxQuestionsAmount(context, 1))
                 return;
 
             if (!config.EnableSuggestions)
@@ -32,7 +32,7 @@ namespace OpenQotd.Bot.Commands
                 return;
             }
 
-            (bool, DiscordEmbed) result = await SuggestNoContextAsync(question, context.Guild!, context.Channel, context.User, config);
+            (bool, DiscordEmbed) result = await SuggestNoContextAsync(question, config, context.Guild!, context.Channel, context.User);
 
             if (context is SlashCommandContext && result.Item1) // Is slash command and not errored
             {
@@ -47,33 +47,26 @@ namespace OpenQotd.Bot.Commands
         }
 
         /// <returns>(whether or not successful, response message)</returns>
-        public static async Task<(bool, DiscordEmbed)> SuggestNoContextAsync(string question, DiscordGuild guild, DiscordChannel discordChannel, DiscordUser user, Config config)
+        public static async Task<(bool, DiscordEmbed)> SuggestNoContextAsync(string question, Config config, DiscordGuild guild, DiscordChannel discordChannel, DiscordUser user)
         {
             if (!await Question.CheckTextValidity(question, null, config))
                 return (false, GenericEmbeds.Error("Text validity check failed"));
 
-            ulong guildId = guild.Id;
-            ulong userId = user.Id;
-
             Question newQuestion;
-            ulong? suggestionsChannelId;
-            ulong? suggestionsPingRoleId;
             using (AppDbContext dbContext = new())
             {
                 newQuestion = new Question()
                 {
-                    ConfigId = guildId,
-                    GuildDependentId = await Question.GetNextGuildDependentId(guildId),
+                    ConfigIdx = config.Id,
+                    GuildId = guild.Id,
+                    GuildDependentId = await Question.GetNextGuildDependentId(guild.Id),
                     Type = QuestionType.Suggested,
                     Text = question,
-                    SubmittedByUserId = userId,
+                    SubmittedByUserId = user.Id,
                     Timestamp = DateTime.UtcNow
                 };
                 await dbContext.Questions.AddAsync(newQuestion);
                 await dbContext.SaveChangesAsync();
-
-                suggestionsChannelId = await dbContext.Configs.Where(c => c.GuildId == guildId).Select(c => c.SuggestionsChannelId).FirstOrDefaultAsync();
-                suggestionsPingRoleId = await dbContext.Configs.Where(c => c.GuildId == guildId).Select(c => c.SuggestionsPingRoleId).FirstOrDefaultAsync();
             }
 
             (bool, DiscordEmbedBuilder) result = (true, GenericEmbeds.Success("QOTD Suggested!",
@@ -84,11 +77,11 @@ namespace OpenQotd.Bot.Commands
                     $"You will be notified when it gets accepted or denied."));
 
 
-            await Logging.LogUserAction(guildId, discordChannel, user, "Suggested QOTD", $"\"**{newQuestion.Text}**\"\nID: `{newQuestion.GuildDependentId}`");
+            await Logging.LogUserAction(discordChannel, user, config, "Suggested QOTD", $"\"**{newQuestion.Text}**\"\nID: `{newQuestion.GuildDependentId}`");
 
-            if (suggestionsChannelId == null)
+            if (config.SuggestionsChannelId is null)
             {
-                if (suggestionsPingRoleId == null)
+                if (config.SuggestionsPingRoleId is null)
                 {
                     await discordChannel.SendMessageAsync(GenericEmbeds.Warning("Suggestions ping role is set, but suggestions channel is not.\n\n" +
                         "*The channel can be set using `/config set suggestions_channel [channel]`, or the ping role can be removed using `/config reset suggestions_ping_role`.*"));
@@ -98,11 +91,11 @@ namespace OpenQotd.Bot.Commands
             }
 
             DiscordRole? pingRole = null;
-            if (suggestionsPingRoleId != null)
+            if (config.SuggestionsPingRoleId is not null)
             {
                 try
                 {
-                    pingRole = await guild.GetRoleAsync(suggestionsPingRoleId.Value);
+                    pingRole = await guild.GetRoleAsync(config.SuggestionsPingRoleId.Value);
                 }
                 catch (NotFoundException)
                 {
@@ -116,7 +109,7 @@ namespace OpenQotd.Bot.Commands
             DiscordChannel channel;
             try
             {
-                channel = await guild.GetChannelAsync(suggestionsChannelId.Value);
+                channel = await guild.GetChannelAsync(config.SuggestionsChannelId.Value);
             }
             catch (NotFoundException)
             {

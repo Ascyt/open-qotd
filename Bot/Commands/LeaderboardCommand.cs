@@ -28,14 +28,15 @@ namespace OpenQotd.Bot.Commands
         public static async Task LeaderboardAsync(CommandContext context,
             [Description("The page of the listing (default 1).")] int page = 1)
         {
-            if (!await CommandRequirements.UserIsBasic(context, null))
+            Config? config = await ProfileHelpers.TryGetDefaultConfigAsync(context);
+            if (config is null || !await CommandRequirements.UserIsBasic(context, config))
                 return;
 
             List<Question> sentQuestions;
             using (AppDbContext dbContext = new())
             {
                 sentQuestions = await dbContext.Questions
-                    .Where(q => q.ConfigId == context.Guild!.Id && q.Type == QuestionType.Sent)
+                    .Where(q => q.ConfigIdx == config.Id && q.Type == QuestionType.Sent)
                     .ToListAsync();
             }
 

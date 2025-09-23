@@ -21,7 +21,7 @@ namespace OpenQotd.Bot.Commands
             [Description("Optionally filter by only active or completed presets.")] PresetsType? type = null,
             [Description("The page of the listing (default 1).")] int page = 1)
         {
-            Config? config = await ProfileHelpers.TryGetConfigAsync(context);
+            Config? config = await ProfileHelpers.TryGetSelectedConfigAsync(context);
             if (config is null)
                 return;
 
@@ -70,7 +70,7 @@ namespace OpenQotd.Bot.Commands
             [Description("The ID of the preset.")] int id,
             [Description("Whether to set the preset as active to be sendable as QOTD.")] bool active)
         {
-            Config? config = await ProfileHelpers.TryGetConfigAsync(context);
+            Config? config = await ProfileHelpers.TryGetSelectedConfigAsync(context);
             if (config is null)
                 return;
 
@@ -132,7 +132,7 @@ namespace OpenQotd.Bot.Commands
         [Description("Reset the active state of all presets, making them all QOTD-sendable again.")]
         public static async Task ResetPresetsAsync(CommandContext context)
         {
-            Config? config = await ProfileHelpers.TryGetConfigAsync(context);
+            Config? config = await ProfileHelpers.TryGetSelectedConfigAsync(context);
             if (config is null)
                 return;
 

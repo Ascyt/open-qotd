@@ -14,10 +14,11 @@ namespace OpenQotd.Bot.Commands
         public static async Task ViewSentQuestionsAsync(CommandContext context, 
             [Description("The page of the listing (default 1).")] int page = 1)
         {
-            if (!await CommandRequirements.UserIsBasic(context, null))
+            Config? config = await ProfileHelpers.TryGetDefaultConfigAsync(context);
+            if (config is null || !await CommandRequirements.UserIsBasic(context, config))
                 return;
 
-            await QuestionsCommand.ListQuestionsNoPermcheckAsync(context, Database.Entities.QuestionType.Sent, page);
+            await QuestionsCommand.ListQuestionsNoPermcheckAsync(context, config, QuestionType.Sent, page);
         }
 
         [Command("feedback")]
@@ -71,8 +72,7 @@ namespace OpenQotd.Bot.Commands
         [Description("Print general information about OpenQOTD")]
         public static async Task HelpAsync(CommandContext context)
         {
-            Config? config = await ProfileHelpers.TryGetConfigAsync(context);
-
+            Config? config = await ProfileHelpers.TryGetDefaultConfigAsync(context);
             if (config is null || !await CommandRequirements.UserIsBasic(context, config))
                 return;
 

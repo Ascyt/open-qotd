@@ -70,7 +70,7 @@ namespace OpenQotd.Bot.Commands
         public static async Task AcceptSuggestionAsync(CommandContext context,
         [Description("The ID of the suggestion.")] int suggestionId)
         {
-            Config? config = await ProfileHelpers.TryGetConfigAsync(context);
+            Config? config = await ProfileHelpers.TryGetSelectedConfigAsync(context);
             if (config is null || !await CommandRequirements.UserIsAdmin(context, config))
                 return;
 
@@ -110,7 +110,7 @@ namespace OpenQotd.Bot.Commands
         [Description("The ID of the suggestion.")] int suggestionId,
         [Description("The reason why the suggestion is denied, which will be sent to the user.")] string reason)
         {
-            Config? config = await ProfileHelpers.TryGetConfigAsync(context);
+            Config? config = await ProfileHelpers.TryGetSelectedConfigAsync(context);
             if (config is null || !await CommandRequirements.UserIsAdmin(context, config))
                 return;
 
@@ -150,7 +150,7 @@ namespace OpenQotd.Bot.Commands
         [Description("Accept all suggestions.")]
         public static async Task AcceptAllSuggestionsAsync(CommandContext context)
         {
-            Config? config = await ProfileHelpers.TryGetConfigAsync(context);
+            Config? config = await ProfileHelpers.TryGetSelectedConfigAsync(context);
             if (config is null || !await CommandRequirements.UserIsAdmin(context, config))
                 return;
 
@@ -258,7 +258,7 @@ namespace OpenQotd.Bot.Commands
         [Description("Deny all suggestions.")]
         public static async Task DenyAllSuggestionsAsync(CommandContext context)
         {
-            Config? config = await ProfileHelpers.TryGetConfigAsync(context);
+            Config? config = await ProfileHelpers.TryGetSelectedConfigAsync(context);
             if (config is null || !await CommandRequirements.UserIsAdmin(context, config))
                 return;
 

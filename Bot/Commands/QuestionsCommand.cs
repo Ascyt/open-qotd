@@ -17,7 +17,7 @@ namespace OpenQotd.Bot.Commands
         public static async Task ViewQuestionAsync(CommandContext context,
         [Description("The ID of the question.")] int questionId)
         {
-            Config? config = await ProfileHelpers.TryGetConfigAsync(context);
+            Config? config = await ProfileHelpers.TryGetSelectedConfigAsync(context);
             if (config is null || !await CommandRequirements.UserIsAdmin(context, config))
                 return;
 
@@ -70,7 +70,7 @@ namespace OpenQotd.Bot.Commands
             [Description("The question to add.")] string question,
             [Description("The type of the question to add.")] QuestionType type)
         {
-            Config? config = await ProfileHelpers.TryGetConfigAsync(context);
+            Config? config = await ProfileHelpers.TryGetSelectedConfigAsync(context);
             if (config is null || !await CommandRequirements.UserIsAdmin(context, config))
                 return;
 
@@ -112,7 +112,7 @@ namespace OpenQotd.Bot.Commands
             [Description("A file containing the questions, each seperated by line-breaks.")] DiscordAttachment questionsFile,
             [Description("The type of the questions to add.")] QuestionType type)
         {
-            Config? config = await ProfileHelpers.TryGetConfigAsync(context);
+            Config? config = await ProfileHelpers.TryGetSelectedConfigAsync(context);
             if (config is null || !await CommandRequirements.UserIsAdmin(context, config))
                 return;
 
@@ -213,7 +213,7 @@ namespace OpenQotd.Bot.Commands
             [Description("The ID of the question.")] int questionId,
             [Description("The type to set the question to.")] QuestionType type)
         {
-            Config? config = await ProfileHelpers.TryGetConfigAsync(context);
+            Config? config = await ProfileHelpers.TryGetSelectedConfigAsync(context);
             if (config is null || !await CommandRequirements.UserIsAdmin(context, config))
                 return;
 
@@ -253,7 +253,7 @@ namespace OpenQotd.Bot.Commands
 			[Description("The type of the questions to change the type of.")] QuestionType fromType,
 			[Description("The type to set all of those questions to.")] QuestionType toType)
         {
-            Config? config = await ProfileHelpers.TryGetConfigAsync(context);
+            Config? config = await ProfileHelpers.TryGetSelectedConfigAsync(context);
             if (config is null || !await CommandRequirements.UserIsAdmin(context, config))
                 return;
 
@@ -291,7 +291,7 @@ namespace OpenQotd.Bot.Commands
 		public static async Task RemoveQuestionsBulkAsync(CommandContext context,
 			[Description("The type of the questions to remove.")] QuestionType type)
         {
-            Config? config = await ProfileHelpers.TryGetConfigAsync(context);
+            Config? config = await ProfileHelpers.TryGetSelectedConfigAsync(context);
             if (config is null || !await CommandRequirements.UserIsAdmin(context, config))
                 return;
 
@@ -327,7 +327,7 @@ namespace OpenQotd.Bot.Commands
         [Description("Remove all questions of Stashed type.")]
         public static async Task ClearStashAsync(CommandContext context)
         {
-            Config? config = await ProfileHelpers.TryGetConfigAsync(context);
+            Config? config = await ProfileHelpers.TryGetSelectedConfigAsync(context);
             if (config is null || !await CommandRequirements.UserIsAdmin(context, config))
                 return;
 
@@ -356,7 +356,7 @@ namespace OpenQotd.Bot.Commands
         public static async Task RemoveQuestionAsync(CommandContext context,
         [Description("The ID of the question.")] int questionId)
         {
-            Config? config = await ProfileHelpers.TryGetConfigAsync(context);
+            Config? config = await ProfileHelpers.TryGetSelectedConfigAsync(context);
             if (config is null || !await CommandRequirements.UserIsAdmin(context, config))
                 return;
 
@@ -401,7 +401,7 @@ namespace OpenQotd.Bot.Commands
             [Description("The type of questions to show.")] QuestionType? type = null,
             [Description("The page of the listing (default 1).")] int page = 1)
         {
-            Config? config = await ProfileHelpers.TryGetConfigAsync(context);
+            Config? config = await ProfileHelpers.TryGetSelectedConfigAsync(context);
             if (config is null || !await CommandRequirements.UserIsAdmin(context, config))
                 return;
 
@@ -466,7 +466,7 @@ namespace OpenQotd.Bot.Commands
             [Description("The type of questions to show (default all).")] QuestionType? type = null,
             [Description("The page of the listing (default 1).")] int page = 1)
         {
-            Config? config = await ProfileHelpers.TryGetConfigAsync(context);
+            Config? config = await ProfileHelpers.TryGetSelectedConfigAsync(context);
             if (config is null || !await CommandRequirements.UserIsAdmin(context, config))
                 return;
 

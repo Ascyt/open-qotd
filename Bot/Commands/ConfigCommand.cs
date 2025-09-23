@@ -115,7 +115,7 @@ namespace OpenQotd.Bot.Commands
                 return;
             }
 
-            Config? config = await ProfileHelpers.TryGetConfigAsync(context);
+            Config? config = await ProfileHelpers.TryGetSelectedConfigAsync(context);
 
             if (config is null)
                 return;
@@ -156,7 +156,7 @@ namespace OpenQotd.Bot.Commands
                     );
                 return;
             }
-            Config? config = await ProfileHelpers.TryGetConfigAsync(context);
+            Config? config = await ProfileHelpers.TryGetSelectedConfigAsync(context);
 
             if (config is null)
                 return;
@@ -261,7 +261,7 @@ namespace OpenQotd.Bot.Commands
                 return;
             }
 
-            Config? config = await ProfileHelpers.TryGetConfigAsync(context);
+            Config? config = await ProfileHelpers.TryGetSelectedConfigAsync(context);
 
             if (config is null)
                 return;

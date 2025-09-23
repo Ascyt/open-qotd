@@ -21,14 +21,15 @@ namespace OpenQotd.Bot.Commands
         public static async Task TopicAsync(CommandContext context,
             [Description("Whether or not to include all existing Preset questions.")] bool includePresets=true)
         {
-            if (!await CommandRequirements.UserIsBasic(context, null))
+            Config? config = await ProfileHelpers.TryGetDefaultConfigAsync(context);
+            if (config is null || !await CommandRequirements.UserIsBasic(context, config))
                 return;
 
             Question[] questions;
             using (AppDbContext dbContext = new())
             {
                 questions = await dbContext.Questions
-                    .Where(q => q.ConfigId == context.Guild!.Id && q.Type == QuestionType.Sent)
+                    .Where(q => q.ConfigIdx == config.Id && q.Type == QuestionType.Sent)
                     .ToArrayAsync();
             }
 
@@ -40,17 +41,17 @@ namespace OpenQotd.Bot.Commands
                 return;
             }
 
-            DiscordButtonComponent rerollButton = new DiscordButtonComponent(DiscordButtonStyle.Secondary, "reroll", "⟳");
+            DiscordButtonComponent rerollButton = new(DiscordButtonStyle.Secondary, "reroll", "⟳");
 
             DiscordEmbed embed = GetRandomTopic(questions, includePresets);
 
-            DiscordMessageBuilder messageBuilder = new DiscordMessageBuilder();
+            DiscordMessageBuilder messageBuilder = new();
             messageBuilder.AddEmbed(embed);
             messageBuilder.AddActionRowComponent(
                 rerollButton
                 );
 
-            DiscordMessageBuilder messageBuilderNoButtons = new DiscordMessageBuilder();
+            DiscordMessageBuilder messageBuilderNoButtons = new();
             messageBuilderNoButtons.AddEmbed(embed);
 
             await context.RespondAsync(
@@ -59,7 +60,7 @@ namespace OpenQotd.Bot.Commands
 
             DiscordMessage? message = await context.GetResponseAsync();
 
-            if (message == null)
+            if (message is null)
             {
                 return;
             }

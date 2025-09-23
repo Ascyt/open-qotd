@@ -11,14 +11,14 @@ namespace OpenQotd.Bot.Helpers
     internal static class ProfileHelpers
     {
         /// <summary>
-        /// Checks if the config has been initialized using `/config initialize` for the current guild.
+        /// Checks if the config has been initialized using `/config initialize` for the current guild and, if it has, returns the config.
         /// </summary>
         /// <remarks>
         /// This also handles sending error messages, so it's recommended to end your function if it retuns false.
         /// </remarks>
-        public static async Task<Config?> TryGetConfigAsync(CommandContext context)
+        public static async Task<Config?> TryGetSelectedConfigAsync(CommandContext context)
         {
-            (Config?, string?) result = await TryGetConfigAsync(context.Guild!.Id, context.User.Id);
+            (Config?, string?) result = await TryGetSelectedConfigAsync(context.Guild!.Id, context.User.Id);
 
             if (result.Item1 is null)
             {
@@ -32,9 +32,9 @@ namespace OpenQotd.Bot.Helpers
         /// <summary>
         /// See <see cref="TryGetConfigAsync(DiscordGuild)"/>.
         /// </summary>
-        public static async Task<Config?> TryGetConfig(ComponentInteractionCreatedEventArgs args)
+        public static async Task<Config?> TryGetSelectedConfigAsync(ComponentInteractionCreatedEventArgs args)
         {
-            (Config?, string?) result = await TryGetConfigAsync(args.Guild!.Id, args.User.Id);
+            (Config?, string?) result = await TryGetSelectedConfigAsync(args.Guild!.Id, args.User.Id);
 
             if (result.Item1 is null)
             {
@@ -50,15 +50,74 @@ namespace OpenQotd.Bot.Helpers
         }
 
         /// <summary>
-        /// Checks whether or not the config has been initialized using `/config initialize` for the specified guild.
+        /// See <see cref="TryGetConfigAsync(DiscordGuild)"/>.
         /// </summary>
         /// <returns>(config if initialized, error if not)</returns>
-        public static async Task<(Config?, string?)> TryGetConfigAsync(ulong guildId, ulong userId)
+        public static async Task<(Config?, string?)> TryGetSelectedConfigAsync(ulong guildId, ulong userId)
         {
             using AppDbContext dbContext = new();
             try
             {
                 Config? c = await GetSelectedConfigAsync(guildId, userId);
+
+                return (c, null);
+            }
+            catch (ConfigNotInitializedException)
+            {
+                return (null, $"The QOTD bot configuration has not been initialized yet. Use `/config initialize` to initialize.");
+            }
+        }
+
+
+        /// <summary>
+        /// Checks if the config has been initialized using `/config initialize` for the current guild and, if it has, returns the config.
+        /// </summary>
+        /// <remarks>
+        /// This also handles sending error messages, so it's recommended to end your function if it retuns false.
+        /// </remarks>
+        public static async Task<Config?> TryGetDefaultConfigAsync(CommandContext context)
+        {
+            (Config?, string?) result = await TryGetDefaultConfigAsync(context.Guild!.Id);
+
+            if (result.Item1 is null)
+            {
+                await context.RespondAsync(
+                    GenericEmbeds.Error(result.Item2!));
+            }
+
+            return result.Item1;
+        }
+
+        /// <summary>
+        /// See <see cref="TryGetConfigAsync(DiscordGuild)"/>.
+        /// </summary>
+        public static async Task<Config?> TryGetDefaultConfigAsync(ComponentInteractionCreatedEventArgs args)
+        {
+            (Config?, string?) result = await TryGetDefaultConfigAsync(args.Guild!.Id);
+
+            if (result.Item1 is null)
+            {
+                DiscordInteractionResponseBuilder response = new();
+                response.AddEmbed(
+                    GenericEmbeds.Error(result.Item2!));
+                response.IsEphemeral = true;
+
+                await args.Interaction.CreateResponseAsync(DiscordInteractionResponseType.ChannelMessageWithSource, response);
+            }
+
+            return result.Item1;
+        }
+
+        /// <summary>
+        /// See <see cref="TryGetConfigAsync(DiscordGuild)"/>.
+        /// </summary>
+        /// <returns>(config if initialized, error if not)</returns>
+        public static async Task<(Config?, string?)> TryGetDefaultConfigAsync(ulong guildId)
+        {
+            using AppDbContext dbContext = new();
+            try
+            {
+                Config? c = await GetDefaultConfigAsync(guildId);
 
                 return (c, null);
             }
