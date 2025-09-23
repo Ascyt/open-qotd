@@ -99,7 +99,7 @@ namespace CustomQotd
             DiscordClient client = builder.Build();
             Client = client;
 
-            DiscordActivity status = new("/qotd", DiscordActivityType.ListeningTo);
+            DiscordActivity status = new("Huge update coming soon!", DiscordActivityType.Custom);
 
             Console.WriteLine("Connecting client...");
             // Now we connect and log in.
