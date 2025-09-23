@@ -160,6 +160,8 @@ namespace OpenQotd.Bot.Database.Entities
         public override string ToString()
         {
             return
+                $"**Profile:** *{ProfileName}*{(IsDefaultProfile ? " (default profile)" : "")}\n" +
+                $"\n" +
                 $"- basic_role: {FormatRole(BasicRoleId)}\n" +
                 $"- admin_role: {FormatRole(AdminRoleId)}\n" +
                 $"- qotd_channel: {FormatChannel(QotdChannelId)}\n" +

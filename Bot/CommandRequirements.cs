@@ -5,71 +5,11 @@ using DSharpPlus.Commands;
 using DSharpPlus.Entities;
 using DSharpPlus.EventArgs;
 using DSharpPlus.Exceptions;
-using Microsoft.EntityFrameworkCore;
-using OpenQotd.Bot.Exceptions;
 
 namespace OpenQotd.Bot
 {
     public static class CommandRequirements
     {
-        /// <summary>
-        /// Checks if the config has been initialized using `/config initialize` for the current guild.
-        /// </summary>
-        /// <remarks>
-        /// This also handles sending error messages, so it's recommended to end your function if it retuns false.
-        /// </remarks>
-        public static async Task<Config?> TryGetConfig(CommandContext context)
-        {
-            (Config?, string?) result = await TryGetConfigAsync(context.Guild!.Id, context.User.Id);
-
-            if (result.Item1 is null)
-            {
-                await context.RespondAsync(
-                    GenericEmbeds.Error(result.Item2!));
-            }
-
-            return result.Item1;
-        }
-
-        /// <summary>
-        /// See <see cref="TryGetConfigAsync(DiscordGuild)"/>.
-        /// </summary>
-        public static async Task<Config?> TryGetConfig(ComponentInteractionCreatedEventArgs args)
-        {
-            (Config?, string?) result = await TryGetConfigAsync(args.Guild!.Id, args.User.Id);
-
-            if (result.Item1 is null)
-            {
-                DiscordInteractionResponseBuilder response = new();
-                response.AddEmbed(
-                    GenericEmbeds.Error(result.Item2!));
-                response.IsEphemeral = true;
-
-                await args.Interaction.CreateResponseAsync(DiscordInteractionResponseType.ChannelMessageWithSource, response);
-            }
-
-            return result.Item1;
-        }
-
-        /// <summary>
-        /// Checks whether or not the config has been initialized using `/config initialize` for the specified guild.
-        /// </summary>
-        /// <returns>(config if initialized, error if not)</returns>
-        public static async Task<(Config?, string?)> TryGetConfigAsync(ulong guildId, ulong userId)
-        {
-            using AppDbContext dbContext = new();
-            try
-            {
-                Config? c = await ProfileHelpers.GetSelectedConfigAsync(guildId, userId);
-
-                return (c, null);
-            }
-            catch (ConfigNotInitializedException)
-            {
-                return (null, $"The QOTD bot configuration has not been initialized yet. Use `/config initialize` to initialize.");
-            }
-        }
-
         /// <summary>
         /// Check if a user has admin permission. This function also handles sending error messages, so it's recommended to end the function if it retuns false.
         /// </summary>
@@ -99,7 +39,7 @@ namespace OpenQotd.Bot
             {
                 using AppDbContext dbContext = new();
 
-                (config, string? error) = await TryGetConfigAsync(guild.Id, member.Id);
+                (config, string? error) = await ProfileHelpers.TryGetConfigAsync(guild.Id, member.Id);
 
                 if (config is null)
                     return (false, error);
@@ -179,7 +119,7 @@ namespace OpenQotd.Bot
             {
                 using AppDbContext dbContext = new();
 
-                (config, string? error) = await TryGetConfigAsync(guild.Id, member.Id);
+                (config, string? error) = await ProfileHelpers.TryGetConfigAsync(guild.Id, member.Id);
 
                 if (config is null)
                     return (false, error);
@@ -217,7 +157,7 @@ namespace OpenQotd.Bot
         /// <remarks>
         /// The maximum amount is given by <see cref="AppSettings.QuestionsPerGuildMaxAmount"/>.
         /// </remarks>
-        public static async Task<bool> IsWithinMaxQuestionsAmount(CommandContext context, int additionalAmount)
+        public static async Task<bool> IsWithinMaxQuestionsAmount(CommandContext context, int configId, int additionalAmount)
         {
             if (additionalAmount < 0)
                 return false;
@@ -225,7 +165,7 @@ namespace OpenQotd.Bot
             using AppDbContext dbContext = new();
 
             int currentAmount = dbContext.Questions
-                .Where(q => q.GuildId == context.Guild!.Id)
+                .Where(q => q.ConfigIdx == configId)
                 .Count();
 
             bool isWithinLimit = currentAmount + additionalAmount <= Program.AppSettings.QuestionsPerGuildMaxAmount;

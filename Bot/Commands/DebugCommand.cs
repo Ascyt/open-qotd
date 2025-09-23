@@ -70,7 +70,7 @@ namespace OpenQotd.Bot.Commands
                             string guildSpecificData;
                             using (AppDbContext dbContext = new())
                             {
-                                guildSpecificData = JsonConvert.SerializeObject(await dbContext.Configs.Where(c => c.GuildId == guildId).ToArrayAsync(), Formatting.Indented);
+                                guildSpecificData = JsonConvert.SerializeObject(await dbContext.Configs.Where(c => c.GuildIdx == guildId).ToArrayAsync(), Formatting.Indented);
                             }
                             DiscordMessageBuilder builder1 = new();
 
@@ -89,7 +89,7 @@ namespace OpenQotd.Bot.Commands
 
                             using (AppDbContext dbContext = new())
                             {
-                                Config? config = await dbContext.Configs.Where(c => c.GuildId == guildId1).FirstOrDefaultAsync();
+                                Config? config = await dbContext.Configs.Where(c => c.GuildIdx == guildId1).FirstOrDefaultAsync();
 
                                 if (config == null)
                                 {
@@ -146,20 +146,22 @@ namespace OpenQotd.Bot.Commands
                         case "get":
                             ulong guildId = argsSplit.Length > 2 ? ulong.Parse(argsSplit[2]) : context.Guild!.Id;
 
-                            string guildSpecificData;
-                            using (AppDbContext dbContext = new())
-                            {
-                                guildSpecificData = JsonConvert.SerializeObject(await dbContext.Questions.Where(c => c.GuildId == guildId).ToArrayAsync(), Formatting.Indented);
-                            }
-                            DiscordMessageBuilder builder1 = new();
-                            using (FileStream fileStream = CreateTextFileStream(guildSpecificData))
-                            {
-                                builder1.AddFile(fileStream);
+                            await context.RespondAsync("Not implemented with profiles");
 
-                                await context.RespondAsync(builder1);
+                            //string guildSpecificData;
+                            //using (AppDbContext dbContext = new())
+                            //{
+                            //    guildSpecificData = JsonConvert.SerializeObject(await dbContext.Questions.Where(c => c.ConfigId == guildId).ToArrayAsync(), Formatting.Indented);
+                            //}
+                            //DiscordMessageBuilder builder1 = new();
+                            //using (FileStream fileStream = CreateTextFileStream(guildSpecificData))
+                            //{
+                            //    builder1.AddFile(fileStream);
 
-                                fileStream.Close();
-                            }
+                            //    await context.RespondAsync(builder1);
+
+                            //    fileStream.Close();
+                            //}
                             return;
 
                         case "add":
@@ -167,34 +169,36 @@ namespace OpenQotd.Bot.Commands
                             return;
 
                         case "removeduplicates":
-                            List<Question> questions;
-                            using (AppDbContext dbContext = new())
-                            {
-                                questions = await dbContext.Questions.Where(c => c.GuildId == context.Guild!.Id).ToListAsync();
-                            }
+                            await context.RespondAsync("Not implemented with profiles");
 
-                            List<int> duplicateIds = questions
-                                .GroupBy(q => q.Text)
-                                .Where(g => g.Count() > 1)
-                                .SelectMany(g => g.Skip(1).Select(q => q.Id))
-                                .ToList();
+                            //List<Question> questions;
+                            //using (AppDbContext dbContext = new())
+                            //{
+                            //    questions = await dbContext.Questions.Where(c => c.ConfigId == context.Guild!.Id).ToListAsync();
+                            //}
 
-                            using (AppDbContext dbContext = new())
-                            {
-                                foreach (int id in duplicateIds)
-                                {
-                                    Question? question = await dbContext.Questions.Where(q => q.Id == id).FirstOrDefaultAsync();
+                            //List<int> duplicateIds = questions
+                            //    .GroupBy(q => q.Text)
+                            //    .Where(g => g.Count() > 1)
+                            //    .SelectMany(g => g.Skip(1).Select(q => q.Id))
+                            //    .ToList();
 
-                                    if (question == null)
-                                        continue;
+                            //using (AppDbContext dbContext = new())
+                            //{
+                            //    foreach (int id in duplicateIds)
+                            //    {
+                            //        Question? question = await dbContext.Questions.Where(q => q.Id == id).FirstOrDefaultAsync();
 
-                                    dbContext.Remove(question);
-                                }
+                            //        if (question == null)
+                            //            continue;
 
-                                await dbContext.SaveChangesAsync();
-                            }
+                            //        dbContext.Remove(question);
+                            //    }
 
-                            await context.RespondAsync($"Removed {duplicateIds.Count} duplicates.");
+                            //    await dbContext.SaveChangesAsync();
+                            //}
+
+                            //await context.RespondAsync($"Removed {duplicateIds.Count} duplicates.");
 
                             return;
                     }
@@ -305,82 +309,84 @@ namespace OpenQotd.Bot.Commands
 
         private static async Task AddQuestionsAsync(CommandContext context, string[] argsSplit)
         {
-            QuestionType type;
-            switch (argsSplit[2].ToLower())
-            {
-                case "suggested":
-                    type = QuestionType.Suggested;
-                    break;
-                case "accepted":
-                    type = QuestionType.Accepted;
-                    break;
-                case "sent":
-                    type = QuestionType.Sent;
-                    break;
-                default:
-                    await context.RespondAsync("Error: Unknown question type");
-                    return;
-            }
+            await context.RespondAsync("Not implemented with profiles");
 
-            await context.RespondAsync($"Adding questions of type {type}.\n\nFormat:\n`{{userId}} {{question}}`\n\nBackslash (`\\`) to cancel.");
+            //QuestionType type;
+            //switch (argsSplit[2].ToLower())
+            //{
+            //    case "suggested":
+            //        type = QuestionType.Suggested;
+            //        break;
+            //    case "accepted":
+            //        type = QuestionType.Accepted;
+            //        break;
+            //    case "sent":
+            //        type = QuestionType.Sent;
+            //        break;
+            //    default:
+            //        await context.RespondAsync("Error: Unknown question type");
+            //        return;
+            //}
 
-            DiscordMessage message = await context.Channel!.SendMessageAsync($"Now intercepting messages from {context.User.Mention}");
+            //await context.RespondAsync($"Adding questions of type {type}.\n\nFormat:\n`{{userId}} {{question}}`\n\nBackslash (`\\`) to cancel.");
 
-            int ttl = 256;
-            while (ttl > 0)
-            {
-                ttl--;
+            //DiscordMessage message = await context.Channel!.SendMessageAsync($"Now intercepting messages from {context.User.Mention}");
 
-                StringBuilder response = new();
+            //int ttl = 256;
+            //while (ttl > 0)
+            //{
+            //    ttl--;
 
-                InteractivityResult<DiscordMessage> result = await message.Channel!.GetNextMessageAsync(m =>
-                {
-                    return m.Author!.Id == context.User.Id;   
-                });
+            //    StringBuilder response = new();
 
-                if (result.TimedOut || result.Result == null)
-                {
-                    await context.Channel.SendMessageAsync("Interception stopped because of timeout.");
-                    return;
-                }
+            //    InteractivityResult<DiscordMessage> result = await message.Channel!.GetNextMessageAsync(m =>
+            //    {
+            //        return m.Author!.Id == context.User.Id;   
+            //    });
 
-                string[] results = result.Result.Content.Split('\n');
-                foreach (string s in results)
-                {
-                    if (s == "\\")
-                    {
-                        await context.Channel.SendMessageAsync("Interception stopped.");
-                        return;
-                    }
+            //    if (result.TimedOut || result.Result == null)
+            //    {
+            //        await context.Channel.SendMessageAsync("Interception stopped because of timeout.");
+            //        return;
+            //    }
 
-                    string userIdString = s.Split(' ')[0];
-                    string questionText = s.Substring(userIdString.Length + 1);
-                    ulong userId = ulong.Parse(userIdString);
+            //    string[] results = result.Result.Content.Split('\n');
+            //    foreach (string s in results)
+            //    {
+            //        if (s == "\\")
+            //        {
+            //            await context.Channel.SendMessageAsync("Interception stopped.");
+            //            return;
+            //        }
 
-                    Question newQuestion;
+            //        string userIdString = s.Split(' ')[0];
+            //        string questionText = s.Substring(userIdString.Length + 1);
+            //        ulong userId = ulong.Parse(userIdString);
 
-                    using (AppDbContext dbContext = new())
-                    {
-                        newQuestion = new Question()
-                        {
-                            GuildId = context.Guild!.Id,
-                            GuildDependentId = await Question.GetNextGuildDependentId(context.Guild!.Id),
-                            Type = type,
-                            Text = questionText,
-                            SubmittedByUserId = userId,
-                            Timestamp = DateTime.MinValue
-                        };
-                        await dbContext.Questions.AddAsync(newQuestion);
-                        await dbContext.SaveChangesAsync();
-                    }
+            //        Question newQuestion;
 
-                    response.AppendLine(newQuestion.ToString());
-                }
+            //        using (AppDbContext dbContext = new())
+            //        {
+            //            newQuestion = new Question()
+            //            {
+            //                ConfigId = context.Guild!.Id,
+            //                GuildDependentId = await Question.GetNextGuildDependentId(context.Guild!.Id),
+            //                Type = type,
+            //                Text = questionText,
+            //                SubmittedByUserId = userId,
+            //                Timestamp = DateTime.MinValue
+            //            };
+            //            await dbContext.Questions.AddAsync(newQuestion);
+            //            await dbContext.SaveChangesAsync();
+            //        }
 
-                await context.Channel!.SendMessageAsync(GenericEmbeds.Custom(title: "Added Questions", message: response.ToString()));
-            }
+            //        response.AppendLine(newQuestion.ToString());
+            //    }
 
-            await context.Channel.SendMessageAsync("Interception stopped because TTL expired.");
+            //    await context.Channel!.SendMessageAsync(GenericEmbeds.Custom(title: "Added Questions", message: response.ToString()));
+            //}
+
+            //await context.Channel.SendMessageAsync("Interception stopped because TTL expired.");
         }
 
         private static FileStream CreateTextFileStream(string content, string path="debug_output.json")

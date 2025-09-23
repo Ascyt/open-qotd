@@ -49,9 +49,14 @@ namespace OpenQotd.Bot.Commands
             if (QotdTitle is not null && !await IsQotdTitleValid(context, QotdTitle))
                 return;
 
+            int? profileId = await ProfileHelpers.GetSelectedProfileIdAsync(context.Guild!.Id, context.Member.Id);
+
+            int profileIdNotNull = profileId ?? 0;
             Config config = new()
             {
-                GuildId = context!.Guild!.Id,
+                GuildIdx = context!.Guild!.Id,
+                ProfileId = profileIdNotNull,
+                ProfileName = ProfileHelpers.GenerateProfileName(profileId),
                 BasicRoleId = BasicRole?.Id,
                 AdminRoleId = AdminRole.Id,
                 QotdChannelId = QotdChannel.Id,
@@ -72,9 +77,11 @@ namespace OpenQotd.Bot.Commands
 				LogsChannelId = LogsChannel?.Id
             };
             bool reInitialized = false;
+
             using (AppDbContext dbContext = new())
             {
-                Config? existingConfig = await dbContext.Configs.FirstOrDefaultAsync(c => c.GuildId == context!.Guild.Id);
+                Config? existingConfig = await dbContext.Configs
+                    .FirstOrDefaultAsync(c => c.GuildIdx == context.Guild.Id && c.ProfileId == profileIdNotNull);
 
                 if (existingConfig != null)
                 {
@@ -89,7 +96,7 @@ namespace OpenQotd.Bot.Commands
             string configString = config.ToString();
 
             await context.RespondAsync(
-                    GenericEmbeds.Success($"Successfully {(reInitialized ? "re-" : "")}initialized config", configString)
+                    GenericEmbeds.Success($"Successfully {(reInitialized ? "re-" : "")}initialized config", configString, profileName:config.ProfileName)
                 );
 
             // Can cause issues
@@ -108,7 +115,7 @@ namespace OpenQotd.Bot.Commands
                 return;
             }
 
-            Config? config = await CommandRequirements.TryGetConfig(context);
+            Config? config = await ProfileHelpers.TryGetConfigAsync(context);
 
             if (config is null)
                 return;
@@ -149,7 +156,7 @@ namespace OpenQotd.Bot.Commands
                     );
                 return;
             }
-            Config? config = await CommandRequirements.TryGetConfig(context);
+            Config? config = await ProfileHelpers.TryGetConfigAsync(context);
 
             if (config is null)
                 return;
@@ -166,7 +173,7 @@ namespace OpenQotd.Bot.Commands
             {
                 // Without extra retrieval config changes don't get saved
                 config = dbContext.Configs
-                    .Where(c => c.GuildId == context.Guild!.Id)
+                    .Where(c => c.GuildIdx == config.GuildIdx && c.ProfileId == config.ProfileId)
                     .FirstOrDefault()!;
 
                 if (QotdTimeMinuteUtc is not null || QotdTimeHourUtc is not null)
@@ -226,7 +233,7 @@ namespace OpenQotd.Bot.Commands
                     GenericEmbeds.Success("Successfully set config values", $"{configString}")
                 );
 
-            await LogUserAction(context, "Set config values", configString);
+            await LogUserAction(context, "Set config values", config.ProfileId, config.ProfileName, configString);
         }
 
         public enum SingleOption
@@ -252,11 +259,16 @@ namespace OpenQotd.Bot.Commands
                 return;
             }
 
-            Config config;
+            Config? config = await ProfileHelpers.TryGetConfigAsync(context);
+
+            if (config is null)
+                return;
+
             using (AppDbContext dbContext = new())
             {
+                // Without extra retrieval config changes don't get saved
                 config = dbContext.Configs
-                    .Where(c => c.GuildId == context.Guild!.Id)
+                    .Where(c => c.GuildIdx == config.GuildIdx && c.ProfileId == config.ProfileId)
                     .FirstOrDefault()!;
 
                 if (BasicRole is not null)
@@ -281,7 +293,7 @@ namespace OpenQotd.Bot.Commands
                     GenericEmbeds.Success("Successfully set config values", $"{configString}")
                 );
 
-            await LogUserAction(context, "Set config values", configString);
+            await LogUserAction(context, "Set config values", config.ProfileId, config.ProfileName, configString);
         }
         
         /// <summary>

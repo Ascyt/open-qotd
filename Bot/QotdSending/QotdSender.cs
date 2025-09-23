@@ -95,7 +95,7 @@ namespace OpenQotd.Bot.QotdSending
                 using (AppDbContext dbContext = new())
                 {
                     presetSents = await dbContext.PresetSents
-                        .Where(ps => ps.GuildId == guild.Id)
+                        .Where(ps => ps.ConfigId == guild.Id)
                         .ToListAsync();
                 }
 
@@ -164,7 +164,7 @@ namespace OpenQotd.Bot.QotdSending
                     foundConfig.LastQotdMessageId = sentMessage.Id;
                 }
 
-                await dbContext.PresetSents.AddAsync(new PresetSent() { GuildId = d.guild.Id, PresetIndex = presetIndex });
+                await dbContext.PresetSents.AddAsync(new PresetSent() { ConfigId = d.guild.Id, PresetIndex = presetIndex });
 
                 await dbContext.SaveChangesAsync();
             }
@@ -188,9 +188,9 @@ namespace OpenQotd.Bot.QotdSending
             int sentQuestionsCount;
             using (AppDbContext dbContext = new())
             {
-                acceptedQuestionsCount = await dbContext.Questions.Where(q => q.GuildId == d.guild.Id && q.Type == QuestionType.Accepted).CountAsync()
+                acceptedQuestionsCount = await dbContext.Questions.Where(q => q.ConfigId == d.guild.Id && q.Type == QuestionType.Accepted).CountAsync()
                     - 1;
-                sentQuestionsCount = await dbContext.Questions.Where(q => q.GuildId == d.guild.Id && q.Type == QuestionType.Sent).CountAsync()
+                sentQuestionsCount = await dbContext.Questions.Where(q => q.ConfigId == d.guild.Id && q.Type == QuestionType.Sent).CountAsync()
                     + 1;
             }
 
@@ -236,7 +236,7 @@ namespace OpenQotd.Bot.QotdSending
                 int presetsSent;
                 using (AppDbContext dbContext = new())
                 {
-                    presetsSent = await dbContext.PresetSents.Where(ps => ps.GuildId == d.guild.Id).CountAsync();
+                    presetsSent = await dbContext.PresetSents.Where(ps => ps.ConfigId == d.guild.Id).CountAsync();
                 }
                 int presetsLeft = Presets.Values.Length - presetsSent;
 

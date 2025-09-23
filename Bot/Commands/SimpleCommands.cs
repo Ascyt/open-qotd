@@ -71,7 +71,7 @@ namespace OpenQotd.Bot.Commands
         [Description("Print general information about OpenQOTD")]
         public static async Task HelpAsync(CommandContext context)
         {
-            Config? config = await CommandRequirements.TryGetConfig(context);
+            Config? config = await ProfileHelpers.TryGetConfigAsync(context);
 
             if (config is null || !await CommandRequirements.UserIsBasic(context, config))
                 return;

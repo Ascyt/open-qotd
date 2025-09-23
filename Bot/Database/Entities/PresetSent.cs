@@ -9,7 +9,7 @@
     public class PresetSent
     {
         public int Id { get; set; }
-        public ulong GuildId { get; set; }
+        public int ConfigIdx { get; set; }
         public int PresetIndex { get; set; }
     }
 }

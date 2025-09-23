@@ -82,7 +82,7 @@ namespace OpenQotd.Bot.Commands
             using (AppDbContext dbContext = new())
             {
                 question = await dbContext.Questions
-                    .Where(q => q.GuildId == context.Guild!.Id && q.GuildDependentId == suggestionId)
+                    .Where(q => q.ConfigId == context.Guild!.Id && q.GuildDependentId == suggestionId)
                     .FirstOrDefaultAsync();
 
                 if (question == null)
@@ -121,7 +121,7 @@ namespace OpenQotd.Bot.Commands
             using (AppDbContext dbContext = new())
             {
                 question = await dbContext.Questions
-                    .Where(q => q.GuildId == context.Guild!.Id && q.GuildDependentId == suggestionId)
+                    .Where(q => q.ConfigId == context.Guild!.Id && q.GuildDependentId == suggestionId)
                     .FirstOrDefaultAsync();
 
                 if (question == null)
@@ -161,7 +161,7 @@ namespace OpenQotd.Bot.Commands
             Question[] questions;
             using (AppDbContext dbContext = new())
             {
-                questions = await dbContext.Questions.Where(q => q.GuildId == context.Guild!.Id && q.Type == QuestionType.Suggested).ToArrayAsync();
+                questions = await dbContext.Questions.Where(q => q.ConfigId == context.Guild!.Id && q.Type == QuestionType.Suggested).ToArrayAsync();
             }
 
             Dictionary<ulong, List<Question>> questionsByUsers = new();
@@ -268,7 +268,7 @@ namespace OpenQotd.Bot.Commands
             Question[] questions;
             using (AppDbContext dbContext = new())
             {
-                questions = await dbContext.Questions.Where(q => q.GuildId == context.Guild!.Id && q.Type == QuestionType.Suggested).ToArrayAsync();
+                questions = await dbContext.Questions.Where(q => q.ConfigId == context.Guild!.Id && q.Type == QuestionType.Suggested).ToArrayAsync();
             }
 
             Dictionary<ulong, List<Question>> questionsByUsers = new();

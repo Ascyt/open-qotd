@@ -24,7 +24,7 @@ namespace OpenQotd.Bot.Commands
             using (AppDbContext dbContext = new())
             {
                 question = await dbContext.Questions
-                    .Where(q => q.GuildId == context.Guild!.Id && q.GuildDependentId == questionId)
+                    .Where(q => q.ConfigId == context.Guild!.Id && q.GuildDependentId == questionId)
                     .FirstOrDefaultAsync();
             }
 
@@ -69,7 +69,7 @@ namespace OpenQotd.Bot.Commands
             [Description("The question to add.")] string question,
             [Description("The type of the question to add.")] QuestionType type)
         {
-            Config? config = await CommandRequirements.TryGetConfig(context);
+            Config? config = await ProfileHelpers.TryGetConfigAsync(context);
 
             if (config is null || !await CommandRequirements.UserIsAdmin(context, null) || !await CommandRequirements.IsWithinMaxQuestionsAmount(context, 1))
                 return;
@@ -86,7 +86,7 @@ namespace OpenQotd.Bot.Commands
             {
                 newQuestion = new Question()
                 {
-                    GuildId = guildId,
+                    ConfigId = guildId,
                     GuildDependentId = await Question.GetNextGuildDependentId(guildId),
                     Type = type,
                     Text = question,
@@ -102,7 +102,7 @@ namespace OpenQotd.Bot.Commands
 			await context.RespondAsync(
                 GenericEmbeds.Success("Added Question", body)
                 );
-            await Logging.LogUserAction(context, "Added Question", body);
+            await Logging.LogUserAction(context, "Added Question", config.ProfileId, config.ProfileName, body);
         }
 
         [Command("addbulk")]
@@ -111,7 +111,7 @@ namespace OpenQotd.Bot.Commands
             [Description("A file containing the questions, each seperated by line-breaks.")] DiscordAttachment questionsFile,
             [Description("The type of the questions to add.")] QuestionType type)
         {
-            Config? config = await CommandRequirements.TryGetConfig(context);
+            Config? config = await ProfileHelpers.TryGetConfigAsync(context);
 
             if (config is null || !await CommandRequirements.UserIsAdmin(context, config))
                 return;
@@ -186,7 +186,7 @@ namespace OpenQotd.Bot.Commands
             DateTime now = DateTime.UtcNow;
             IEnumerable<Question> questions = lines.Select((line, index) => new Question()
             {
-                GuildId = context.Guild!.Id,
+                ConfigId = context.Guild!.Id,
                 GuildDependentId = startId + index,
                 Type = type,
                 Text = line,
@@ -221,7 +221,7 @@ namespace OpenQotd.Bot.Commands
             string body;
             using (AppDbContext dbContext = new())
             {
-                question = await dbContext.Questions.Where(q => q.GuildId == guildId && q.GuildDependentId == questionId).FirstOrDefaultAsync();
+                question = await dbContext.Questions.Where(q => q.ConfigId == guildId && q.GuildDependentId == questionId).FirstOrDefaultAsync();
 
                 if (question == null)
                 {
@@ -266,7 +266,7 @@ namespace OpenQotd.Bot.Commands
 			List<Question>? questions;
 			using (AppDbContext dbContext = new())
 			{
-				questions = await dbContext.Questions.Where(q => q.GuildId == guildId && q.Type == fromType).ToListAsync();
+				questions = await dbContext.Questions.Where(q => q.ConfigId == guildId && q.Type == fromType).ToListAsync();
 
 				foreach (Question question in questions)
 				{
@@ -297,7 +297,7 @@ namespace OpenQotd.Bot.Commands
             Config? config;
 			using (AppDbContext dbContext = new())
 			{
-				questions = await dbContext.Questions.Where(q => q.GuildId == guildId && q.Type == type).ToListAsync();
+				questions = await dbContext.Questions.Where(q => q.ConfigId == guildId && q.Type == type).ToListAsync();
 
                 config = await dbContext.Configs.Where(c => c.GuildId == guildId).FirstOrDefaultAsync();
                 if (config == null)
@@ -343,7 +343,7 @@ namespace OpenQotd.Bot.Commands
 			Config? config;
 			using (AppDbContext dbContext = new())
 			{
-				questions = await dbContext.Questions.Where(q => q.GuildId == guildId && q.Type == QuestionType.Stashed).ToListAsync();
+				questions = await dbContext.Questions.Where(q => q.ConfigId == guildId && q.Type == QuestionType.Stashed).ToListAsync();
 
 				config = await dbContext.Configs.Where(c => c.GuildId == guildId).FirstOrDefaultAsync();
 				if (config == null)
@@ -381,7 +381,7 @@ namespace OpenQotd.Bot.Commands
             Config? config;
             using (AppDbContext dbContext = new())
             {
-                question = await dbContext.Questions.Where(q => q.GuildId == guildId && q.GuildDependentId == questionId).FirstOrDefaultAsync();
+                question = await dbContext.Questions.Where(q => q.ConfigId == guildId && q.GuildDependentId == questionId).FirstOrDefaultAsync();
 
                 if (question == null)
                 {
@@ -444,7 +444,7 @@ namespace OpenQotd.Bot.Commands
                     if (type is null)
                     {
                         sqlQuery = dbContext.Questions
-                            .Where(q => q.GuildId == context.Guild!.Id)
+                            .Where(q => q.ConfigId == context.Guild!.Id)
                             .OrderBy(q => q.Type)
                             .ThenByDescending(q => q.Timestamp)
                             .ThenByDescending(q => q.Id);
@@ -452,7 +452,7 @@ namespace OpenQotd.Bot.Commands
                     else
                     {
                         sqlQuery = dbContext.Questions
-                            .Where(q => q.GuildId == context.Guild!.Id && q.Type == type)
+                            .Where(q => q.ConfigId == context.Guild!.Id && q.Type == type)
                             .OrderByDescending(q => q.Timestamp)
                             .ThenByDescending(q => q.Id);
                     }
@@ -501,7 +501,7 @@ namespace OpenQotd.Bot.Commands
 
                     // Build the base query
                     IQueryable<Question> sqlQuery = dbContext.Questions
-                        .Where(q => q.GuildId == context.Guild!.Id && (type == null || q.Type == type))
+                        .Where(q => q.ConfigId == context.Guild!.Id && (type == null || q.Type == type))
                         .Where(q => EF.Functions.Like(q.Text, $"%{query}%"));
 
                     // Get the total number of questions

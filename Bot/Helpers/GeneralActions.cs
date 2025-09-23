@@ -20,10 +20,10 @@ namespace OpenQotd.Bot.Helpers
                 dbContext.Remove(delConfig);
             }
 
-            List<Question> delQuestions = await dbContext.Questions.Where(q => q.GuildId == guildId).ToListAsync();
+            List<Question> delQuestions = await dbContext.Questions.Where(q => q.ConfigId == guildId).ToListAsync();
             dbContext.RemoveRange(delQuestions);
 
-            List<PresetSent> delPresets = await dbContext.PresetSents.Where(ps => ps.GuildId == guildId).ToListAsync();
+            List<PresetSent> delPresets = await dbContext.PresetSents.Where(ps => ps.ConfigId == guildId).ToListAsync();
             dbContext.RemoveRange(delPresets);
 
             await dbContext.SaveChangesAsync();

@@ -58,7 +58,7 @@ namespace OpenQotd.Bot.QotdSending
             using (AppDbContext dbContext = new())
             {
                 questions = await dbContext.Questions
-                    .Where(q => q.GuildId == guildId && q.Type == QuestionType.Accepted)
+                    .Where(q => q.ConfigId == guildId && q.Type == QuestionType.Accepted)
                     .ToArrayAsync();
             }
 

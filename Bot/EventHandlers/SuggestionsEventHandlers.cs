@@ -32,7 +32,7 @@ namespace OpenQotd.Bot.EventHandlers
             using (AppDbContext dbContext = new())
             {
                 question = await dbContext.Questions
-                    .Where(q => q.GuildId == args.Guild.Id && q.GuildDependentId == questionGuildDepedentId)
+                    .Where(q => q.ConfigId == args.Guild.Id && q.GuildDependentId == questionGuildDepedentId)
                     .FirstOrDefaultAsync();
             }
             if (question is null)
@@ -72,7 +72,7 @@ namespace OpenQotd.Bot.EventHandlers
             using (AppDbContext dbContext = new())
             {
                 question = await dbContext.Questions
-                    .Where(q => q.GuildId == args.Interaction.Guild!.Id && q.GuildDependentId == questionGuildDepedentId)
+                    .Where(q => q.ConfigId == args.Interaction.Guild!.Id && q.GuildDependentId == questionGuildDepedentId)
                     .FirstOrDefaultAsync();
             }
             if (question is null)
@@ -130,7 +130,7 @@ namespace OpenQotd.Bot.EventHandlers
             using (AppDbContext dbContext = new())
             {
                 question = await dbContext.Questions
-                    .Where(q => q.GuildId == args.Guild.Id && q.GuildDependentId == guildDependentId)
+                    .Where(q => q.ConfigId == args.Guild.Id && q.GuildDependentId == guildDependentId)
                     .FirstOrDefaultAsync();
             }
             if (question is null)

@@ -1,12 +1,73 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using DSharpPlus.Commands;
+using DSharpPlus.Entities;
+using DSharpPlus.EventArgs;
+using Microsoft.EntityFrameworkCore;
 using OpenQotd.Bot.Database;
 using OpenQotd.Bot.Database.Entities;
+using OpenQotd.Bot.Exceptions;
 
 namespace OpenQotd.Bot.Helpers
 {
-
     internal static class ProfileHelpers
     {
+        /// <summary>
+        /// Checks if the config has been initialized using `/config initialize` for the current guild.
+        /// </summary>
+        /// <remarks>
+        /// This also handles sending error messages, so it's recommended to end your function if it retuns false.
+        /// </remarks>
+        public static async Task<Config?> TryGetConfigAsync(CommandContext context)
+        {
+            (Config?, string?) result = await TryGetConfigAsync(context.Guild!.Id, context.User.Id);
+
+            if (result.Item1 is null)
+            {
+                await context.RespondAsync(
+                    GenericEmbeds.Error(result.Item2!));
+            }
+
+            return result.Item1;
+        }
+
+        /// <summary>
+        /// See <see cref="TryGetConfigAsync(DiscordGuild)"/>.
+        /// </summary>
+        public static async Task<Config?> TryGetConfig(ComponentInteractionCreatedEventArgs args)
+        {
+            (Config?, string?) result = await TryGetConfigAsync(args.Guild!.Id, args.User.Id);
+
+            if (result.Item1 is null)
+            {
+                DiscordInteractionResponseBuilder response = new();
+                response.AddEmbed(
+                    GenericEmbeds.Error(result.Item2!));
+                response.IsEphemeral = true;
+
+                await args.Interaction.CreateResponseAsync(DiscordInteractionResponseType.ChannelMessageWithSource, response);
+            }
+
+            return result.Item1;
+        }
+
+        /// <summary>
+        /// Checks whether or not the config has been initialized using `/config initialize` for the specified guild.
+        /// </summary>
+        /// <returns>(config if initialized, error if not)</returns>
+        public static async Task<(Config?, string?)> TryGetConfigAsync(ulong guildId, ulong userId)
+        {
+            using AppDbContext dbContext = new();
+            try
+            {
+                Config? c = await GetSelectedConfigAsync(guildId, userId);
+
+                return (c, null);
+            }
+            catch (ConfigNotInitializedException)
+            {
+                return (null, $"The QOTD bot configuration has not been initialized yet. Use `/config initialize` to initialize.");
+            }
+        }
+
         /// <summary>
         /// Returns the config for the profile selected by the user in the guild, or the guild's default profile if none is selected.
         /// </summary>
@@ -76,6 +137,16 @@ namespace OpenQotd.Bot.Helpers
             }
 
             throw new Exceptions.ConfigNotInitializedException();
+        }
+
+        public static string GenerateProfileName(int? profileId)
+        {
+            if (profileId is null)
+            {
+                return "Default";
+            }
+            
+            return $"Profile {profileId + 1}";
         }
     }
 }

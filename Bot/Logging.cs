@@ -11,20 +11,21 @@ namespace OpenQotd.Bot
         /// <summary>
         /// Logs a user action to the configured log channel, if set.
         /// </summary>
-        public static async Task LogUserAction(CommandContext context, string title, string? message = null)
+        public static async Task LogUserAction(CommandContext context, string title, int profileId, string profileName, string? message = null)
         {
-            await LogUserAction(context.Guild!.Id, context.Channel, context.User, title, message);
+            await LogUserAction(context.Guild!.Id, context.Channel, context.User, title, profileId, profileName, message);
         }
 
         /// <summary>
         /// Logs a user action to the configured log channel, if set.
         /// </summary>
-        public static async Task LogUserAction(ulong guildId, DiscordChannel channel, DiscordUser user, string title, string? message = null)
+        public static async Task LogUserAction(ulong guildId, DiscordChannel channel, DiscordUser user, string title, int profileId, string profileName, string? message = null)
         {
             ulong? logChannelId;
             using (AppDbContext dbContext = new())
             {
-                logChannelId = await dbContext.Configs.Where(c => c.GuildId == guildId).Select(c => c.LogsChannelId).FirstOrDefaultAsync();
+                logChannelId = await dbContext.Configs.Where(c => c.GuildIdx == guildId && c.ProfileId == profileId)
+                    .Select(c => c.LogsChannelId).FirstOrDefaultAsync();
             }
 
             if (logChannelId == null)
@@ -41,7 +42,7 @@ namespace OpenQotd.Bot
                     .WithTitle(title)
                     .WithColor(new DiscordColor("#20ffff"))
                     .WithTimestamp(DateTime.UtcNow)
-                    .WithFooter($"User ID: {user.Id}")
+                    .WithFooter($"User ID: {user.Id} \x2022 Profile: {profileName}")
                     .WithAuthor(name: user.Username, iconUrl: user.AvatarUrl);
 
             if (message != null)

@@ -48,7 +48,7 @@ namespace OpenQotd.Bot.Database.Entities
     public class Question
     {
         public int Id { get; set; }
-        public ulong GuildId { get; set; }
+        public int ConfigIdx { get; set; }
 
         /// <summary>
         /// The ID of the question that is unique within a guild.
@@ -148,7 +148,7 @@ namespace OpenQotd.Bot.Database.Entities
             try
             {
                 return await dbContext.Questions
-                    .Where(q => q.GuildId == guildId)
+                    .Where(q => q.ConfigId == guildId)
                     .Select(q => q.GuildDependentId)
                     .MaxAsync() + 1;
             }

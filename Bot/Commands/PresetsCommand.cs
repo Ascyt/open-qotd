@@ -24,14 +24,17 @@ namespace OpenQotd.Bot.Commands
             if (!await CommandRequirements.UserIsAdmin(context, null))
                 return;
 
-            await PrintPresetDisabledWarningIfRequired(context);
+            Config? config = await ProfileHelpers.TryGetConfigAsync(context);
+            if (config is null)
+                return;
 
+            await PrintPresetDisabledWarningIfRequired(context);
 
             HashSet<PresetSent> presetSents;
             using (AppDbContext dbContext = new())
             {
                 presetSents = [.. await dbContext.PresetSents
-                        .Where(p => p.GuildId == context.Guild!.Id).ToListAsync()];
+                        .Where(p => p.ConfigIdx == config.Id).ToListAsync()];
             }
             List<Presets.GuildDependentPreset> guildDependentPresets = Presets.GetPresetsAsGuildDependent(presetSents);
 
@@ -70,6 +73,10 @@ namespace OpenQotd.Bot.Commands
             if (!await CommandRequirements.UserIsAdmin(context, null))
                 return;
 
+            Config? config = await ProfileHelpers.TryGetConfigAsync(context);
+            if (config is null)
+                return;
+
             await PrintPresetDisabledWarningIfRequired(context);
 
             if (id < 0 || id >= Presets.Values.Length)
@@ -82,7 +89,7 @@ namespace OpenQotd.Bot.Commands
 
             using (AppDbContext dbContext = new())
             {
-                PresetSent? preset = await dbContext.PresetSents.FirstOrDefaultAsync(p => p.GuildId == context.Guild!.Id && p.PresetIndex == id);
+                PresetSent? preset = await dbContext.PresetSents.FirstOrDefaultAsync(p => p.ConfigIdx == config.Id && p.PresetIndex == id);
 
                 if (preset != null) // Preset sent and disabled
                 {
@@ -96,7 +103,7 @@ namespace OpenQotd.Bot.Commands
                 {
                     if (!active)
                     {
-                        await dbContext.PresetSents.AddAsync(new PresetSent() { GuildId = context.Guild!.Id, PresetIndex = id });
+                        await dbContext.PresetSents.AddAsync(new PresetSent() { ConfigIdx = config.Id, PresetIndex = id });
                         changesMade = true;
                     }
                 }
@@ -128,11 +135,15 @@ namespace OpenQotd.Bot.Commands
             if (!await CommandRequirements.UserIsAdmin(context, null))
                 return;
 
+            Config? config = await ProfileHelpers.TryGetConfigAsync(context);
+            if (config is null)
+                return;
+
             await PrintPresetDisabledWarningIfRequired(context);
 
             using (AppDbContext dbContext = new())
             {
-                List<PresetSent> toRemove = await dbContext.PresetSents.Where(ps => ps.GuildId == context.Guild!.Id).ToListAsync();
+                List<PresetSent> toRemove = await dbContext.PresetSents.Where(ps => ps.ConfigIdx == config.Id).ToListAsync();
 
                 dbContext.RemoveRange(toRemove);
 
@@ -150,18 +161,16 @@ namespace OpenQotd.Bot.Commands
             [Description("The QOTD question text to be suggested.")] string question)
             => await SimpleCommands.FeedbackAsync(context, $"Preset Suggestion: {question}");
 
+        /// <summary>
+        /// Prints a warning message if automatic presets are disabled in the guild config.
+        /// </summary>
         private static async Task PrintPresetDisabledWarningIfRequired(CommandContext context)
         {
-            bool enableQotdAutomaticPresets;
-            using (AppDbContext dbContext = new())
-            {
-                enableQotdAutomaticPresets = dbContext.Configs
-                    .Where(c => c.GuildId == context.Guild!.Id)
-                    .Select(c => c.EnableQotdAutomaticPresets)
-                    .First();
-            }
+            Config? config = await ProfileHelpers.TryGetConfigAsync(context);
+            if (config is null)
+                return;
 
-            if (enableQotdAutomaticPresets)
+            if (config.EnableQotdAutomaticPresets)
                 return;
 
             await context.Channel.SendMessageAsync(

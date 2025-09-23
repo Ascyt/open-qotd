@@ -35,7 +35,7 @@ namespace OpenQotd.Bot.Commands
             using (AppDbContext dbContext = new())
             {
                 sentQuestions = await dbContext.Questions
-                    .Where(q => q.GuildId == context.Guild!.Id && q.Type == QuestionType.Sent)
+                    .Where(q => q.ConfigId == context.Guild!.Id && q.Type == QuestionType.Sent)
                     .ToListAsync();
             }
 

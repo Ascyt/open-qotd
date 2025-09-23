@@ -18,7 +18,7 @@ namespace OpenQotd.Bot.Commands
         public static async Task SuggestAsync(CommandContext context,
             [Description ("The question to be added.")] string question)
         {
-            Config? config = await CommandRequirements.TryGetConfig(context);
+            Config? config = await ProfileHelpers.TryGetConfigAsync(context);
 
             if (config is null || !await CommandRequirements.UserIsBasic(context, config) || !await CommandRequirements.IsWithinMaxQuestionsAmount(context, 1))
                 return;
@@ -60,7 +60,7 @@ namespace OpenQotd.Bot.Commands
             {
                 newQuestion = new Question()
                 {
-                    GuildId = guildId,
+                    ConfigId = guildId,
                     GuildDependentId = await Question.GetNextGuildDependentId(guildId),
                     Type = QuestionType.Suggested,
                     Text = question,
