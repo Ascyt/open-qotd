@@ -11,6 +11,24 @@ namespace OpenQotd.Bot
     public static class CommandRequirements
     {
         /// <summary>
+        /// Checks if a user has the "Server Administrator" permission.
+        /// </summary>
+        public static async Task<bool> UserHasAdministratorPermission(CommandContext context, bool responseOnError = true)
+        {
+            if (!context.Member!.Permissions.HasPermission(DiscordPermission.Administrator))
+            {
+                if (responseOnError)
+                {
+                    await context.RespondAsync(
+                        GenericEmbeds.Error("Server Administrator permission is required to run this command.")
+                        );
+                }
+                return false;
+            }
+            return true;
+        }
+
+        /// <summary>
         /// Check if a user has admin permission. This function also handles sending error messages, so it's recommended to end the function if it retuns false.
         /// </summary>
         /// <param name="config">Config if already fetched, if null it will be fetched from the database.</param>

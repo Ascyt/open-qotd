@@ -35,13 +35,8 @@ namespace OpenQotd.Bot.Commands
 			[Description("Whether questions should get the \"Stashed\" type instead of being deleted (true by default).")] bool EnableDeletedToStash = true,
 			[Description("The channel where commands, QOTDs and more get logged to.")] DiscordChannel? LogsChannel = null)
         {
-            if (!context.Member!.Permissions.HasPermission(DiscordPermission.Administrator))
-            {
-                await context.RespondAsync(
-                    GenericEmbeds.Error("Server Administrator permission is required to run this command.")
-                    );
+            if (!await CommandRequirements.UserHasAdministratorPermission(context))
                 return;
-            }
 
             QotdTimeMinuteUtc = Math.Clamp(QotdTimeMinuteUtc, 0, 59);
             QotdTimeHourUtc = Math.Clamp(QotdTimeHourUtc, 0, 23);
@@ -49,7 +44,7 @@ namespace OpenQotd.Bot.Commands
             if (QotdTitle is not null && !await IsQotdTitleValid(context, QotdTitle))
                 return;
 
-            int? profileId = await ProfileHelpers.GetSelectedProfileIdAsync(context.Guild!.Id, context.Member.Id);
+            int? profileId = await ProfileHelpers.GetSelectedProfileIdAsync(context.Guild!.Id, context.Member!.Id);
 
             int profileIdNotNull = profileId ?? 0;
             Config config = new()
@@ -108,13 +103,8 @@ namespace OpenQotd.Bot.Commands
         [Description("Get all config values")]
         public static async Task GetAsync(CommandContext context)
         {
-            if (!context.Member!.Permissions.HasPermission(DiscordPermission.Administrator))
-            {
-                await context.RespondAsync(
-                    GenericEmbeds.Error("Server Administrator permission is required to run this command.")
-                    );
+            if (!await CommandRequirements.UserHasAdministratorPermission(context))
                 return;
-            }
 
             Config? config = await ProfileHelpers.TryGetSelectedConfigAsync(context);
 
@@ -150,13 +140,9 @@ namespace OpenQotd.Bot.Commands
 			[Description("Whether questions should get the \"Stashed\" type instead of being deleted (true by default).")] bool? EnableDeletedToStash = null,
 			[Description("The channel where commands, QOTDs and more get logged to.")] DiscordChannel? LogsChannel = null)
         {
-            if (!context.Member!.Permissions.HasPermission(DiscordPermission.Administrator))
-            {
-                await context.RespondAsync(
-                    GenericEmbeds.Error("Server Administrator permission is required to run this command.")
-                    );
+            if (!await CommandRequirements.UserHasAdministratorPermission(context))
                 return;
-            }
+
             Config? config = await ProfileHelpers.TryGetSelectedConfigAsync(context);
 
             if (config is null)
@@ -254,13 +240,8 @@ namespace OpenQotd.Bot.Commands
             [Description("The role that will get pinged when a new QOTD is suggested.")] SingleOption? SuggestionsPingRole = null,
             [Description("The channel where commands, QOTDs and more get logged to.")] SingleOption? LogsChannel = null)
         {
-            if (!context.Member!.Permissions.HasPermission(DiscordPermission.Administrator))
-            {
-                await context.RespondAsync(
-                    GenericEmbeds.Error("Server Administrator permission is required to run this command.")
-                    );
+            if (!await CommandRequirements.UserHasAdministratorPermission(context))
                 return;
-            }
 
             Config? config = await ProfileHelpers.TryGetSelectedConfigAsync(context);
 
