@@ -2,7 +2,7 @@
 
 namespace OpenQotd.Bot.Helpers
 {
-    public class GenericEmbeds
+    internal static class GenericEmbeds
     {
         public static DiscordEmbedBuilder Success(string title, string message) =>
             Custom(title, message, "#20c020");

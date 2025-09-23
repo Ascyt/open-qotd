@@ -4,7 +4,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace OpenQotd.Bot.Helpers
 {
-    public class GeneralActions
+    internal static class GeneralActions
     {
         /// <summary>
         /// Removes all data associated with a guild from the database.

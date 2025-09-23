@@ -4,7 +4,7 @@ using DSharpPlus.Exceptions;
 
 namespace OpenQotd.Bot.Helpers
 {
-    public class GeneralHelpers
+    internal static class GeneralHelpers
     {
         /// <summary>
         /// Gets a channel from an ID.
