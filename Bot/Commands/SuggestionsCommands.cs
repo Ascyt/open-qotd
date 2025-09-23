@@ -23,17 +23,12 @@ namespace OpenQotd.Bot.Commands
         // So the buttons shouldn't be necessary in some way, the /suggestions command with the ID should always be an alternative.
         // Also add this sort of explanation to documentation.
 
-        private static async Task<DiscordMessage?> GetSuggestionMessage(Question question, DiscordGuild guild)
+        private static async Task<DiscordMessage?> GetSuggestionMessage(Question question, Config config, DiscordGuild guild)
         {
             if (question.SuggestionMessageId is null)
                 return null;
 
-            ulong? suggestionChannelId;
-            using (AppDbContext dbContext = new())
-            {
-                suggestionChannelId = await dbContext.Configs.Where(c => c.GuildId == guild.Id).Select(c => c.SuggestionsChannelId).FirstOrDefaultAsync();
-            }
-            if (suggestionChannelId is null)
+            if (config.SuggestionsChannelId is null)
             {
                 return null;
             }
@@ -41,7 +36,7 @@ namespace OpenQotd.Bot.Commands
             DiscordChannel? suggestionChannel = null;
             try
             {
-                suggestionChannel = await guild.GetChannelAsync(suggestionChannelId.Value);
+                suggestionChannel = await guild.GetChannelAsync(config.SuggestionsChannelId.Value);
             }
             catch (NotFoundException)
             {
@@ -75,14 +70,15 @@ namespace OpenQotd.Bot.Commands
         public static async Task AcceptSuggestionAsync(CommandContext context,
         [Description("The ID of the suggestion.")] int suggestionId)
         {
-            if (!await CommandRequirements.UserIsAdmin(context, null))
+            Config? config = await ProfileHelpers.TryGetConfigAsync(context);
+            if (config is null || !await CommandRequirements.UserIsAdmin(context, config))
                 return;
 
             Question? question;
             using (AppDbContext dbContext = new())
             {
                 question = await dbContext.Questions
-                    .Where(q => q.ConfigId == context.Guild!.Id && q.GuildDependentId == suggestionId)
+                    .Where(q => q.ConfigIdx == config.Id && q.GuildDependentId == suggestionId)
                     .FirstOrDefaultAsync();
 
                 if (question == null)
@@ -100,9 +96,9 @@ namespace OpenQotd.Bot.Commands
                 return;
             }
 
-            DiscordMessage? suggestionMessage = await GetSuggestionMessage(question, context.Guild!);
+            DiscordMessage? suggestionMessage = await GetSuggestionMessage(question, config, context.Guild!);
 
-            await AcceptSuggestionNoContextAsync(question, suggestionMessage, null, context);
+            await AcceptSuggestionNoContextAsync(question, config, suggestionMessage, null, context);
 
             await context.RespondAsync(
                 GenericEmbeds.Success("Suggestion Accepted", $"Successfully accepted suggestion with ID `{question.GuildDependentId}`"));
@@ -114,14 +110,15 @@ namespace OpenQotd.Bot.Commands
         [Description("The ID of the suggestion.")] int suggestionId,
         [Description("The reason why the suggestion is denied, which will be sent to the user.")] string reason)
         {
-            if (!await CommandRequirements.UserIsAdmin(context, null))
+            Config? config = await ProfileHelpers.TryGetConfigAsync(context);
+            if (config is null || !await CommandRequirements.UserIsAdmin(context, config))
                 return;
 
             Question? question;
             using (AppDbContext dbContext = new())
             {
                 question = await dbContext.Questions
-                    .Where(q => q.ConfigId == context.Guild!.Id && q.GuildDependentId == suggestionId)
+                    .Where(q => q.ConfigIdx == config.Id && q.GuildDependentId == suggestionId)
                     .FirstOrDefaultAsync();
 
                 if (question == null)
@@ -139,11 +136,11 @@ namespace OpenQotd.Bot.Commands
                 return;
             }
 
-            DiscordMessage? suggestionMessage = await GetSuggestionMessage(question, context.Guild!);
+            DiscordMessage? suggestionMessage = await GetSuggestionMessage(question, config, context.Guild!);
 
             string embedBody = GetEmbedBody(question);
 
-            await DenySuggestionNoContextAsync(question, suggestionMessage, null, context, reason);
+            await DenySuggestionNoContextAsync(question, config, suggestionMessage, null, context, reason);
 
             await context.RespondAsync(
                 GenericEmbeds.Success("Suggestion Denied", $"Successfully denied suggestion with ID `{question.GuildDependentId}`."));
@@ -153,7 +150,8 @@ namespace OpenQotd.Bot.Commands
         [Description("Accept all suggestions.")]
         public static async Task AcceptAllSuggestionsAsync(CommandContext context)
         {
-            if (!await CommandRequirements.UserIsAdmin(context, null))
+            Config? config = await ProfileHelpers.TryGetConfigAsync(context);
+            if (config is null || !await CommandRequirements.UserIsAdmin(context, config))
                 return;
 
             await context.DeferResponseAsync();
@@ -161,16 +159,16 @@ namespace OpenQotd.Bot.Commands
             Question[] questions;
             using (AppDbContext dbContext = new())
             {
-                questions = await dbContext.Questions.Where(q => q.ConfigId == context.Guild!.Id && q.Type == QuestionType.Suggested).ToArrayAsync();
+                questions = await dbContext.Questions.Where(q => q.ConfigIdx == config.Id && q.Type == QuestionType.Suggested).ToArrayAsync();
             }
 
-            Dictionary<ulong, List<Question>> questionsByUsers = new();
+            Dictionary<ulong, List<Question>> questionsByUsers = [];
 
             foreach (Question question in questions)
             {
-                DiscordMessage? suggestionMessage = await GetSuggestionMessage(question, context.Guild!);
+                DiscordMessage? suggestionMessage = await GetSuggestionMessage(question, config, context.Guild!);
 
-                await AcceptSuggestionNoContextAsync(question, suggestionMessage, null, context, false);
+                await AcceptSuggestionNoContextAsync(question, config, suggestionMessage, null, context, false);
 
                 await Task.Delay(100); // Prevent rate-limit
 
@@ -207,7 +205,7 @@ namespace OpenQotd.Bot.Commands
                     }
                     else
                     {
-                        StringBuilder sb = new StringBuilder($"{pair.Value.Count} of your QOTD Suggestions:\n");
+                        StringBuilder sb = new($"{pair.Value.Count} of your QOTD Suggestions:\n");
 
                         int index = 0;
                         foreach (Question question in pair.Value)
@@ -235,9 +233,9 @@ namespace OpenQotd.Bot.Commands
                 }
             }
 
-            int count = questions.Count();
+            int count = questions.Length;
 
-            StringBuilder logSb = new StringBuilder();
+            StringBuilder logSb = new();
             int index1 = 0;
             foreach (Question question in questions)
             {
@@ -251,7 +249,7 @@ namespace OpenQotd.Bot.Commands
                 index1++;
             }
 
-            await Logging.LogUserAction(context, $"Accepted all {count} Suggestions", logSb.ToString());
+            await Logging.LogUserAction(context, config, $"Accepted all {count} Suggestions", logSb.ToString());
 
             await context.FollowupAsync(GenericEmbeds.Success("Suggestions Accepted", $"Successfully accepted {count} suggestion{(count == 1 ? "" : "s")}."));
         }
@@ -260,7 +258,8 @@ namespace OpenQotd.Bot.Commands
         [Description("Deny all suggestions.")]
         public static async Task DenyAllSuggestionsAsync(CommandContext context)
         {
-            if (!await CommandRequirements.UserIsAdmin(context, null))
+            Config? config = await ProfileHelpers.TryGetConfigAsync(context);
+            if (config is null || !await CommandRequirements.UserIsAdmin(context, config))
                 return;
 
             await context.DeferResponseAsync();
@@ -268,16 +267,16 @@ namespace OpenQotd.Bot.Commands
             Question[] questions;
             using (AppDbContext dbContext = new())
             {
-                questions = await dbContext.Questions.Where(q => q.ConfigId == context.Guild!.Id && q.Type == QuestionType.Suggested).ToArrayAsync();
+                questions = await dbContext.Questions.Where(q => q.ConfigIdx == config.Id && q.Type == QuestionType.Suggested).ToArrayAsync();
             }
 
-            Dictionary<ulong, List<Question>> questionsByUsers = new();
+            Dictionary<ulong, List<Question>> questionsByUsers = [];
 
             foreach (Question question in questions)
             {
-                DiscordMessage? suggestionMessage = await GetSuggestionMessage(question, context.Guild!);
+                DiscordMessage? suggestionMessage = await GetSuggestionMessage(question, config, context.Guild!);
 
-                await DenySuggestionNoContextAsync(question, suggestionMessage, null, context, null, false);
+                await DenySuggestionNoContextAsync(question, config, suggestionMessage, null, context, null, false);
 
                 await Task.Delay(1000); // Prevent rate-limit
 
@@ -342,7 +341,7 @@ namespace OpenQotd.Bot.Commands
 
             int count = questions.Length;
 
-            StringBuilder logSb = new StringBuilder();
+            StringBuilder logSb = new();
             int index1 = 0;
             foreach (Question question in questions)
             {
@@ -356,13 +355,13 @@ namespace OpenQotd.Bot.Commands
                 index1++;
             }
 
-            await Logging.LogUserAction(context, $"Denied all {count} Suggestions", logSb.ToString());
+            await Logging.LogUserAction(context, config, $"Denied all {count} Suggestions", logSb.ToString());
 
             await context.FollowupAsync(GenericEmbeds.Success("Suggestions Denied", $"Successfully denied {count} suggestion{(count == 1 ? "" : "s")}."));
         }
 
 
-        public static async Task AcceptSuggestionNoContextAsync(Question question, DiscordMessage? suggestionMessage, ComponentInteractionCreatedEventArgs? result, CommandContext? context, bool logAndNotify=true)
+        public static async Task AcceptSuggestionNoContextAsync(Question question, Config config, DiscordMessage? suggestionMessage, ComponentInteractionCreatedEventArgs? result, CommandContext? context, bool logAndNotify=true)
         {
             if (result == null && context == null)
             {
@@ -444,13 +443,13 @@ namespace OpenQotd.Bot.Commands
                     );
             }
 
-            if (context == null)
-                await Logging.LogUserAction(suggestionMessage!.Channel!.Guild.Id, suggestionMessage.Channel, user, "Accepted Suggestion", question.ToString());
+            if (context is null)
+                await Logging.LogUserAction(suggestionMessage!.Channel!, user, config, "Accepted Suggestion", question.ToString());
             else
-                await Logging.LogUserAction(context, "Accepted Suggestion", question.ToString());
+                await Logging.LogUserAction(context, config, "Accepted Suggestion", question.ToString());
         }
 
-        public static async Task DenySuggestionNoContextAsync(Question question, DiscordMessage? suggestionMessage, ModalSubmittedEventArgs? result, CommandContext? context, string? reason, bool logAndNotify = true)
+        public static async Task DenySuggestionNoContextAsync(Question question, Config config, DiscordMessage? suggestionMessage, ModalSubmittedEventArgs? result, CommandContext? context, string? reason, bool logAndNotify = true)
         {
             if (result == null && context == null)
             {
@@ -460,7 +459,6 @@ namespace OpenQotd.Bot.Commands
             DiscordUser user = context?.User ?? result!.Interaction.User;
             DiscordGuild guild = context?.Guild ?? result!.Interaction.Guild!;
 
-            Config? config;
             using (AppDbContext dbContext = new())
             {
                 Question? disableQuestion = await dbContext.Questions.FindAsync(question.Id);
@@ -476,18 +474,6 @@ namespace OpenQotd.Bot.Commands
                         );
                     return;
                 }
-
-				config = await dbContext.Configs.Where(c => c.GuildId == guild.Id).FirstOrDefaultAsync();
-				if (config == null)
-				{
-					DiscordEmbed embed = GenericEmbeds.Error(title: "Config Not Found", message: $"The config for this server could not be found.");
-					if (suggestionMessage is null)
-						await context!.Channel.SendMessageAsync(embed);
-					else
-						await suggestionMessage.Channel!.SendMessageAsync(embed
-						);
-					return;
-				}
 
                 if (config.EnableDeletedToStash)
                 {
@@ -549,11 +535,11 @@ namespace OpenQotd.Bot.Commands
                     );
             }
 
-            if (context == null)
-                await Logging.LogUserAction(suggestionMessage!.Channel!.Guild.Id, suggestionMessage.Channel, user, "Denied Suggestion", $"{question.ToString()}\n\n" +
+            if (context is null)
+                await Logging.LogUserAction(suggestionMessage!.Channel!, user, config, "Denied Suggestion", $"{question}\n\n" +
                 $"Denial Reason: \"**{reason}**\"");
             else
-                await Logging.LogUserAction(context, $"Denied Suggestion" + (config.EnableDeletedToStash ? " (moved to stash)" : ""), $"{question.ToString()}\n\n" +
+                await Logging.LogUserAction(context, config, "Denied Suggestion" + (config.EnableDeletedToStash ? " (moved to stash)" : ""), $"{question}\n\n" +
                 $"Denial Reason: \"**{reason}**\"");
         }
     }

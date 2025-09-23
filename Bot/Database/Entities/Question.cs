@@ -51,6 +51,11 @@ namespace OpenQotd.Bot.Database.Entities
         public int ConfigIdx { get; set; }
 
         /// <summary>
+        /// For convenience, could otherwise be fetched from a join using <see cref="ConfigId"/>
+        /// </summary>
+        public ulong GuildId { get; set; }
+
+        /// <summary>
         /// The ID of the question that is unique within a guild.
         /// </summary>
         /// <remarks>

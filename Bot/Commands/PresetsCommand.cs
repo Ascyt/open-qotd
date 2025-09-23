@@ -21,14 +21,14 @@ namespace OpenQotd.Bot.Commands
             [Description("Optionally filter by only active or completed presets.")] PresetsType? type = null,
             [Description("The page of the listing (default 1).")] int page = 1)
         {
-            if (!await CommandRequirements.UserIsAdmin(context, null))
-                return;
-
             Config? config = await ProfileHelpers.TryGetConfigAsync(context);
             if (config is null)
                 return;
 
-            await PrintPresetDisabledWarningIfRequired(context);
+            if (!await CommandRequirements.UserIsAdmin(context, config))
+                return;
+
+            await PrintPresetDisabledWarningIfRequired(context, config);
 
             HashSet<PresetSent> presetSents;
             using (AppDbContext dbContext = new())
@@ -70,14 +70,14 @@ namespace OpenQotd.Bot.Commands
             [Description("The ID of the preset.")] int id,
             [Description("Whether to set the preset as active to be sendable as QOTD.")] bool active)
         {
-            if (!await CommandRequirements.UserIsAdmin(context, null))
-                return;
-
             Config? config = await ProfileHelpers.TryGetConfigAsync(context);
             if (config is null)
                 return;
 
-            await PrintPresetDisabledWarningIfRequired(context);
+            if (!await CommandRequirements.UserIsAdmin(context, config))
+                return;
+
+            await PrintPresetDisabledWarningIfRequired(context, config);
 
             if (id < 0 || id >= Presets.Values.Length)
             {
@@ -132,14 +132,14 @@ namespace OpenQotd.Bot.Commands
         [Description("Reset the active state of all presets, making them all QOTD-sendable again.")]
         public static async Task ResetPresetsAsync(CommandContext context)
         {
-            if (!await CommandRequirements.UserIsAdmin(context, null))
-                return;
-
             Config? config = await ProfileHelpers.TryGetConfigAsync(context);
             if (config is null)
                 return;
 
-            await PrintPresetDisabledWarningIfRequired(context);
+            if (!await CommandRequirements.UserIsAdmin(context, config))
+                return;
+
+            await PrintPresetDisabledWarningIfRequired(context, config);
 
             using (AppDbContext dbContext = new())
             {
@@ -164,12 +164,8 @@ namespace OpenQotd.Bot.Commands
         /// <summary>
         /// Prints a warning message if automatic presets are disabled in the guild config.
         /// </summary>
-        private static async Task PrintPresetDisabledWarningIfRequired(CommandContext context)
+        private static async Task PrintPresetDisabledWarningIfRequired(CommandContext context, Config config)
         {
-            Config? config = await ProfileHelpers.TryGetConfigAsync(context);
-            if (config is null)
-                return;
-
             if (config.EnableQotdAutomaticPresets)
                 return;
 

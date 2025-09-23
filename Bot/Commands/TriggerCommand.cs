@@ -1,6 +1,7 @@
-﻿using OpenQotd.Bot.QotdSending;
+﻿using DSharpPlus.Commands;
+using OpenQotd.Bot.Database.Entities;
 using OpenQotd.Bot.Helpers;
-using DSharpPlus.Commands;
+using OpenQotd.Bot.QotdSending;
 using System.ComponentModel;
 
 namespace OpenQotd.Bot.Commands
@@ -11,7 +12,8 @@ namespace OpenQotd.Bot.Commands
         [Description("Trigger a QOTD prematurely.")]
         public static async Task TriggerAsync(CommandContext context)
         {
-            if (!await CommandRequirements.UserIsAdmin(context, null))
+            Config? config = await ProfileHelpers.TryGetConfigAsync(context);
+            if (config is null || !await CommandRequirements.UserIsAdmin(context, config))
                 return;
 
             await context.DeferResponseAsync();
@@ -21,7 +23,7 @@ namespace OpenQotd.Bot.Commands
             await context.RespondAsync(
                 GenericEmbeds.Success(title:"Successfully triggered QOTD", "QOTD sent to current QOTD channel."));
 
-            await Logging.LogUserAction(context, "Trigger QOTD");
+            await Logging.LogUserAction(context, config, "Trigger QOTD");
         }
     }
 }

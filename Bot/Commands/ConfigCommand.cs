@@ -172,9 +172,11 @@ namespace OpenQotd.Bot.Commands
             using (AppDbContext dbContext = new())
             {
                 // Without extra retrieval config changes don't get saved
-                config = dbContext.Configs
-                    .Where(c => c.GuildIdx == config.GuildIdx && c.ProfileId == config.ProfileId)
-                    .FirstOrDefault()!;
+                config = await dbContext.Configs
+                    .FindAsync(config.Id);
+
+                if (config is null)
+                    throw new Exception("Config not found");
 
                 if (QotdTimeMinuteUtc is not null || QotdTimeHourUtc is not null)
                 {
@@ -233,7 +235,7 @@ namespace OpenQotd.Bot.Commands
                     GenericEmbeds.Success("Successfully set config values", $"{configString}")
                 );
 
-            await LogUserAction(context, "Set config values", config.ProfileId, config.ProfileName, configString);
+            await LogUserAction(context, config, "Set config values", message: configString);
         }
 
         public enum SingleOption
@@ -267,9 +269,11 @@ namespace OpenQotd.Bot.Commands
             using (AppDbContext dbContext = new())
             {
                 // Without extra retrieval config changes don't get saved
-                config = dbContext.Configs
-                    .Where(c => c.GuildIdx == config.GuildIdx && c.ProfileId == config.ProfileId)
-                    .FirstOrDefault()!;
+                config = await dbContext.Configs
+                    .FindAsync(config.Id);
+
+                if (config is null)
+                    throw new Exception("Config not found");
 
                 if (BasicRole is not null)
                     config.BasicRoleId = null;
@@ -293,7 +297,7 @@ namespace OpenQotd.Bot.Commands
                     GenericEmbeds.Success("Successfully set config values", $"{configString}")
                 );
 
-            await LogUserAction(context, "Set config values", config.ProfileId, config.ProfileName, configString);
+            await LogUserAction(context, config, "Set config values", message: configString);
         }
         
         /// <summary>

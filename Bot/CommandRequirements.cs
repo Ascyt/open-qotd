@@ -157,7 +157,7 @@ namespace OpenQotd.Bot
         /// <remarks>
         /// The maximum amount is given by <see cref="AppSettings.QuestionsPerGuildMaxAmount"/>.
         /// </remarks>
-        public static async Task<bool> IsWithinMaxQuestionsAmount(CommandContext context, int configId, int additionalAmount)
+        public static async Task<bool> IsWithinMaxQuestionsAmount(CommandContext context, int additionalAmount)
         {
             if (additionalAmount < 0)
                 return false;
@@ -165,7 +165,7 @@ namespace OpenQotd.Bot
             using AppDbContext dbContext = new();
 
             int currentAmount = dbContext.Questions
-                .Where(q => q.ConfigIdx == configId)
+                .Where(q => q.GuildId == context.Guild!.Id)
                 .Count();
 
             bool isWithinLimit = currentAmount + additionalAmount <= Program.AppSettings.QuestionsPerGuildMaxAmount;

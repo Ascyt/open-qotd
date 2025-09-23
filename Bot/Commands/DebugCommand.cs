@@ -171,34 +171,34 @@ namespace OpenQotd.Bot.Commands
                         case "removeduplicates":
                             await context.RespondAsync("Not implemented with profiles");
 
-                            //List<Question> questions;
-                            //using (AppDbContext dbContext = new())
-                            //{
-                            //    questions = await dbContext.Questions.Where(c => c.ConfigId == context.Guild!.Id).ToListAsync();
-                            //}
+                            List<Question> questions;
+                            using (AppDbContext dbContext = new())
+                            {
+                                questions = await dbContext.Questions.Where(c => c.GuildId == context.Guild!.Id).ToListAsync();
+                            }
 
-                            //List<int> duplicateIds = questions
-                            //    .GroupBy(q => q.Text)
-                            //    .Where(g => g.Count() > 1)
-                            //    .SelectMany(g => g.Skip(1).Select(q => q.Id))
-                            //    .ToList();
+                            List<int> duplicateIds = questions
+                                .GroupBy(q => q.Text)
+                                .Where(g => g.Count() > 1)
+                                .SelectMany(g => g.Skip(1).Select(q => q.Id))
+                                .ToList();
 
-                            //using (AppDbContext dbContext = new())
-                            //{
-                            //    foreach (int id in duplicateIds)
-                            //    {
-                            //        Question? question = await dbContext.Questions.Where(q => q.Id == id).FirstOrDefaultAsync();
+                            using (AppDbContext dbContext = new())
+                            {
+                                foreach (int id in duplicateIds)
+                                {
+                                    Question? question = await dbContext.Questions.Where(q => q.Id == id).FirstOrDefaultAsync();
 
-                            //        if (question == null)
-                            //            continue;
+                                    if (question == null)
+                                        continue;
 
-                            //        dbContext.Remove(question);
-                            //    }
+                                    dbContext.Remove(question);
+                                }
 
-                            //    await dbContext.SaveChangesAsync();
-                            //}
+                                await dbContext.SaveChangesAsync();
+                            }
 
-                            //await context.RespondAsync($"Removed {duplicateIds.Count} duplicates.");
+                            await context.RespondAsync($"Removed {duplicateIds.Count} duplicates.");
 
                             return;
                     }

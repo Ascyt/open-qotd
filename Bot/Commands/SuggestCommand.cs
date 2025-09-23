@@ -19,8 +19,10 @@ namespace OpenQotd.Bot.Commands
             [Description ("The question to be added.")] string question)
         {
             Config? config = await ProfileHelpers.TryGetConfigAsync(context);
+            if (config is null)
+                return;
 
-            if (config is null || !await CommandRequirements.UserIsBasic(context, config) || !await CommandRequirements.IsWithinMaxQuestionsAmount(context, 1))
+            if (!await CommandRequirements.UserIsBasic(context, config) || !await CommandRequirements.IsWithinMaxQuestionsAmount(context, 1))
                 return;
 
             if (!config.EnableSuggestions)

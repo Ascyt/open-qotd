@@ -1,8 +1,9 @@
-﻿using OpenQotd.Bot.Database;
-using OpenQotd.Bot.Helpers;
-using DSharpPlus.Commands;
+﻿using DSharpPlus.Commands;
 using DSharpPlus.Entities;
 using Microsoft.EntityFrameworkCore;
+using OpenQotd.Bot.Database;
+using OpenQotd.Bot.Database.Entities;
+using OpenQotd.Bot.Helpers;
 
 namespace OpenQotd.Bot
 {
@@ -11,27 +12,20 @@ namespace OpenQotd.Bot
         /// <summary>
         /// Logs a user action to the configured log channel, if set.
         /// </summary>
-        public static async Task LogUserAction(CommandContext context, string title, int profileId, string profileName, string? message = null)
+        public static async Task LogUserAction(CommandContext context, Config config, string title, string? message = null)
         {
-            await LogUserAction(context.Guild!.Id, context.Channel, context.User, title, profileId, profileName, message);
+            await LogUserAction(context.Channel, context.User, config, title, message);
         }
 
         /// <summary>
         /// Logs a user action to the configured log channel, if set.
         /// </summary>
-        public static async Task LogUserAction(ulong guildId, DiscordChannel channel, DiscordUser user, string title, int profileId, string profileName, string? message = null)
+        public static async Task LogUserAction(DiscordChannel channel, DiscordUser user, Config config, string title, string? message = null)
         {
-            ulong? logChannelId;
-            using (AppDbContext dbContext = new())
-            {
-                logChannelId = await dbContext.Configs.Where(c => c.GuildIdx == guildId && c.ProfileId == profileId)
-                    .Select(c => c.LogsChannelId).FirstOrDefaultAsync();
-            }
-
-            if (logChannelId == null)
+            if (!config.LogsChannelId.HasValue)
                 return;
 
-            DiscordChannel? logChannel = await GeneralHelpers.GetDiscordChannel(logChannelId.Value, guild:channel.Guild);
+            DiscordChannel? logChannel = await GeneralHelpers.GetDiscordChannel(config.LogsChannelId.Value, guild:channel.Guild);
             if (logChannel is null)
             {
                 await PrintNotFoundWarning(channel);
@@ -42,10 +36,10 @@ namespace OpenQotd.Bot
                     .WithTitle(title)
                     .WithColor(new DiscordColor("#20ffff"))
                     .WithTimestamp(DateTime.UtcNow)
-                    .WithFooter($"User ID: {user.Id} \x2022 Profile: {profileName}")
+                    .WithFooter($"User ID: {user.Id} \x2022 Profile: {config.ProfileName}")
                     .WithAuthor(name: user.Username, iconUrl: user.AvatarUrl);
 
-            if (message != null)
+            if (message is not null)
             {
                 embed.WithDescription(message);
             }
