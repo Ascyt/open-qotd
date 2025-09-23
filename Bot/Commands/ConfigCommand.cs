@@ -56,6 +56,7 @@ namespace OpenQotd.Bot.Commands
             {
                 GuildId = context!.Guild!.Id,
                 ProfileId = profileIdNotNull,
+                IsDefaultProfile = profileId is null,
                 ProfileName = ProfileHelpers.GenerateProfileName(profileId),
                 BasicRoleId = BasicRole?.Id,
                 AdminRoleId = AdminRole.Id,
@@ -73,8 +74,8 @@ namespace OpenQotd.Bot.Commands
                 SuggestionsChannelId = SuggestionsChannel?.Id,
                 SuggestionsPingRoleId = SuggestionsPingRole?.Id,
                 NoticesLevel = NoticesLevel,
-				EnableDeletedToStash = EnableDeletedToStash,
-				LogsChannelId = LogsChannel?.Id
+                EnableDeletedToStash = EnableDeletedToStash,
+                LogsChannelId = LogsChannel?.Id
             };
             bool reInitialized = false;
 

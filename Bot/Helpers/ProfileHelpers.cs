@@ -258,7 +258,7 @@ namespace OpenQotd.Bot.Helpers
         {
             if (profileId is null)
             {
-                return "Default";
+                return "QOTD";
             }
             
             return $"Profile {profileId + 1}";
