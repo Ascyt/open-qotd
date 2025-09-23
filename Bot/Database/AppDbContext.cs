@@ -13,6 +13,7 @@ namespace OpenQotd.Bot.Database
         public DbSet<Config> Configs { get; set; }
         public DbSet<Question> Questions { get; set; }
         public DbSet<PresetSent> PresetSents { get; set; }
+        public DbSet<GuildUser> GuildUsers { get; set; }
 
         private static string? _postgresConnectionString = null;
 

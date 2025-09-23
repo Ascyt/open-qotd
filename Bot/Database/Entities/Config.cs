@@ -19,6 +19,24 @@ namespace OpenQotd.Bot.Database.Entities
         public ulong GuildId { get; set; }
 
         /// <summary>
+        /// Guild-dependent ID of the profile this config belongs to. 
+        /// </summary>
+        /// <remarks>
+        /// One profile is unique per config, but a guild can have multiple profiles.
+        /// </remarks>
+        public int ProfileId { get; set; }
+
+        /// <summary>
+        /// Whether this is the default profile for the guild. Each guild can only have one default profile.
+        /// </summary>
+        public bool IsDefaultProfile { get; set; } = false;
+
+        /// <summary>
+        /// User-defined name for this config profile.
+        /// </summary>
+        public string ProfileName { get; set; } = string.Empty;
+
+        /// <summary>
         /// Users without this role cannot use basic commands like suggesting questions or viewing the leaderboard. If null, everyone can use basic commands.
         /// </summary>
         public ulong? BasicRoleId { get; set; }
