@@ -87,7 +87,7 @@ namespace OpenQotd.Bot.EventHandlers
 
         private static async Task<bool> HasExactlyNArguments(InteractionCreatedEventArgs args, string[] idArgs, int n)
         {
-            if (idArgs.Length == n)
+            if (idArgs.Length - 1 == n)
                 return true;
 
             await SuggestionsEventHandlers.RespondWithError(args, $"Component ID for `{idArgs[0]}` must have exactly {n} arguments (provided is {idArgs.Length}).");

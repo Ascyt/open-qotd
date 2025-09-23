@@ -81,7 +81,7 @@ namespace OpenQotd.Bot.Commands
 
             if (config.SuggestionsChannelId is null)
             {
-                if (config.SuggestionsPingRoleId is null)
+                if (config.SuggestionsPingRoleId is not null)
                 {
                     await discordChannel.SendMessageAsync(GenericEmbeds.Warning("Suggestions ping role is set, but suggestions channel is not.\n\n" +
                         "*The channel can be set using `/config set suggestions_channel [channel]`, or the ping role can be removed using `/config reset suggestions_ping_role`.*"));

@@ -48,8 +48,8 @@ namespace OpenQotd.Bot.EventHandlers
                 );
 
             await args.Interaction.CreateResponseAsync(
-                DiscordInteractionResponseType.UpdateMessage,
-                new DiscordInteractionResponseBuilder(builder));
+                DiscordInteractionResponseType.ChannelMessageWithSource,
+                new DiscordInteractionResponseBuilder(builder).AsEphemeral());
         }
 
         public static async Task SuggestionsAcceptButtonClicked(DiscordClient client, ComponentInteractionCreatedEventArgs args, int profileId, int questionGuildDepedentId)
