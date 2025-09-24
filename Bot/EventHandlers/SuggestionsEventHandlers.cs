@@ -6,6 +6,7 @@ using DSharpPlus;
 using DSharpPlus.Entities;
 using DSharpPlus.EventArgs;
 using Microsoft.EntityFrameworkCore;
+using OpenQotd.Bot.Helpers.Profiles;
 
 namespace OpenQotd.Bot.EventHandlers
 {

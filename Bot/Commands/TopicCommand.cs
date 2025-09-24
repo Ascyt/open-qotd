@@ -9,6 +9,7 @@ using DSharpPlus.Interactivity.Extensions;
 using Microsoft.EntityFrameworkCore;
 using System.ComponentModel;
 using System.Threading.Channels;
+using OpenQotd.Bot.Helpers.Profiles;
 
 namespace OpenQotd.Bot.Commands
 {

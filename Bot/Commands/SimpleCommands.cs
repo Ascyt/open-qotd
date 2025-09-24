@@ -4,6 +4,7 @@ using DSharpPlus.Commands;
 using DSharpPlus.Commands.Processors.SlashCommands;
 using DSharpPlus.Entities;
 using System.ComponentModel;
+using OpenQotd.Bot.Helpers.Profiles;
 
 namespace OpenQotd.Bot.Commands
 {

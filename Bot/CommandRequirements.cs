@@ -5,6 +5,7 @@ using DSharpPlus.Commands;
 using DSharpPlus.Entities;
 using DSharpPlus.EventArgs;
 using DSharpPlus.Exceptions;
+using OpenQotd.Bot.Helpers.Profiles;
 
 namespace OpenQotd.Bot
 {

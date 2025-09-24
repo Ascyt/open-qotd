@@ -10,6 +10,7 @@ using Microsoft.EntityFrameworkCore;
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
 using System.Text;
+using OpenQotd.Bot.Helpers.Profiles;
 
 namespace OpenQotd.Bot.Commands
 {

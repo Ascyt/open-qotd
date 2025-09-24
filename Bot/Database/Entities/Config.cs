@@ -1,4 +1,5 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using Microsoft.EntityFrameworkCore;
+using System.ComponentModel.DataAnnotations;
 
 namespace OpenQotd.Bot.Database.Entities
 {
@@ -189,6 +190,41 @@ namespace OpenQotd.Bot.Database.Entities
         private static string FormatChannel(ulong? channelId)
         {
             return channelId is null ? "*unset*" : $"<#{channelId}>";
+        }
+
+        /// <summary>
+        /// Generates the next available ProfileId for a new question in the specified config.
+        /// </summary>
+        /// <returns>The next ID, or null if default config is not initialized yet.</returns>
+        public static async Task<int?> TryGetNextProfileId(ulong guildId)
+        {
+            using AppDbContext dbContext = new();
+            try
+            {
+                int maxExistentProfile = await dbContext.Configs
+                    .Where(q => q.GuildId == guildId)
+                    .Select(q => q.ProfileId)
+                    .MaxAsync();
+
+                int maxSelectedProfile;
+                try
+                {
+                    maxSelectedProfile = await dbContext.GuildUsers
+                        .Where(gu => gu.GuildId == guildId)
+                        .Select(gu => gu.SelectedProfileId)
+                        .MaxAsync();
+                }
+                catch (InvalidOperationException)
+                {
+                    maxSelectedProfile = -1; // Nobody has a selected profile yet
+                }
+
+                return Math.Max(maxExistentProfile, maxSelectedProfile) + 1;
+            }
+            catch (InvalidOperationException)
+            {
+                return null; // No configs yet for this guild
+            }
         }
     }
 }

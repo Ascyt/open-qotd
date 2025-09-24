@@ -4,7 +4,7 @@ using OpenQotd.Bot.Helpers;
 using DSharpPlus.Commands;
 using Microsoft.EntityFrameworkCore;
 using System.ComponentModel;
-using DSharpPlus.Entities;
+using DSharpPlus.Commands.Processors.SlashCommands;
 
 namespace OpenQotd.Bot.Commands
 {
@@ -93,7 +93,6 @@ namespace OpenQotd.Bot.Commands
                 }, ListProfileToString);
         }
 
-
         private static string ListProfileToString(KeyValuePair<Config, ViewableProfileType> viewableConfig, int rank)
         {
             string emoji = viewableConfig.Value switch 
@@ -107,6 +106,49 @@ namespace OpenQotd.Bot.Commands
             bool isCurrent = viewableConfig.Value == ViewableProfileType.Current;
 
             return $"{emoji} {(isCurrent ? "**" : "")}{viewableConfig.Key.ProfileName}{(isCurrent ? "**" : "")}";
+        }
+
+        [Command("new")]
+        [Description("Switch to new-profile-mode. Then, use /config initialize to create the profile.")]
+        public static async Task NewProfileAsync(CommandContext context)
+        {
+            bool hasAdmin = await CommandRequirements.UserHasAdministratorPermission(context, responseOnError: true);
+            if (!hasAdmin)
+                return;
+
+            int? nextProfileId = await Config.TryGetNextProfileId(context.Guild!.Id);
+            if (nextProfileId is null)
+            {
+                await context.RespondAsync(GenericEmbeds.Error("The default config must be initialized before a new profile can be created."));
+                return;
+            }
+
+            using (AppDbContext dbContext = new())
+            {
+                GuildUser? guildUser = await dbContext.GuildUsers
+                    .Where(gu => gu.GuildId == context.Guild!.Id && gu.UserId == context.User.Id)
+                    .FirstOrDefaultAsync();
+                if (guildUser is null)
+                {
+                    guildUser = new GuildUser()
+                    {
+                        GuildId = context.Guild!.Id,
+                        UserId = context.User.Id,
+                        SelectedProfileId = nextProfileId.Value
+                    };
+                    dbContext.GuildUsers.Add(guildUser);
+                }
+                else
+                {
+                    guildUser.SelectedProfileId = nextProfileId.Value;
+                    dbContext.GuildUsers.Update(guildUser);
+                }
+                await dbContext.SaveChangesAsync();
+            }
+            await (context as SlashCommandContext)!
+                .RespondAsync(
+                GenericEmbeds.Success(title:"Entered new-profile-mode", message:$"You have switched to **new-profile-mode**. Use `/config initialize` to create a new profile. Switching to a different profile will cancel new-profile-mode."),
+                ephemeral:true);
         }
     }
 }

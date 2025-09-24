@@ -8,6 +8,7 @@ using OpenQotd.Bot.Commands;
 using OpenQotd.Bot.Database;
 using OpenQotd.Bot.Database.Entities;
 using Microsoft.EntityFrameworkCore;
+using OpenQotd.Bot.Helpers.Profiles;
 
 namespace OpenQotd.Bot.EventHandlers
 {

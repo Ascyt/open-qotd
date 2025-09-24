@@ -4,6 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using OpenQotd.Bot.Database;
 using OpenQotd.Bot.Database.Entities;
 using OpenQotd.Bot.Helpers;
+using OpenQotd.Bot.Helpers.Profiles;
 using System.ComponentModel;
 using System.Threading.Tasks;
 using static OpenQotd.Bot.Logging;

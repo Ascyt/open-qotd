@@ -1,6 +1,7 @@
 ﻿using DSharpPlus.Commands;
 using OpenQotd.Bot.Database.Entities;
 using OpenQotd.Bot.Helpers;
+using OpenQotd.Bot.Helpers.Profiles;
 using OpenQotd.Bot.QotdSending;
 using System.ComponentModel;
 
