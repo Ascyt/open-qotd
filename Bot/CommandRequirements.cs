@@ -58,7 +58,7 @@ namespace OpenQotd.Bot
             {
                 using AppDbContext dbContext = new();
 
-                (config, string? error) = await ProfileHelpers.TryGetSelectedConfigAsync(guild.Id, member.Id);
+                (config, string? error) = await ProfileHelpers.TryGetSelectedOrDefaultConfigAsync(guild.Id, member.Id);
 
                 if (config is null)
                     return (false, error);
@@ -138,7 +138,7 @@ namespace OpenQotd.Bot
             {
                 using AppDbContext dbContext = new();
 
-                (config, string? error) = await ProfileHelpers.TryGetSelectedConfigAsync(guild.Id, member.Id);
+                (config, string? error) = await ProfileHelpers.TryGetSelectedOrDefaultConfigAsync(guild.Id, member.Id);
 
                 if (config is null)
                     return (false, error);

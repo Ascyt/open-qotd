@@ -49,14 +49,20 @@ namespace OpenQotd.Bot.Commands
             if (QotdTitle is not null && !await IsQotdTitleValid(context, QotdTitle))
                 return;
 
-            int? profileId = await ProfileHelpers.GetSelectedProfileIdAsync(context.Guild!.Id, context.Member!.Id);
+            int existingConfigsCount;
+            using (AppDbContext dbContext = new())
+            {
+                existingConfigsCount = await dbContext.Configs
+                    .CountAsync(c => c.GuildId == context.Guild!.Id);
+            }
 
-            int profileIdNotNull = profileId ?? 0;
+            int profileId = await ProfileHelpers.GetSelectedOrDefaultProfileIdAsync(context.Guild!.Id, context.Member!.Id);
+
             Config config = new()
             {
                 GuildId = context!.Guild!.Id,
-                ProfileId = profileIdNotNull,
-                IsDefaultProfile = profileId is null,
+                ProfileId = profileId,
+                IsDefaultProfile = existingConfigsCount == 0,
                 ProfileName = ProfileName ?? ProfileHelpers.GenerateProfileName(profileId),
                 BasicRoleId = BasicRole?.Id,
                 AdminRoleId = AdminRole.Id,
@@ -82,7 +88,7 @@ namespace OpenQotd.Bot.Commands
             using (AppDbContext dbContext = new())
             {
                 Config? existingConfig = await dbContext.Configs
-                    .FirstOrDefaultAsync(c => c.GuildId == context.Guild.Id && c.ProfileId == profileIdNotNull);
+                    .FirstOrDefaultAsync(c => c.GuildId == context.Guild.Id && c.ProfileId == profileId);
 
                 if (existingConfig != null)
                 {
@@ -111,8 +117,7 @@ namespace OpenQotd.Bot.Commands
             if (!await CommandRequirements.UserHasAdministratorPermission(context))
                 return;
 
-            Config? config = await ProfileHelpers.TryGetSelectedConfigAsync(context);
-
+            Config? config = await ProfileHelpers.TryGetSelectedOrDefaultConfigAsync(context);
             if (config is null)
                 return;
 
@@ -149,7 +154,7 @@ namespace OpenQotd.Bot.Commands
             if (!await CommandRequirements.UserHasAdministratorPermission(context))
                 return;
 
-            Config? config = await ProfileHelpers.TryGetSelectedConfigAsync(context);
+            Config? config = await ProfileHelpers.TryGetSelectedOrDefaultConfigAsync(context);
 
             if (config is null)
                 return;
@@ -253,7 +258,7 @@ namespace OpenQotd.Bot.Commands
             if (!await CommandRequirements.UserHasAdministratorPermission(context))
                 return;
 
-            Config? config = await ProfileHelpers.TryGetSelectedConfigAsync(context);
+            Config? config = await ProfileHelpers.TryGetSelectedOrDefaultConfigAsync(context);
 
             if (config is null)
                 return;

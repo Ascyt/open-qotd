@@ -17,22 +17,17 @@ namespace OpenQotd.Bot.Helpers.Profiles
             ulong guildId = context.Guild!.Id;
 
             Config[] configs;
-            int? selectedProfileId;
             using (AppDbContext dbContext = new())
             {
                 bool hasFilter = !string.IsNullOrWhiteSpace(filter);
 
                 configs = await dbContext.Configs
                         .Where(c => c.GuildId == guildId && (!hasFilter || EF.Functions.ILike(c.ProfileName, $"%{filter}%")))
-                        .OrderBy(c => c.Id)
+                        .OrderByDescending(c => c.IsDefaultProfile) // Default profile first
+                        .ThenByDescending(c => c.Id) // Then by ID (newer profiles first)
                         .ToArrayAsync();
-
-                selectedProfileId = await dbContext.GuildUsers
-                    .Where(gu => gu.GuildId == guildId && gu.UserId == context.User.Id)
-                    .Select(gu => (int?)gu.SelectedProfileId)
-                    .FirstOrDefaultAsync();
             }
-            selectedProfileId ??= 0;
+            int selectedProfileId = await GetSelectedOrDefaultProfileIdAsync(guildId, context.User.Id);
 
             Dictionary<int, string> switchableProfiles = [];
 
@@ -65,7 +60,7 @@ namespace OpenQotd.Bot.Helpers.Profiles
         /// Returns the config for the profile selected by the user in the guild, or the guild's default profile if none is selected.
         /// </summary>
         /// <exception cref="ConfigNotInitializedException"></exception>
-        public static async Task<Config> GetSelectedConfigAsync(ulong guildId, ulong userId)
+        public static async Task<Config> GetSelectedOrDefaultConfigAsync(ulong guildId, ulong userId)
         {
             using AppDbContext dbContext = new();
 
@@ -92,7 +87,7 @@ namespace OpenQotd.Bot.Helpers.Profiles
         /// <summary>
         /// Returns the profile ID selected by the user in the guild, or the guild's default profile if none is selected.
         /// </summary>
-        public static async Task<int?> GetSelectedProfileIdAsync(ulong guildId, ulong userId)
+        public static async Task<int> GetSelectedOrDefaultProfileIdAsync(ulong guildId, ulong userId)
         {
             using AppDbContext dbContext = new();
 
@@ -101,7 +96,15 @@ namespace OpenQotd.Bot.Helpers.Profiles
                 .Select(guildUser => (int?)guildUser.SelectedProfileId)
                 .FirstOrDefaultAsync();
 
-            return foundProfileId;
+            if (foundProfileId is not null)
+            {
+                return foundProfileId.Value;
+            }
+
+            return dbContext.Configs
+                .Where(config => config.GuildId == guildId && config.IsDefaultProfile)
+                .Select(config => config.ProfileId)
+                .FirstOrDefault();
         }
 
         /// <summary>
@@ -144,14 +147,14 @@ namespace OpenQotd.Bot.Helpers.Profiles
 
 
         /// <summary>
-        /// Checks if the config has been initialized using `/config initialize` for the current guild and, if it has, returns the config.
+        /// Checks if the config has been initialized using `/config initialize` for the current guild, and, if it has, tries to return the selected config, or otherwise the default config.
         /// </summary>
         /// <remarks>
         /// This also handles sending error messages, so it's recommended to end your function if it retuns false.
         /// </remarks>
-        public static async Task<Config?> TryGetSelectedConfigAsync(CommandContext context)
+        public static async Task<Config?> TryGetSelectedOrDefaultConfigAsync(CommandContext context)
         {
-            (Config?, string?) result = await TryGetSelectedConfigAsync(context.Guild!.Id, context.User.Id);
+            (Config?, string?) result = await TryGetSelectedOrDefaultConfigAsync(context.Guild!.Id, context.User.Id);
 
             if (result.Item1 is null)
             {
@@ -163,11 +166,11 @@ namespace OpenQotd.Bot.Helpers.Profiles
         }
 
         /// <summary>
-        /// See <see cref="TryGetSelectedConfigAsync(CommandContext)"/>.
+        /// See <see cref="TryGetSelectedOrDefaultConfigAsync(CommandContext)"/>.
         /// </summary>
-        public static async Task<Config?> TryGetSelectedConfigAsync(InteractionCreatedEventArgs args)
+        public static async Task<Config?> TryGetSelectedOrDefaultConfigAsync(InteractionCreatedEventArgs args)
         {
-            (Config?, string?) result = await TryGetSelectedConfigAsync(args.Interaction.Guild!.Id, args.Interaction.User!.Id);
+            (Config?, string?) result = await TryGetSelectedOrDefaultConfigAsync(args.Interaction.Guild!.Id, args.Interaction.User!.Id);
 
             if (result.Item1 is null)
             {
@@ -183,15 +186,15 @@ namespace OpenQotd.Bot.Helpers.Profiles
         }
 
         /// <summary>
-        /// See <see cref="TryGetSelectedConfigAsync(CommandContext)"/>.
+        /// See <see cref="TryGetSelectedOrDefaultConfigAsync(CommandContext)"/>.
         /// </summary>
         /// <returns>(config if initialized, error if not)</returns>
-        public static async Task<(Config?, string?)> TryGetSelectedConfigAsync(ulong guildId, ulong userId)
+        public static async Task<(Config?, string?)> TryGetSelectedOrDefaultConfigAsync(ulong guildId, ulong userId)
         {
             using AppDbContext dbContext = new();
             try
             {
-                Config? c = await GetSelectedConfigAsync(guildId, userId);
+                Config? c = await GetSelectedOrDefaultConfigAsync(guildId, userId);
 
                 return (c, null);
             }

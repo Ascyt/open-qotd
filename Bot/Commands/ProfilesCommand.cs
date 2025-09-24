@@ -7,7 +7,6 @@ using System.ComponentModel;
 using DSharpPlus.Commands.Processors.SlashCommands;
 using DSharpPlus.Commands.Processors.SlashCommands.ArgumentModifiers;
 using OpenQotd.Bot.Helpers.Profiles;
-using DSharpPlus.Entities;
 
 namespace OpenQotd.Bot.Commands
 {
@@ -28,23 +27,16 @@ namespace OpenQotd.Bot.Commands
         {
             bool hasAdmin = await CommandRequirements.UserHasAdministratorPermission(context, responseOnError: false);
 
-            int? selectedProfileId;
-            using (AppDbContext dbContext = new())
-            {
-                selectedProfileId = await dbContext.GuildUsers
-                    .Where(gu => gu.GuildId == context.Guild!.Id && gu.UserId == context.User.Id)
-                    .Select(gu => (int?)gu.SelectedProfileId)
-                    .FirstOrDefaultAsync();
-            }
-            selectedProfileId ??= 0;
+            int selectedProfileId = await ProfileHelpers.GetSelectedOrDefaultProfileIdAsync(context.Guild!.Id, context.User!.Id);
 
             Config[] configs = [];
             using (AppDbContext dbContext = new())
             {
                 configs = await dbContext.Configs
                         .Where(c => c.GuildId == context.Guild!.Id)
-                        .OrderByDescending(c => c.ProfileId == selectedProfileId.Value) // Put selected profile first
-                        .ThenBy(c => c.Id)
+                        .OrderByDescending(c => c.ProfileId == selectedProfileId) // Put selected profile first
+                        .ThenByDescending(c => c.IsDefaultProfile) // Then put default profile second (or first if selected)
+                        .ThenByDescending(c => c.Id) // Then by ID (newer profiles first)
                         .ToArrayAsync();
             }
 
@@ -103,14 +95,15 @@ namespace OpenQotd.Bot.Commands
             string emoji = viewableConfig.Value switch 
             {
                 ViewableProfileType.Viewable => ":black_small_square:",
-                ViewableProfileType.Switchable => ":green_circle:",
+                ViewableProfileType.Switchable => ":white_medium_square:",
                 ViewableProfileType.Current => ":ballot_box_with_check:",
                 _ => ":heavy_minus_sign:"
             };
 
             bool isCurrent = viewableConfig.Value == ViewableProfileType.Current;
+            bool isDefault = viewableConfig.Key.IsDefaultProfile;
 
-            return $"{emoji} {(isCurrent ? "**" : "")}{viewableConfig.Key.ProfileName}{(isCurrent ? "**" : "")}{(isCurrent ? " (current)" : "")}";
+            return $"{emoji} {(isCurrent ? "**" : "")}{viewableConfig.Key.ProfileName}{(isCurrent ? "**" : "")}{(isDefault ? " (default)" : "")}{(isCurrent ? " (current)" : "")}";
         }
 
         [Command("new")]
@@ -202,6 +195,55 @@ namespace OpenQotd.Bot.Commands
                 .RespondAsync(
                 GenericEmbeds.Success(title: "Profile Switched", message: $"You have switched to the **{configToSelect.ProfileName}** profile.")
                     );
+        }
+
+        [Command("setdefault")]
+        [Description("Set the current profile as the default.")]
+        public static async Task SetDefaultProfileAsync(CommandContext context)
+        {
+            if (!await CommandRequirements.UserHasAdministratorPermission(context))
+                return;
+
+            Config? config = await ProfileHelpers.TryGetSelectedOrDefaultConfigAsync(context);
+            if (config is null)
+                return;
+
+            using (AppDbContext dbContext = new())
+            {
+                // Remove default from existing default profile(s)
+                await dbContext.Configs
+                    .Where(c => c.GuildId == context.Guild!.Id && c.IsDefaultProfile)
+                    .ExecuteUpdateAsync(setters => setters.SetProperty(c => c.IsDefaultProfile, false));
+
+                config.IsDefaultProfile = true;
+                dbContext.Configs.Update(config);
+                await dbContext.SaveChangesAsync();
+            }
+
+            await context.RespondAsync(
+                GenericEmbeds.Success(title: "Default Profile Set", message: $"The **{config.ProfileName}** profile has been successfully set as the default profile.")
+                );
+        }
+
+        [Command("delete")]
+        [Description("Permanently and irreversably delete the current selected profile.")]
+        public static async Task DeleteProfileAsync(CommandContext context)
+        {
+            if (!await CommandRequirements.UserHasAdministratorPermission(context))
+                return;
+
+            Config? config = await ProfileHelpers.TryGetSelectedOrDefaultConfigAsync(context);
+            if (config is null)
+                return;
+
+            Config defaultConfig = await ProfileHelpers.GetDefaultConfigAsync(context.Guild!.Id);
+            if (config.ProfileId == defaultConfig.ProfileId)
+            {
+                await context.RespondAsync(GenericEmbeds.Error("It is not possible to delete the default profile. You can change it with `/profiles setdefault`."));
+                return;
+            }
+
+            throw new NotImplementedException();
         }
     }
 }
