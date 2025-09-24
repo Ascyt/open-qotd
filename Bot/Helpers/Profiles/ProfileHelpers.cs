@@ -1,4 +1,5 @@
 ﻿using DSharpPlus.Commands;
+using DSharpPlus.Commands.Processors.SlashCommands;
 using DSharpPlus.Entities;
 using DSharpPlus.EventArgs;
 using Microsoft.EntityFrameworkCore;
@@ -6,21 +7,71 @@ using OpenQotd.Bot.Database;
 using OpenQotd.Bot.Database.Entities;
 using OpenQotd.Bot.Exceptions;
 
-namespace OpenQotd.Bot.Helpers
+namespace OpenQotd.Bot.Helpers.Profiles
 {
     internal static class ProfileHelpers
     {
+        public static async Task<Dictionary<int, string>> GetSwitchableProfilesAsync(AbstractContext context, string? filter)
+        {
+            bool hasAdmin = context.Member!.Permissions.HasPermission(DiscordPermission.Administrator);
+            ulong guildId = context.Guild!.Id;
+
+            Config[] configs;
+            int? selectedProfileId;
+            using (AppDbContext dbContext = new())
+            {
+                bool hasFilter = !string.IsNullOrWhiteSpace(filter);
+
+                configs = await dbContext.Configs
+                        .Where(c => c.GuildId == guildId && (!hasFilter || EF.Functions.ILike(c.ProfileName, $"%{filter}%")))
+                        .OrderBy(c => c.Id)
+                        .ToArrayAsync();
+
+                selectedProfileId = await dbContext.GuildUsers
+                    .Where(gu => gu.GuildId == guildId && gu.UserId == context.User.Id)
+                    .Select(gu => (int?)gu.SelectedProfileId)
+                    .FirstOrDefaultAsync();
+            }
+            selectedProfileId ??= 0;
+
+            Dictionary<int, string> switchableProfiles = [];
+
+            if (hasAdmin)
+            {
+                switchableProfiles = configs
+                    .Where(c => c.ProfileId != selectedProfileId) // Exclude current profile
+                    .ToDictionary(c => c.ProfileId, c => c.ProfileName);
+            }
+            else
+            {
+                HashSet<ulong> userRoles = [.. context.Member!.Roles.Select(r => r.Id)];
+                foreach (Config config in configs)
+                {
+                    if (config.ProfileId == selectedProfileId)
+                        continue; // Exclude current profile
+
+                    bool hasAdminRole = userRoles.Contains(config.AdminRoleId);
+                    if (!hasAdminRole)
+                        continue;
+
+                    switchableProfiles[config.ProfileId] = config.ProfileName;
+                }
+            }
+
+            return switchableProfiles;
+        }
+
         /// <summary>
         /// Returns the config for the profile selected by the user in the guild, or the guild's default profile if none is selected.
         /// </summary>
-        /// <exception cref="Exceptions.ConfigNotInitializedException"></exception>
+        /// <exception cref="ConfigNotInitializedException"></exception>
         public static async Task<Config> GetSelectedConfigAsync(ulong guildId, ulong userId)
         {
             using AppDbContext dbContext = new();
 
             // Try to get the config for the user's selected profile first
             Config? config = await dbContext.GuildUsers
-                .Where(guildUser => (guildUser.GuildId == guildId && guildUser.UserId == userId))
+                .Where(guildUser => guildUser.GuildId == guildId && guildUser.UserId == userId)
                 .Join(
                     dbContext.Configs,
                     guildUser => new { guildUser.GuildId, ProfileId = guildUser.SelectedProfileId },
@@ -56,7 +107,7 @@ namespace OpenQotd.Bot.Helpers
         /// <summary>
         /// Returns the default profile ID for the guild, or any existing profile if no default is set.
         /// </summary>
-        /// <exception cref="Exceptions.ConfigNotInitializedException"></exception>
+        /// <exception cref="ConfigNotInitializedException"></exception>
         public static async Task<Config> GetDefaultConfigAsync(ulong guildId)         
         {
             using AppDbContext dbContext = new();
@@ -78,7 +129,7 @@ namespace OpenQotd.Bot.Helpers
                 return existingConfig;
             }
 
-            throw new Exceptions.ConfigNotInitializedException();
+            throw new ConfigNotInitializedException();
         }
 
         public static string GenerateProfileName(int? profileId)

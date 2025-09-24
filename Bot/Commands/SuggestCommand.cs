@@ -1,12 +1,10 @@
-﻿using CommunityToolkit.HighPerformance.Helpers;
-using OpenQotd.Bot.Database;
+﻿using OpenQotd.Bot.Database;
 using OpenQotd.Bot.Database.Entities;
 using OpenQotd.Bot.Helpers;
 using DSharpPlus.Commands;
 using DSharpPlus.Commands.Processors.SlashCommands;
 using DSharpPlus.Entities;
 using DSharpPlus.Exceptions;
-using Microsoft.EntityFrameworkCore;
 using System.ComponentModel;
 using OpenQotd.Bot.Helpers.Profiles;
 

@@ -5,6 +5,9 @@ using DSharpPlus.Commands;
 using Microsoft.EntityFrameworkCore;
 using System.ComponentModel;
 using DSharpPlus.Commands.Processors.SlashCommands;
+using DSharpPlus.Commands.Processors.SlashCommands.ArgumentModifiers;
+using OpenQotd.Bot.Helpers.Profiles;
+using DSharpPlus.Entities;
 
 namespace OpenQotd.Bot.Commands
 {
@@ -25,14 +28,6 @@ namespace OpenQotd.Bot.Commands
         {
             bool hasAdmin = await CommandRequirements.UserHasAdministratorPermission(context, responseOnError: false);
 
-            Config[] configs = [];
-            using (AppDbContext dbContext = new())
-            {
-                configs = await dbContext.Configs
-                        .Where(c => c.GuildId == context.Guild!.Id)
-                        .OrderBy(c => c.Id)
-                        .ToArrayAsync();
-            }
             int? selectedProfileId;
             using (AppDbContext dbContext = new())
             {
@@ -42,6 +37,16 @@ namespace OpenQotd.Bot.Commands
                     .FirstOrDefaultAsync();
             }
             selectedProfileId ??= 0;
+
+            Config[] configs = [];
+            using (AppDbContext dbContext = new())
+            {
+                configs = await dbContext.Configs
+                        .Where(c => c.GuildId == context.Guild!.Id)
+                        .OrderByDescending(c => c.ProfileId == selectedProfileId.Value) // Put selected profile first
+                        .ThenBy(c => c.Id)
+                        .ToArrayAsync();
+            }
 
             // key: config ID, value: whether the member has permission to switch to that profile
             Dictionary<Config, ViewableProfileType> viewableConfigs = [];
@@ -105,15 +110,14 @@ namespace OpenQotd.Bot.Commands
 
             bool isCurrent = viewableConfig.Value == ViewableProfileType.Current;
 
-            return $"{emoji} {(isCurrent ? "**" : "")}{viewableConfig.Key.ProfileName}{(isCurrent ? "**" : "")}";
+            return $"{emoji} {(isCurrent ? "**" : "")}{viewableConfig.Key.ProfileName}{(isCurrent ? "**" : "")}{(isCurrent ? " (current)" : "")}";
         }
 
         [Command("new")]
         [Description("Switch to new-profile-mode. Then, use /config initialize to create the profile.")]
         public static async Task NewProfileAsync(CommandContext context)
         {
-            bool hasAdmin = await CommandRequirements.UserHasAdministratorPermission(context, responseOnError: true);
-            if (!hasAdmin)
+            if (!await CommandRequirements.UserHasAdministratorPermission(context))
                 return;
 
             int? nextProfileId = await Config.TryGetNextProfileId(context.Guild!.Id);
@@ -145,10 +149,59 @@ namespace OpenQotd.Bot.Commands
                 }
                 await dbContext.SaveChangesAsync();
             }
+            await context.RespondAsync(
+                GenericEmbeds.Success(title:"Entered new-profile-mode", message:$"You have switched to **new-profile-mode**. Use `/config initialize` to create a new profile. Switching to a different profile will cancel new-profile-mode.")
+                );
+        }
+
+        [Command("switchto")]
+        [Description("Switch to an existing profile you have the AdminRole for.")]
+        public static async Task SwitchToProfileAsync(CommandContext context,
+            [Description("The profile to switch to.")][SlashAutoCompleteProvider<ProfilesAutoCompleteProvider>] int profile)
+        {
+            Config? configToSelect = await ProfileHelpers.TryGetConfigAsync(context, profile);
+            if (configToSelect is null)
+                return;
+
+            // Check if user has permission to switch to that profile
+            bool hasAdmin = await CommandRequirements.UserHasAdministratorPermission(context, responseOnError: false);
+            if (!hasAdmin && !context.Member!.Roles.Any(role => role.Id == configToSelect.AdminRoleId))
+            {
+                await (context as SlashCommandContext)!
+                    .RespondAsync(
+                    GenericEmbeds.Error($"You need to have the \"<@&{configToSelect.AdminRoleId}>\" role or Server Administrator permission to be able to switch to that profile."), 
+                    ephemeral: true);
+                return;
+            }
+
+            using (AppDbContext dbContext = new())
+            {
+                GuildUser? guildUser = await dbContext.GuildUsers
+                    .Where(gu => gu.GuildId == context.Guild!.Id && gu.UserId == context.User.Id)
+                    .FirstOrDefaultAsync();
+
+                if (guildUser is null)
+                {
+                    guildUser = new GuildUser()
+                    {
+                        GuildId = context.Guild!.Id,
+                        UserId = context.User.Id,
+                        SelectedProfileId = configToSelect.ProfileId
+                    };
+                    dbContext.GuildUsers.Add(guildUser);
+                }
+                else
+                {
+                    guildUser.SelectedProfileId = configToSelect.ProfileId;
+                    dbContext.GuildUsers.Update(guildUser);
+                }
+                await dbContext.SaveChangesAsync();
+            }
+
             await (context as SlashCommandContext)!
                 .RespondAsync(
-                GenericEmbeds.Success(title:"Entered new-profile-mode", message:$"You have switched to **new-profile-mode**. Use `/config initialize` to create a new profile. Switching to a different profile will cancel new-profile-mode."),
-                ephemeral:true);
+                GenericEmbeds.Success(title: "Profile Switched", message: $"You have switched to the **{configToSelect.ProfileName}** profile.")
+                );
         }
     }
 }

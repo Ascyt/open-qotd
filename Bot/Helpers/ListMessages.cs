@@ -4,6 +4,7 @@ using DSharpPlus.Interactivity.Extensions;
 using System.Text;
 using DSharpPlus.Interactivity;
 using DSharpPlus.EventArgs;
+using DSharpPlus.Commands.Processors.SlashCommands;
 
 namespace OpenQotd.Bot.Helpers
 {
