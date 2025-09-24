@@ -201,7 +201,7 @@ namespace OpenQotd.Bot.Commands
             await (context as SlashCommandContext)!
                 .RespondAsync(
                 GenericEmbeds.Success(title: "Profile Switched", message: $"You have switched to the **{configToSelect.ProfileName}** profile.")
-                );
+                    );
         }
     }
 }

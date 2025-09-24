@@ -1,6 +1,7 @@
 ﻿using DSharpPlus.Commands;
 using DSharpPlus.Entities;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Storage.ValueConversion.Internal;
 using OpenQotd.Bot.Database;
 using OpenQotd.Bot.Database.Entities;
 using OpenQotd.Bot.Helpers;
@@ -21,6 +22,7 @@ namespace OpenQotd.Bot.Commands
             [Description("The channel the QOTD should get sent in.")] DiscordChannel QotdChannel,
             [Description("The UTC hour of the day the QOTDs should get sent (0-23).")] int QotdTimeHourUtc,
             [Description("The UTC minute of the day the QOTDs should get sent (0-59).")] int QotdTimeMinuteUtc,
+            [Description("The display name of the profile this config belongs to (default \"QOTD\")")] string? ProfileName = null,
             [Description("The role a user needs to have to execute any basic commands (allows anyone by default).")] DiscordRole? BasicRole = null,
             [Description("The role that will get pinged when a new QOTD is sent.")] DiscordRole? QotdPingRole = null,
             [Description("The title that is displayed in QOTD messages. (defaults to \"Question Of The Day\") if unset)")] string? QotdTitle = null,
@@ -42,6 +44,8 @@ namespace OpenQotd.Bot.Commands
             QotdTimeMinuteUtc = Math.Clamp(QotdTimeMinuteUtc, 0, 59);
             QotdTimeHourUtc = Math.Clamp(QotdTimeHourUtc, 0, 23);
 
+            if (ProfileName is not null && !await IsProfileNameValid(context, ProfileName))
+                return;
             if (QotdTitle is not null && !await IsQotdTitleValid(context, QotdTitle))
                 return;
 
@@ -53,7 +57,7 @@ namespace OpenQotd.Bot.Commands
                 GuildId = context!.Guild!.Id,
                 ProfileId = profileIdNotNull,
                 IsDefaultProfile = profileId is null,
-                ProfileName = ProfileHelpers.GenerateProfileName(profileId),
+                ProfileName = ProfileName ?? ProfileHelpers.GenerateProfileName(profileId),
                 BasicRoleId = BasicRole?.Id,
                 AdminRoleId = AdminRole.Id,
                 QotdChannelId = QotdChannel.Id,
@@ -121,7 +125,8 @@ namespace OpenQotd.Bot.Commands
 
         [Command("set")]
         [Description("Set a config value")]
-        public static async Task SetAsync(CommandContext context,
+        public static async Task SetAsync(CommandContext context, 
+            [Description("The display name of the profile this config belongs to (default \"QOTD\")")] string? ProfileName = null,
             [Description("The role a user needs to have to execute any basic commands (allows anyone by default).")] DiscordRole? BasicRole = null,
             [Description("The role a user needs to have to execute admin commands (overrides BasicRole).")] DiscordRole? AdminRole = null,
             [Description("The channel the QOTD should get sent in.")] DiscordChannel? QotdChannel = null,
@@ -154,6 +159,8 @@ namespace OpenQotd.Bot.Commands
             if (QotdTimeHourUtc is not null)
                 QotdTimeHourUtc = Math.Clamp(QotdTimeHourUtc.Value, 0, 23);
 
+            if (ProfileName is not null && !await IsProfileNameValid(context, ProfileName))
+                return;
             if (QotdTitle is not null && !await IsQotdTitleValid(context, QotdTitle))
                 return;
 
@@ -177,6 +184,8 @@ namespace OpenQotd.Bot.Commands
                     }
                 }
 
+                if (ProfileName is not null)
+                    config.ProfileName = ProfileName;
                 if (BasicRole is not null) 
                     config.BasicRoleId = BasicRole.Id;
                 if (AdminRole is not null)
@@ -282,7 +291,7 @@ namespace OpenQotd.Bot.Commands
 
             await LogUserAction(context, config, "Set config values", message: configString);
         }
-        
+
         /// <summary>
         /// Checks whether or not the <paramref name="qotdTitle"/> is within valid length (provided by <see cref="AppSettings.ConfigQotdTitleMaxLength"/>)
         /// and does not contain any forbidden characters.
@@ -294,12 +303,35 @@ namespace OpenQotd.Bot.Commands
                 await context.RespondAsync(
                     GenericEmbeds.Error($"The provided QOTD Title must not exceed {Program.AppSettings.ConfigQotdTitleMaxLength} characters in length (provided length is {qotdTitle.Length}).")
                     );
-                return false; 
+                return false;
             }
 
             if (qotdTitle.Contains('\n'))
             {
                 await context.RespondAsync($"The provided QOTD title must not contain any line-breaks.");
+                return false;
+            }
+
+            return true;
+        }
+
+        /// <summary>
+        /// Checks whether or not the <paramref name="profileName"/> is within valid length (provided by <see cref="AppSettings.ConfigQotdTitleMaxLength"/>)
+        /// and does not contain any forbidden characters.
+        /// </summary>
+        private static async Task<bool> IsProfileNameValid(CommandContext context, string profileName)
+        {
+            if (profileName.Length > Program.AppSettings.ConfigProfileNameMaxLength)
+            {
+                await context.RespondAsync(
+                    GenericEmbeds.Error($"The provided profile name must not exceed {Program.AppSettings.ConfigProfileNameMaxLength} characters in length (provided length is {profileName.Length}).")
+                    );
+                return false;
+            }
+
+            if (profileName.Contains('\n'))
+            {
+                await context.RespondAsync($"The provided profile name must not contain any line-breaks.");
                 return false;
             }
 

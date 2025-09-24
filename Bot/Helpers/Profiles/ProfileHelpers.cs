@@ -136,7 +136,7 @@ namespace OpenQotd.Bot.Helpers.Profiles
         {
             if (profileId is null)
             {
-                return "QOTD";
+                return Program.AppSettings.ConfigProfileNameDefault;
             }
             
             return $"Profile {profileId + 1}";

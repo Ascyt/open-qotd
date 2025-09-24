@@ -48,6 +48,16 @@
         public int ConfigQotdTitleMaxLength { get; set; } = 64;
 
         /// <summary>
+        /// The maximum amount of characters that Config.ProfileLength can be. Does not add a database constraint.
+        /// </summary>
+        public int ConfigProfileNameMaxLength { get; set; } = 32;
+
+        /// <summary>
+        /// The default name for the first profile created in a guild.
+        /// </summary>
+        public string ConfigProfileNameDefault { get; set; } = "QOTD";
+
+        /// <summary>
         /// The maximum amount of characters that Question.Text can be. Does not add a database constraint.
         /// </summary>
         public int QuestionTextMaxLength { get; set; } = 256;
