@@ -1,6 +1,6 @@
 ﻿namespace OpenQotd.Bot.Database.Entities
 {
-    public class GuildUser
+    public class ProfileSelection
     {
         public int Id { get; set; }
         public ulong GuildId { get; set; }

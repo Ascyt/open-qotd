@@ -209,7 +209,7 @@ namespace OpenQotd.Bot.Database.Entities
                 int maxSelectedProfile;
                 try
                 {
-                    maxSelectedProfile = await dbContext.GuildUsers
+                    maxSelectedProfile = await dbContext.ProfileSelections
                         .Where(gu => gu.GuildId == guildId)
                         .Select(gu => gu.SelectedProfileId)
                         .MaxAsync();

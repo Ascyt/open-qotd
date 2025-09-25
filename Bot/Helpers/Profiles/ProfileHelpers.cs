@@ -65,13 +65,13 @@ namespace OpenQotd.Bot.Helpers.Profiles
             using AppDbContext dbContext = new();
 
             // Try to get the config for the user's selected profile first
-            Config? config = await dbContext.GuildUsers
-                .Where(guildUser => guildUser.GuildId == guildId && guildUser.UserId == userId)
+            Config? config = await dbContext.ProfileSelections
+                .Where(selection => selection.GuildId == guildId && selection.UserId == userId)
                 .Join(
                     dbContext.Configs,
-                    guildUser => new { guildUser.GuildId, ProfileId = guildUser.SelectedProfileId },
+                    selection => new { selection.GuildId, ProfileId = selection.SelectedProfileId },
                     config => new { config.GuildId, config.ProfileId },
-                    (guildUser, config) => config
+                    (selection, config) => config
                 )
                 .FirstOrDefaultAsync();
 
@@ -91,9 +91,9 @@ namespace OpenQotd.Bot.Helpers.Profiles
         {
             using AppDbContext dbContext = new();
 
-            int? foundProfileId = await dbContext.GuildUsers
-                .Where(guildUser => guildUser.GuildId == guildId && guildUser.UserId == userId)
-                .Select(guildUser => (int?)guildUser.SelectedProfileId)
+            int? foundProfileId = await dbContext.ProfileSelections
+                .Where(selection => selection.GuildId == guildId && selection.UserId == userId)
+                .Select(selection => (int?)selection.SelectedProfileId)
                 .FirstOrDefaultAsync();
 
             if (foundProfileId is not null)

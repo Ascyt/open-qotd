@@ -122,23 +122,23 @@ namespace OpenQotd.Bot.Commands
 
             using (AppDbContext dbContext = new())
             {
-                GuildUser? guildUser = await dbContext.GuildUsers
+                ProfileSelection? selection = await dbContext.ProfileSelections
                     .Where(gu => gu.GuildId == context.Guild!.Id && gu.UserId == context.User.Id)
                     .FirstOrDefaultAsync();
-                if (guildUser is null)
+                if (selection is null)
                 {
-                    guildUser = new GuildUser()
+                    selection = new ProfileSelection()
                     {
                         GuildId = context.Guild!.Id,
                         UserId = context.User.Id,
                         SelectedProfileId = nextProfileId.Value
                     };
-                    dbContext.GuildUsers.Add(guildUser);
+                    dbContext.ProfileSelections.Add(selection);
                 }
                 else
                 {
-                    guildUser.SelectedProfileId = nextProfileId.Value;
-                    dbContext.GuildUsers.Update(guildUser);
+                    selection.SelectedProfileId = nextProfileId.Value;
+                    dbContext.ProfileSelections.Update(selection);
                 }
                 await dbContext.SaveChangesAsync();
             }
@@ -169,24 +169,24 @@ namespace OpenQotd.Bot.Commands
 
             using (AppDbContext dbContext = new())
             {
-                GuildUser? guildUser = await dbContext.GuildUsers
+                ProfileSelection? selection = await dbContext.ProfileSelections
                     .Where(gu => gu.GuildId == context.Guild!.Id && gu.UserId == context.User.Id)
                     .FirstOrDefaultAsync();
 
-                if (guildUser is null)
+                if (selection is null)
                 {
-                    guildUser = new GuildUser()
+                    selection = new ProfileSelection()
                     {
                         GuildId = context.Guild!.Id,
                         UserId = context.User.Id,
                         SelectedProfileId = configToSelect.ProfileId
                     };
-                    dbContext.GuildUsers.Add(guildUser);
+                    dbContext.ProfileSelections.Add(selection);
                 }
                 else
                 {
-                    guildUser.SelectedProfileId = configToSelect.ProfileId;
-                    dbContext.GuildUsers.Update(guildUser);
+                    selection.SelectedProfileId = configToSelect.ProfileId;
+                    dbContext.ProfileSelections.Update(selection);
                 }
                 await dbContext.SaveChangesAsync();
             }
