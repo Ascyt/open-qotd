@@ -191,8 +191,8 @@ namespace OpenQotd.Bot.Commands
 
                     if (config.LastSentTimestamp?.Day == currentDay)
                     {
-                        await context.Channel!.SendMessageAsync(GenericEmbeds.Warning("Since a QOTD has already been sent today, the next one will be sent tomorrow at the specified time.\n\n" +
-                            "*Use `/trigger` to send a QOTD anyways!*"));
+                        await context.Channel!.SendMessageAsync(GenericEmbeds.Warning($"Since a {config.QotdShorthandText} has already been sent today, the next one will be sent tomorrow at the specified time.\n\n" +
+                            $"*Use `/trigger` to send a {config.QotdShorthandText} anyways!*"));
                     }
                 }
 

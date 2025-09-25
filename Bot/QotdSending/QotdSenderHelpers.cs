@@ -19,8 +19,8 @@ namespace OpenQotd.Bot.QotdSending
         public DateTime? previousLastSentTimestamp;
         public Notices.Notice? latestAvailableNotice;
 
-        public readonly string QotdTitle => config.QotdTitle ?? Program.AppSettings.ConfigQotdTitleDefault;
-        public readonly string QotdShorthand => config.QotdShorthand ?? Program.AppSettings.ConfigQotdShorthandDefault;
+        public readonly string QotdTitle => config.QotdTitleText;
+        public readonly string QotdShorthand => config.QotdShorthandText;
         public readonly string SuggestCommand => config.IsDefaultProfile ? "/qotd" : $"/suggest for:{QotdTitle}";
 
         private DiscordChannel? _qotdChannel;
@@ -111,7 +111,7 @@ namespace OpenQotd.Bot.QotdSending
             if (!config.EnableSuggestions)
                 return;
 
-            DiscordButtonComponent suggestButton = new(DiscordButtonStyle.Secondary, $"suggest-qotd/{config.ProfileId}", $"Suggest a new {config.QotdShorthand ?? Program.AppSettings.ConfigQotdShorthandDefault}");
+            DiscordButtonComponent suggestButton = new(DiscordButtonStyle.Secondary, $"suggest-qotd/{config.ProfileId}", $"Suggest a new {config.QotdShorthandText}");
 
             messageBuilder.AddActionRowComponent(suggestButton);
         }
@@ -169,7 +169,7 @@ namespace OpenQotd.Bot.QotdSending
             catch (NotFoundException)
             {
                 await (await d.GetQotdChannelAsync()).SendMessageAsync(
-                    GenericEmbeds.Warning("QOTD ping role is set, but not found.\n\n" +
+                    GenericEmbeds.Warning($"{d.QotdShorthand} ping role is set, but not found.\n\n" +
                     "*It can be set using `/config set qotd_ping_role [channel]`, or unset using `/config reset qotd_ping_role`.*")
                     );
                 return;

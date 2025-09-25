@@ -17,7 +17,7 @@ namespace OpenQotd.Bot.Commands
         [Description("Suggest a Question Of The Day to be added.")]
         public static async Task SuggestAsync(CommandContext context,
             [Description("Which OpenQOTD profile your question should be suggested to.")][SlashAutoCompleteProvider<SuggestableProfilesAutoCompleteProvider>] int For,
-            [Description("The question to be added.")] string question)
+            [Description("Your suggestion.")] string suggestion)
         {
             int profileId = For;
 
@@ -31,11 +31,11 @@ namespace OpenQotd.Bot.Commands
             if (!config.EnableSuggestions)
             {
                 await context.RespondAsync(
-                    GenericEmbeds.Error(title: "Suggestions Disabled", message: "Suggesting of QOTDs using `/qotd` or `/suggest` has been disabled by staff."));
+                    GenericEmbeds.Error(title: "Suggestions Disabled", message: "Suggesting of QOTDs for this profile using `/qotd` or `/suggest` has been disabled by staff."));
                 return;
             }
 
-            (bool, DiscordEmbed) result = await SuggestNoContextAsync(question, config, context.Guild!, context.Channel, context.User);
+            (bool, DiscordEmbed) result = await SuggestNoContextAsync(suggestion, config, context.Guild!, context.Channel, context.User);
 
             if (context is SlashCommandContext && result.Item1) // Is slash command and not errored
             {
@@ -72,15 +72,17 @@ namespace OpenQotd.Bot.Commands
                 await dbContext.SaveChangesAsync();
             }
 
-            (bool, DiscordEmbedBuilder) result = (true, GenericEmbeds.Success("QOTD Suggested!",
-                    $"Your Question Of The Day:\n" +
+            (bool, DiscordEmbedBuilder) result = (true, GenericEmbeds.Success($"{config.QotdShorthandText} Suggested!",
+                    $"Your **{config.QotdTitleText}** suggestion:\n" +
                     $"\"**{newQuestion.Text}**\"\n" +
                     $"\n" +
                     $"Has successfully been suggested!\n" +
                     $"You will be notified when it gets accepted or denied."));
 
 
-            await Logging.LogUserAction(discordChannel, user, config, "Suggested QOTD", $"\"**{newQuestion.Text}**\"\nID: `{newQuestion.GuildDependentId}`");
+            await Logging.LogUserAction(discordChannel, user, config, 
+                title:$"Suggested {config.QotdShorthandText}", 
+                message:$"\"**{newQuestion.Text}**\"\nID: `{newQuestion.GuildDependentId}`");
 
             if (config.SuggestionsChannelId is null)
             {
@@ -130,7 +132,7 @@ namespace OpenQotd.Bot.Commands
                 $"By: {user.Mention} (`{user.Id}`)\n" +
                 $"ID: `{newQuestion.GuildDependentId}`";
 
-            messageBuilder.AddEmbed(GenericEmbeds.Custom("A new QOTD Suggestion is available!", embedBody,
+            messageBuilder.AddEmbed(GenericEmbeds.Custom($"A new {config.QotdShorthandText} Suggestion is available!", embedBody,
                 color: "#f0b132"));
 
             messageBuilder.AddActionRowComponent(
@@ -173,13 +175,13 @@ namespace OpenQotd.Bot.Commands
         [Command("qotd")]
         [Description("Suggest a Question Of The Day to be added. Unlike /suggest, this uses the default profile.")]
         public static async Task QotdAsync(CommandContext context,
-            [Description("The question to be added.")] string question)
+            [Description("Your suggestion.")] string suggestion)
         { 
             Config? defaultConfig = await ProfileHelpers.TryGetDefaultConfigAsync(context);
             if (defaultConfig is null)
                 return;
 
-            await SuggestAsync(context, defaultConfig.ProfileId, question);
+            await SuggestAsync(context, defaultConfig.ProfileId, suggestion);
         }
     }
 }

@@ -25,7 +25,7 @@ namespace OpenQotd.Bot.EventHandlers
             }
             if (question is null)
             {
-                await RespondWithError(args, $"Question with ID `{questionGuildDepedentId}` not found.");
+                await RespondWithError(args, $"Question with ID `{questionGuildDepedentId}` for profile \"{config.ProfileName}\" not found.");
                 return null;
             }
 
@@ -65,7 +65,7 @@ namespace OpenQotd.Bot.EventHandlers
 
             await SuggestionsCommands.AcceptSuggestionNoContextAsync(suggestionData.Value.Item2, config, suggestionData.Value.Item3, args, null);
         }
-        public static async Task SuggestionsDenyButtonClicked(DiscordClient client, ComponentInteractionCreatedEventArgs args, int profileId, int guildDependentId)
+        public static async Task SuggestionsDenyButtonClicked(DiscordClient client, ComponentInteractionCreatedEventArgs args, int profileId, int questionGuildDependentId)
         {
             Config? config = await ProfileHelpers.TryGetConfigAsync(args, profileId);
             if (config is null || !await CommandRequirements.UserIsBasic(args, config))
@@ -75,18 +75,18 @@ namespace OpenQotd.Bot.EventHandlers
             using (AppDbContext dbContext = new())
             {
                 question = await dbContext.Questions
-                    .Where(q => q.ConfigId == config.Id && q.GuildDependentId == guildDependentId)
+                    .Where(q => q.ConfigId == config.Id && q.GuildDependentId == questionGuildDependentId)
                     .FirstOrDefaultAsync();
             }
             if (question is null)
             {
-                await RespondWithError(args, $"Question with ID `{guildDependentId}` not found.");
+                await RespondWithError(args, $"Question with ID `{questionGuildDependentId}` for profile \"{config.ProfileName}\" not found.");
                 return;
             }
 
             DiscordInteractionResponseBuilder modal = new DiscordInteractionResponseBuilder()
                 .WithTitle(question.Text!.Length > 32 ? $"Denial of \"{question.Text[..32]}…\"" : $"Denial of \"{question.Text}\"")
-                .WithCustomId($"suggestions-deny/{config.ProfileId}/{guildDependentId}")
+                .WithCustomId($"suggestions-deny/{config.ProfileId}/{questionGuildDependentId}")
                 .AddTextInputComponent(new DiscordTextInputComponent(
                     label: "Denial Reason", customId: "reason", placeholder: "This will be sent to the user.", max_length: 1024, required: true, style: DiscordTextInputStyle.Paragraph));
 

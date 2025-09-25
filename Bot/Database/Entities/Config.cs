@@ -105,11 +105,13 @@ namespace OpenQotd.Bot.Database.Entities
         /// The title of the QOTD message. If null the default is used which is "Question Of The Day"
         /// </summary>
         public string? QotdTitle { get; set; } = null;
+        public string QotdTitleText => QotdTitle ?? Program.AppSettings.ConfigQotdTitleDefault;
 
         /// <summary>
         /// The shorthand of the QOTD title. If null the default is used which is "QOTD"
         /// </summary>
         public string? QotdShorthand { get; set; } = null;
+        public string QotdShorthandText => QotdShorthand ?? Program.AppSettings.ConfigQotdShorthandDefault;
 
         /// <summary>
         /// If true, users can suggest questions using /suggest or /qotd.

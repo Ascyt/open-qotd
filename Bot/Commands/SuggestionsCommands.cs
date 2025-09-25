@@ -5,10 +5,8 @@ using DSharpPlus.Commands;
 using DSharpPlus.Entities;
 using DSharpPlus.EventArgs;
 using DSharpPlus.Exceptions;
-using DSharpPlus.Interactivity;
 using Microsoft.EntityFrameworkCore;
 using System.ComponentModel;
-using System.Runtime.CompilerServices;
 using System.Text;
 using OpenQotd.Bot.Helpers.Profiles;
 
@@ -196,17 +194,17 @@ namespace OpenQotd.Bot.Commands
 
                     if (pair.Value.Count == 1)
                     {
-                        userSendMessage.AddEmbed(GenericEmbeds.Custom($"{context.Guild!.Name}: QOTD Suggestion Accepted",
-                                $"Your QOTD Suggestion:\n" +
+                        userSendMessage.AddEmbed(GenericEmbeds.Custom($"{context.Guild!.Name}: {config.QotdShorthandText} Suggestion Accepted",
+                                $"Your {config.QotdShorthandText} Suggestion:\n" +
                                 $"\"**{pair.Value[0].Text}**\"\n\n" +
                                 $"Has been :white_check_mark: **ACCEPTED** :white_check_mark:!\n" +
-                                $"It is now qualified to appear as **Question Of The Day** in {context.Guild!.Name}!",
+                                $"It is now qualified to appear as **{config.QotdTitleText}** in {context.Guild!.Name}!",
                                 color: "#20ff20"
                             ).WithFooter($"Server ID: {context.Guild!.Id}"));
                     }
                     else
                     {
-                        StringBuilder sb = new($"{pair.Value.Count} of your QOTD Suggestions:\n");
+                        StringBuilder sb = new($"{pair.Value.Count} of your {config.QotdShorthandText} Suggestions:\n");
 
                         int index = 0;
                         foreach (Question question in pair.Value)
@@ -222,9 +220,9 @@ namespace OpenQotd.Bot.Commands
                         }
 
                         sb.Append($"\nHave been :white_check_mark: **ACCEPTED** :white_check_mark:!\n" +
-                            $"They are now qualified to appear as **Question Of The Day** in **{context.Guild!.Name}**!");
+                            $"They are now qualified to appear as **{config.QotdTitleText}** in **{context.Guild!.Name}**!");
 
-                        userSendMessage.AddEmbed(GenericEmbeds.Custom($"{context.Guild!.Name}: QOTD Suggestions Accepted", sb.ToString(), color: "#20ff20"));
+                        userSendMessage.AddEmbed(GenericEmbeds.Custom($"{context.Guild!.Name}: {config.QotdShorthandText} Suggestions Accepted", sb.ToString(), color: "#20ff20"));
                     }
                     await suggester.SendMessageAsync(
                         userSendMessage
@@ -304,8 +302,8 @@ namespace OpenQotd.Bot.Commands
 
                     if (pair.Value.Count == 1)
                     {
-                        userSendMessage.AddEmbed(GenericEmbeds.Custom($"{context.Guild!.Name}: QOTD Suggestion Denied",
-                                $"Your QOTD Suggestion:\n" +
+                        userSendMessage.AddEmbed(GenericEmbeds.Custom($"{context.Guild!.Name}: {config.QotdShorthandText} Suggestion Denied",
+                                $"Your {config.QotdShorthandText} Suggestion:\n" +
                                 $"\"**{pair.Value[0].Text}**\"\n\n" +
                                 $"Has been :x: **DENIED** :x:.",
                                 color: "#ff2020"
@@ -313,7 +311,7 @@ namespace OpenQotd.Bot.Commands
                     }
                     else
                     {
-                        StringBuilder sb = new StringBuilder($"{pair.Value.Count} of your QOTD Suggestions:\n");
+                        StringBuilder sb = new StringBuilder($"{pair.Value.Count} of your {config.QotdTitleText} Suggestions:\n");
 
                         int index = 0;
                         foreach (Question question in pair.Value)
@@ -330,7 +328,7 @@ namespace OpenQotd.Bot.Commands
 
                         sb.Append($"\nHave been :x: **DENIED** :x:.");
 
-                        userSendMessage.AddEmbed(GenericEmbeds.Custom($"{context.Guild!.Name}: QOTD Suggestions Denied", sb.ToString(), color: "#ff2020"));
+                        userSendMessage.AddEmbed(GenericEmbeds.Custom($"{context.Guild!.Name}: {config.QotdShorthandText} Suggestions Denied", sb.ToString(), color: "#ff2020"));
                     }
                     await suggester.SendMessageAsync(
                         userSendMessage
@@ -405,7 +403,7 @@ namespace OpenQotd.Bot.Commands
 
                 string embedBody = GetEmbedBody(question);
 
-                messageBuilder.AddEmbed(GenericEmbeds.Custom($"QOTD Suggestion Accepted", embedBody +
+                messageBuilder.AddEmbed(GenericEmbeds.Custom($"{config.QotdShorthandText} Suggestion Accepted", embedBody +
                     $"\n\nAccepted by: {user.Mention}", color: "#20ff20"));
 
                 if (result is null)
@@ -431,11 +429,11 @@ namespace OpenQotd.Bot.Commands
             if (suggester is not null)
             {
                 DiscordMessageBuilder userSendMessage = new();
-                userSendMessage.AddEmbed(GenericEmbeds.Custom($"{guild.Name}: QOTD Suggestion Accepted",
-                        $"Your QOTD Suggestion:\n" +
+                userSendMessage.AddEmbed(GenericEmbeds.Custom($"{guild.Name}: {config.QotdShorthandText} Suggestion Accepted",
+                        $"Your {config.QotdShorthandText} Suggestion:\n" +
                         $"\"**{question.Text}**\"\n\n" +
                         $"Has been :white_check_mark: **ACCEPTED** :white_check_mark:!\n" +
-                        $"It is now qualified to appear as **Question Of The Day** in **{guild.Name}**!",
+                        $"It is now qualified to appear as **{config.QotdTitleText}** in **{guild.Name}**!",
                         color: "#20ff20"
                     ).WithFooter($"Server ID: {guild.Id}"));
 
@@ -496,7 +494,7 @@ namespace OpenQotd.Bot.Commands
 
                 string embedBody = GetEmbedBody(question);
 
-                messageBuilder.AddEmbed(GenericEmbeds.Custom($"QOTD Suggestion Denied", embedBody +
+                messageBuilder.AddEmbed(GenericEmbeds.Custom($"{config.QotdShorthandText} Suggestion Denied", embedBody +
                     $"\n\nDenied by: {user.Mention}{(reason != null ? $"\nReason: \"**{reason}**\"" : "")}", color: "#ff2020"));
 
                 if (result is null)
@@ -523,8 +521,8 @@ namespace OpenQotd.Bot.Commands
             if (suggester is not null)
             {
                 DiscordMessageBuilder userSendMessage = new();
-                userSendMessage.AddEmbed(GenericEmbeds.Custom($"{guild.Name}: QOTD Suggestion Denied",
-                        $"Your QOTD Suggestion:\n" +
+                userSendMessage.AddEmbed(GenericEmbeds.Custom($"{guild.Name}: {config.QotdShorthandText} Suggestion Denied",
+                        $"Your {config.QotdTitleText} Suggestion:\n" +
                         $"\"**{question.Text}**\"\n\n" +
                         $"Has been :x: **DENIED** :x: {(reason != null ? $"for the following reason:\n" +
                         $"> *{reason}*" : "")}",
@@ -537,7 +535,7 @@ namespace OpenQotd.Bot.Commands
             }
 
             if (context is null)
-                await Logging.LogUserAction(suggestionMessage!.Channel!, user, config, "Denied Suggestion", $"{question}\n\n" +
+                await Logging.LogUserAction(suggestionMessage!.Channel!, user, config, "Denied Suggestion" + (config.EnableDeletedToStash ? " (moved to stash)" : ""), $"{question}\n\n" +
                 $"Denial Reason: \"**{reason}**\"");
             else
                 await Logging.LogUserAction(context, config, "Denied Suggestion" + (config.EnableDeletedToStash ? " (moved to stash)" : ""), $"{question}\n\n" +
