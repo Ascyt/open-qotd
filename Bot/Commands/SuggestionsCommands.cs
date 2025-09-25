@@ -74,7 +74,7 @@ namespace OpenQotd.Bot.Commands
             Config? config = await ProfileHelpers.TryGetSelectedOrDefaultConfigAsync(context);
             if (config is null || !await CommandRequirements.UserIsAdmin(context, config))
                 return;
-
+            
             Question? question;
             using (AppDbContext dbContext = new())
             {

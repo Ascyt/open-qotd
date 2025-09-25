@@ -51,6 +51,8 @@ namespace OpenQotd.Bot.EventHandlers
                 case "last":
                 case "redirect":
                 case "reroll":
+                case "confirm_choice":
+                case "cancel_choice":
                     return;
             }
 
