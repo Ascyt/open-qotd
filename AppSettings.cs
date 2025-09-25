@@ -35,6 +35,11 @@
         public int QotdSendingMaxDegreeOfParallelism { get; set; } = 10;
 
         /// <summary>
+        /// The maximum amount of configs (profiles) a guild can have. Does not add a database constraint.
+        /// </summary>
+        public int ConfigsPerGuildMaxAmount { get; set; } = 64;
+
+        /// <summary>
         /// The maximum amount of questions a guild can have. Does not add a database constraint. 
         /// </summary>
         public int QuestionsPerGuildMaxAmount { get; set; } = 65536;

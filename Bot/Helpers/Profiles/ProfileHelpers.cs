@@ -92,7 +92,7 @@ namespace OpenQotd.Bot.Helpers.Profiles
 
         public static string GenerateProfileName(int? profileId)
         {
-            if (profileId is null)
+            if (profileId == 0)
             {
                 return Program.AppSettings.ConfigProfileNameDefault;
             }

@@ -126,9 +126,21 @@ namespace OpenQotd.Bot.Commands
 
             using (AppDbContext dbContext = new())
             {
+                // Check if within max profiles limit
+                int existingProfilesCount = await dbContext.Configs
+                    .Where(c => c.GuildId == context.Guild!.Id)
+                    .CountAsync();
+                if (existingProfilesCount >= Program.AppSettings.ConfigsPerGuildMaxAmount)
+                {
+                    await context.RespondAsync(GenericEmbeds.Error(
+                        $"The maximum amount of profiles for this server ({Program.AppSettings.ConfigsPerGuildMaxAmount}) has been reached. It is not possible to create a new profile until an existing one is deleted."
+                        ));
+                    return;
+                }
+
                 ProfileSelection? selection = await dbContext.ProfileSelections
-                    .Where(gu => gu.GuildId == context.Guild!.Id && gu.UserId == context.User.Id)
-                    .FirstOrDefaultAsync();
+                .Where(gu => gu.GuildId == context.Guild!.Id && gu.UserId == context.User.Id)
+                .FirstOrDefaultAsync();
                 if (selection is null)
                 {
                     selection = new ProfileSelection()
