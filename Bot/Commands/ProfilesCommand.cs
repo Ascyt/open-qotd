@@ -154,9 +154,11 @@ namespace OpenQotd.Bot.Commands
         [Command("switchto")]
         [Description("Switch to an existing profile you have the AdminRole for.")]
         public static async Task SwitchToProfileAsync(CommandContext context,
-            [Description("The profile to switch to.")][SlashAutoCompleteProvider<ProfilesAutoCompleteProvider>] int profile)
+            [Description("The profile to switch to.")][SlashAutoCompleteProvider<SwitchableProfilesAutoCompleteProvider>] int Profile)
         {
-            Config? configToSelect = await ProfileHelpers.TryGetConfigAsync(context, profile);
+            int profileId = Profile;
+
+            Config? configToSelect = await ProfileHelpers.TryGetConfigAsync(context, profileId);
             if (configToSelect is null)
                 return;
 

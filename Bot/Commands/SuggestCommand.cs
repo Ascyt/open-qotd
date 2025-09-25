@@ -7,6 +7,7 @@ using DSharpPlus.Entities;
 using DSharpPlus.Exceptions;
 using System.ComponentModel;
 using OpenQotd.Bot.Helpers.Profiles;
+using DSharpPlus.Commands.Processors.SlashCommands.ArgumentModifiers;
 
 namespace OpenQotd.Bot.Commands
 {
@@ -15,9 +16,12 @@ namespace OpenQotd.Bot.Commands
         [Command("suggest")]
         [Description("Suggest a Question Of The Day to be added.")]
         public static async Task SuggestAsync(CommandContext context,
-            [Description ("The question to be added.")] string question)
+            [Description("Which OpenQOTD profile your question should be suggested to.")][SlashAutoCompleteProvider<SuggestableProfilesAutoCompleteProvider>] int For,
+            [Description("The question to be added.")] string question)
         {
-            Config? config = await ProfileHelpers.TryGetDefaultConfigAsync(context);
+            int profileId = For;
+
+            Config? config = await ProfileHelpers.TryGetConfigAsync(context, profileId);
             if (config is null || !await CommandRequirements.UserIsBasic(context, config))
                 return;
 
@@ -167,9 +171,15 @@ namespace OpenQotd.Bot.Commands
 
 
         [Command("qotd")]
-        [Description("Suggest a Question Of The Day to be added.")]
+        [Description("Suggest a Question Of The Day to be added. Unlike /suggest, this uses the default profile.")]
         public static async Task QotdAsync(CommandContext context,
             [Description("The question to be added.")] string question)
-            => await SuggestAsync(context, question);
+        { 
+            Config? defaultConfig = await ProfileHelpers.TryGetDefaultConfigAsync(context);
+            if (defaultConfig is null)
+                return;
+
+            await SuggestAsync(context, defaultConfig.ProfileId, question);
+        }
     }
 }

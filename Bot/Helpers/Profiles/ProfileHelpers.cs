@@ -55,6 +55,46 @@ namespace OpenQotd.Bot.Helpers.Profiles
 
             return switchableProfiles;
         }
+        public static async Task<Dictionary<int, string>> GetSuggestableProfilesAsync(AbstractContext context, string? filter)
+        {
+            bool hasAdmin = context.Member!.Permissions.HasPermission(DiscordPermission.Administrator);
+            ulong guildId = context.Guild!.Id;
+
+            Config[] configs;
+            string defaultQotdTitle = Program.AppSettings.ConfigQotdTitleDefault;
+            using (AppDbContext dbContext = new())
+            {
+                bool hasFilter = !string.IsNullOrWhiteSpace(filter);
+
+                configs = await dbContext.Configs
+                        .Where(c => c.GuildId == guildId && c.EnableSuggestions && (!hasFilter || EF.Functions.ILike(c.QotdTitle ?? defaultQotdTitle, $"%{filter}%")))
+                        .OrderByDescending(c => c.IsDefaultProfile) // Default profile first
+                        .ThenByDescending(c => c.Id) // Then by ID (newer profiles first)
+                        .ToArrayAsync();
+            }
+
+            Dictionary<int, string> suggestableProfiles = [];
+
+            if (hasAdmin)
+            {
+                suggestableProfiles = configs
+                    .ToDictionary(c => c.ProfileId, c => c.QotdTitle ?? defaultQotdTitle);
+            }
+            else
+            {
+                HashSet<ulong> userRoles = [.. context.Member!.Roles.Select(r => r.Id)];
+                foreach (Config config in configs)
+                {
+                    bool hasBasicRole = config.BasicRoleId is null || userRoles.Contains(config.BasicRoleId.Value);
+                    if (!hasBasicRole)
+                        continue;
+
+                    suggestableProfiles[config.ProfileId] = config.QotdTitle ?? defaultQotdTitle;
+                }
+            }
+
+            return suggestableProfiles;
+        }
 
         /// <summary>
         /// Returns the config for the profile selected by the user in the guild, or the guild's default profile if none is selected.
@@ -108,10 +148,10 @@ namespace OpenQotd.Bot.Helpers.Profiles
         }
 
         /// <summary>
-        /// Returns the default profile ID for the guild, or any existing profile if no default is set.
+        /// Returns the default config (profile) for the guild, or any existing profile if no default is set.
         /// </summary>
         /// <exception cref="ConfigNotInitializedException"></exception>
-        public static async Task<Config> GetDefaultConfigAsync(ulong guildId)         
+        public static async Task<Config> GetDefaultConfigAsync(ulong guildId)
         {
             using AppDbContext dbContext = new();
 

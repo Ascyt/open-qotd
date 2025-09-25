@@ -4,11 +4,11 @@ using DSharpPlus.Entities;
 
 namespace OpenQotd.Bot.Helpers.Profiles
 {
-    public class ProfilesAutoCompleteProvider : IAutoCompleteProvider
+    public class SuggestableProfilesAutoCompleteProvider : IAutoCompleteProvider
     {
         public async ValueTask<IEnumerable<DiscordAutoCompleteChoice>> AutoCompleteAsync(AutoCompleteContext context)
         {
-            Dictionary<int, string> switchableFilteredProfiles = await ProfileHelpers.GetSwitchableProfilesAsync(context, context.UserInput);
+            Dictionary<int, string> switchableFilteredProfiles = await ProfileHelpers.GetSuggestableProfilesAsync(context, context.UserInput);
 
             return switchableFilteredProfiles
                 .Take(25) // Max 25 choices allowed by Discord API
