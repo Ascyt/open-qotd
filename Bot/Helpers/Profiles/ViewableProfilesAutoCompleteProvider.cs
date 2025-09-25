@@ -8,40 +8,41 @@ using OpenQotd.Bot.Database.Entities;
 
 namespace OpenQotd.Bot.Helpers.Profiles
 {
-    public class SuggestableProfilesAutoCompleteProvider : IAutoCompleteProvider
+    public class ViewableProfilesAutoCompleteProvider : IAutoCompleteProvider
     {
         public async ValueTask<IEnumerable<DiscordAutoCompleteChoice>> AutoCompleteAsync(AutoCompleteContext context)
         {
-            Dictionary<int, string> switchableFilteredProfiles = await GetSuggestableProfilesAsync(context, context.UserInput);
+            Dictionary<int, string> viewableFilteredProfiles = await GetViewableProfilesAsync(context, context.UserInput);
 
-            return switchableFilteredProfiles
+            return viewableFilteredProfiles
                 .Take(25) // Max 25 choices allowed by Discord API
                 .Select(kv => new DiscordAutoCompleteChoice(kv.Value, kv.Key));
         }
 
-        public static async Task<Dictionary<int, string>> GetSuggestableProfilesAsync(AbstractContext context, string? filter)
+        public static async Task<Dictionary<int, string>> GetViewableProfilesAsync(AbstractContext context, string? filter)
         {
             bool hasAdmin = context.Member!.Permissions.HasPermission(DiscordPermission.Administrator);
             ulong guildId = context.Guild!.Id;
 
-            Config[] configs;
+            Config[] configs; 
             string defaultQotdTitle = Program.AppSettings.ConfigQotdTitleDefault;
             using (AppDbContext dbContext = new())
             {
                 bool hasFilter = !string.IsNullOrWhiteSpace(filter);
 
                 configs = await dbContext.Configs
-                        .Where(c => c.GuildId == guildId && c.EnableSuggestions && (!hasFilter || EF.Functions.ILike(c.QotdTitle ?? defaultQotdTitle, $"%{filter}%")))
+                        .Where(c => c.GuildId == guildId && (!hasFilter || EF.Functions.ILike(c.QotdTitle ?? defaultQotdTitle, $"%{filter}%")))
                         .OrderByDescending(c => c.IsDefaultProfile) // Default profile first
                         .ThenByDescending(c => c.Id) // Then by ID (newer profiles first)
                         .ToArrayAsync();
             }
+            int selectedProfileId = await ProfileHelpers.GetSelectedOrDefaultProfileIdAsync(guildId, context.User.Id);
 
-            Dictionary<int, string> suggestableProfiles = [];
+            Dictionary<int, string> viewableProfiles = [];
 
             if (hasAdmin)
             {
-                suggestableProfiles = configs
+                viewableProfiles = configs
                     .ToDictionary(c => c.ProfileId, c => c.QotdTitle ?? defaultQotdTitle);
             }
             else
@@ -53,11 +54,11 @@ namespace OpenQotd.Bot.Helpers.Profiles
                     if (!hasBasicRole)
                         continue;
 
-                    suggestableProfiles[config.ProfileId] = config.QotdTitle ?? defaultQotdTitle;
+                    viewableProfiles[config.ProfileId] = config.QotdTitle ?? defaultQotdTitle;
                 }
             }
 
-            return suggestableProfiles;
+            return viewableProfiles;
         }
     }
 }

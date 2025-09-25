@@ -1,10 +1,11 @@
-﻿using OpenQotd.Bot.Database;
+﻿using DSharpPlus.Commands;
+using DSharpPlus.Commands.Processors.SlashCommands.ArgumentModifiers;
+using Microsoft.EntityFrameworkCore;
+using OpenQotd.Bot.Database;
 using OpenQotd.Bot.Database.Entities;
 using OpenQotd.Bot.Helpers;
-using DSharpPlus.Commands;
-using Microsoft.EntityFrameworkCore;
-using System.ComponentModel;
 using OpenQotd.Bot.Helpers.Profiles;
+using System.ComponentModel;
 
 namespace OpenQotd.Bot.Commands
 {
@@ -21,15 +22,19 @@ namespace OpenQotd.Bot.Commands
         [Command("lb")]
         [Description("View a leaderboard of who wrote the most sent QOTDs.")]
         public static async Task LeaderboardShorthandAsync(CommandContext context,
+            [Description("Which OpenQOTD profile to consider.")][SlashAutoCompleteProvider<ViewableProfilesAutoCompleteProvider>] int of,
             [Description("The page of the listing (default 1).")] int page = 1)
-            => await LeaderboardAsync(context, page);
+            => await LeaderboardAsync(context, of, page);
 
         [Command("leaderboard")]
         [Description("View a leaderboard of who wrote the most sent QOTDs.")]
         public static async Task LeaderboardAsync(CommandContext context,
+            [Description("Which OpenQOTD profile to consider.")][SlashAutoCompleteProvider<ViewableProfilesAutoCompleteProvider>] int of,
             [Description("The page of the listing (default 1).")] int page = 1)
         {
-            Config? config = await ProfileHelpers.TryGetDefaultConfigAsync(context);
+            int profileId = of;
+
+            Config? config = await ProfileHelpers.TryGetConfigAsync(context, of);
             if (config is null || !await CommandRequirements.UserIsBasic(context, config))
                 return;
 

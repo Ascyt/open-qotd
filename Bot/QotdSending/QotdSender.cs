@@ -257,8 +257,8 @@ namespace OpenQotd.Bot.QotdSending
                 //    "There is no more Accepted QOTD of this server left." +
                 //    (presetsLeft > 0 && d.config.EnableQotdAutomaticPresets ? $"\nIf none are added, one of **{presetsLeft} Presets** will start to be used instead." : "") +
                 //    (d.config.EnableSuggestions ? $"\n\n*More can be suggested using `/qotd`!*" : "")));
-
-                await qotdChannel.SendMessageAsync(lastQuestionWarning);
+                //
+                //await qotdChannel.SendMessageAsync(lastQuestionWarning);
             }
 
             await SendNoticeIfAvailable(d);

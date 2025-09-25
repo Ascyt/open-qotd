@@ -1,10 +1,11 @@
-﻿using OpenQotd.Bot.Database.Entities;
-using OpenQotd.Bot.Helpers;
-using DSharpPlus.Commands;
+﻿using DSharpPlus.Commands;
 using DSharpPlus.Commands.Processors.SlashCommands;
+using DSharpPlus.Commands.Processors.SlashCommands.ArgumentModifiers;
 using DSharpPlus.Entities;
-using System.ComponentModel;
+using OpenQotd.Bot.Database.Entities;
+using OpenQotd.Bot.Helpers;
 using OpenQotd.Bot.Helpers.Profiles;
+using System.ComponentModel;
 
 namespace OpenQotd.Bot.Commands
 {
@@ -12,10 +13,13 @@ namespace OpenQotd.Bot.Commands
     {
         [Command("sentquestions")]
         [Description("View all sent QOTDs")]
-        public static async Task ViewSentQuestionsAsync(CommandContext context, 
+        public static async Task ViewSentQuestionsAsync(CommandContext context,
+            [Description("Which OpenQOTD profile to consider.")][SlashAutoCompleteProvider<ViewableProfilesAutoCompleteProvider>] int of,
             [Description("The page of the listing (default 1).")] int page = 1)
         {
-            Config? config = await ProfileHelpers.TryGetDefaultConfigAsync(context);
+            int profileId = of;
+
+            Config? config = await ProfileHelpers.TryGetConfigAsync(context, profileId);
             if (config is null || !await CommandRequirements.UserIsBasic(context, config))
                 return;
 

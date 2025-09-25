@@ -1,15 +1,15 @@
-﻿using OpenQotd.Bot.Database;
-using OpenQotd.Bot.Database.Entities;
-using OpenQotd.Bot.Helpers;
-using DSharpPlus.Commands;
+﻿using DSharpPlus.Commands;
+using DSharpPlus.Commands.Processors.SlashCommands.ArgumentModifiers;
 using DSharpPlus.Entities;
 using DSharpPlus.EventArgs;
 using DSharpPlus.Interactivity;
 using DSharpPlus.Interactivity.Extensions;
 using Microsoft.EntityFrameworkCore;
-using System.ComponentModel;
-using System.Threading.Channels;
+using OpenQotd.Bot.Database;
+using OpenQotd.Bot.Database.Entities;
+using OpenQotd.Bot.Helpers;
 using OpenQotd.Bot.Helpers.Profiles;
+using System.ComponentModel;
 
 namespace OpenQotd.Bot.Commands
 {
@@ -18,11 +18,14 @@ namespace OpenQotd.Bot.Commands
         private static readonly Random _random = new();
 
         [Command("topic")]
-        [Description("Send a random Sent QOTD to the current channel.")]
+        [Description("Sends a random Sent QOTD to the current channel.")]
         public static async Task TopicAsync(CommandContext context,
+            [Description("Which OpenQOTD profile to take the topic from.")][SlashAutoCompleteProvider<ViewableProfilesAutoCompleteProvider>] int from,
             [Description("Whether or not to include all existing Preset questions.")] bool includePresets=true)
         {
-            Config? config = await ProfileHelpers.TryGetDefaultConfigAsync(context);
+            int profileId = from;
+
+            Config? config = await ProfileHelpers.TryGetConfigAsync(context, from);
             if (config is null || !await CommandRequirements.UserIsBasic(context, config))
                 return;
 
