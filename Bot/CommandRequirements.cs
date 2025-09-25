@@ -64,9 +64,9 @@ namespace OpenQotd.Bot
                     return (false, error);
             }
 
-            ulong roleId = config.AdminRoleId;
+            ulong adminRoleId = config.AdminRoleId;
 
-            if (member.Roles.Any(role => role.Id == roleId))
+            if (member.Roles.Any(role => role.Id == adminRoleId))
             {
                 return (true, null);
             }
@@ -74,12 +74,12 @@ namespace OpenQotd.Bot
             DiscordRole role;
             try
             {
-                role = await guild.GetRoleAsync(roleId);
+                role = await guild.GetRoleAsync(adminRoleId);
             }
             catch (NotFoundException)
             {
                 return (false,
-                    $"The role in the admin_role config value with ID {roleId} could not be found.\n\n" +
+                    $"The role in the admin_role config value with ID {adminRoleId} could not be found.\n\n" +
                         $"*It can be set using `/config set admin_role [role]`.*");
             }
 
@@ -144,25 +144,20 @@ namespace OpenQotd.Bot
                     return (false, error);
             }
 
-            ulong? roleId = config.BasicRoleId;
+            ulong? basicRoleId = config.BasicRoleId;
 
-            if (roleId == null)
+            if (basicRoleId == null || member.Roles.Any(role => role.Id == basicRoleId) || (await UserIsAdmin(guild, member, config)).Item1)
                 return (true, null);
-
-            if (member.Roles.Any(role => role.Id == roleId) && !(await UserIsAdmin(guild, member, config)).Item1)
-            {
-                return (true, null);
-            }
 
             DiscordRole role;
             try
             {
-                role = await guild.GetRoleAsync(roleId.Value);
+                role = await guild.GetRoleAsync(basicRoleId.Value);
             }
             catch (NotFoundException)
             {
                 return (false,
-                    $"The role in the basic_role config value with ID {roleId} could not be found.\n\n" +
+                    $"The role in the basic_role config value with ID `{basicRoleId}` could not be found.\n\n" +
                         $"*It can be set using `/config set basic_role [role]`.*");
             }
 
