@@ -35,6 +35,11 @@
         public int QotdSendingMaxDegreeOfParallelism { get; set; } = 10;
 
         /// <summary>
+        /// The maximum amount of configs (profiles) a guild can have. Does not add a database constraint.
+        /// </summary>
+        public int ConfigsPerGuildMaxAmount { get; set; } = 64;
+
+        /// <summary>
         /// The maximum amount of questions a guild can have. Does not add a database constraint. 
         /// </summary>
         public int QuestionsPerGuildMaxAmount { get; set; } = 65536;
@@ -46,6 +51,34 @@
         /// Changing this to a value greater than 66 is likely to cause issues upon sending QOTDs due to Discord's length limit on buttons. 
         /// </remarks>
         public int ConfigQotdTitleMaxLength { get; set; } = 64;
+
+        /// <summary>
+        /// The default title for QOTD messages if Config.QotdTitle is not immediatelly initialized.
+        /// </summary>
+        public string ConfigQotdTitleDefault { get; set; } = "Question Of The Day";
+
+        /// <summary>
+        /// The maximum amount of characters that Config.QotdTitle can be. Does not add a database constraint.
+        /// </summary>
+        /// <remarks>
+        /// This should be lower than <see cref="ConfigQotdTitleMaxLength"/>.
+        /// </remarks>
+        public int ConfigQotdShorthandMaxLength { get; set; } = 16;
+
+        /// <summary>
+        /// The default shorthand for QOTD messages if Config.QotdShorthand is not immediatelly initialized.
+        /// </summary>
+        public string ConfigQotdShorthandDefault { get; set; } = "QOTD";
+
+        /// <summary>
+        /// The maximum amount of characters that Config.ProfileLength can be. Does not add a database constraint.
+        /// </summary>
+        public int ConfigProfileNameMaxLength { get; set; } = 32;
+
+        /// <summary>
+        /// The default name for the first profile created in a guild.
+        /// </summary>
+        public string ConfigProfileNameDefault { get; set; } = "QOTD";
 
         /// <summary>
         /// The maximum amount of characters that Question.Text can be. Does not add a database constraint.

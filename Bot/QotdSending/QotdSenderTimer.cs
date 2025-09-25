@@ -1,5 +1,7 @@
 ﻿using OpenQotd.Bot.Database;
 using Microsoft.EntityFrameworkCore;
+using OpenQotd.Bot.Exceptions;
+using OpenQotd.Bot.Database.Entities;
 
 namespace OpenQotd.Bot.QotdSending
 {
@@ -17,19 +19,18 @@ namespace OpenQotd.Bot.QotdSending
             int currentHour = DateTime.UtcNow.Hour;
             int currentMinute = DateTime.UtcNow.Minute;
 
-            ulong[] guildIds;
+            Config[] configs;
             using (AppDbContext dbContext = new())
             {
-                guildIds = await dbContext.Configs
+                configs = await dbContext.Configs
                     .Where(c => c.EnableAutomaticQotd && 
-                    (c.LastSentTimestamp == null ||
-                    c.LastSentTimestamp.Value.Day != currentDay) && 
-                    ((currentHour == c.QotdTimeHourUtc && currentMinute >= c.QotdTimeMinuteUtc) || currentHour > c.QotdTimeHourUtc))
-                    .Select(c => c.GuildId)
+                        (c.LastSentTimestamp == null ||
+                        c.LastSentTimestamp.Value.Day != currentDay) && 
+                        ((currentHour == c.QotdTimeHourUtc && currentMinute >= c.QotdTimeMinuteUtc) || currentHour > c.QotdTimeHourUtc))
                     .ToArrayAsync();
             }
 
-            if (guildIds.Length == 0)
+            if (configs.Length == 0)
                 return;
 
             Notices.Notice? latestAvailableNotice = Notices.GetLatestAvailableNotice();
@@ -39,22 +40,22 @@ namespace OpenQotd.Bot.QotdSending
             {
                 MaxDegreeOfParallelism = Program.AppSettings.QotdSendingMaxDegreeOfParallelism
             };
-            await Parallel.ForEachAsync(guildIds, options, async (id, ct) =>
+            await Parallel.ForEachAsync(configs, options, async (config, ct) =>
             {
-                await SendNextQotdIgnoreExceptions(id, latestAvailableNotice);
+                await SendNextQotdIgnoreExceptions(config, latestAvailableNotice);
             });
 
-            await Console.Out.WriteLineAsync($"[{DateTime.UtcNow:O}] Sent {guildIds.Length}");
+            await Console.Out.WriteLineAsync($"[{DateTime.UtcNow:O}] Sent {configs.Length}");
         }
 
         /// <summary>
         /// Send the next QOTD for the guild and catch and ignore/print all exceptions.
         /// </summary>
-        private static async Task SendNextQotdIgnoreExceptions(ulong guildId, Notices.Notice? latestAvailableNotice)
+        private static async Task SendNextQotdIgnoreExceptions(Config config, Notices.Notice? latestAvailableNotice)
         {
             try
             {
-                await QotdSender.FetchGuildAndSendNextQotdAsync(guildId, latestAvailableNotice);
+                await QotdSender.FetchGuildAndSendNextQotdAsync(config, latestAvailableNotice);
             }
             catch (QotdChannelNotFoundException)
             {
@@ -62,7 +63,7 @@ namespace OpenQotd.Bot.QotdSending
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Error sending QOTD for guild {guildId}: {ex.Message}");
+                Console.WriteLine($"Error sending QOTD for config {config.Id} (guild {config.GuildId}): {ex.Message}");
                 Console.WriteLine(ex.StackTrace);
             }
         }

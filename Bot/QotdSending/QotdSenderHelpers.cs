@@ -4,6 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using DSharpPlus.Entities;
 using DSharpPlus.Exceptions;
 using OpenQotd.Bot.Helpers;
+using OpenQotd.Bot.Exceptions;
 
 namespace OpenQotd.Bot.QotdSending
 {
@@ -17,6 +18,10 @@ namespace OpenQotd.Bot.QotdSending
 
         public DateTime? previousLastSentTimestamp;
         public Notices.Notice? latestAvailableNotice;
+
+        public readonly string QotdTitle => config.QotdTitleText;
+        public readonly string QotdShorthand => config.QotdShorthandText;
+        public readonly string SuggestCommand => config.IsDefaultProfile ? "/qotd" : $"/suggest for:{QotdTitle}";
 
         private DiscordChannel? _qotdChannel;
 
@@ -51,13 +56,13 @@ namespace OpenQotd.Bot.QotdSending
         /// <summary>
         /// Selects a random accepted question from the database for the specified guild.
         /// </summary>
-        public static async Task<Question?> GetRandomQotd(ulong guildId)
+        public static async Task<Question?> GetRandomQotd(Config config)
         {
             Question[] questions;
             using (AppDbContext dbContext = new())
             {
                 questions = await dbContext.Questions
-                    .Where(q => q.GuildId == guildId && q.Type == QuestionType.Accepted)
+                    .Where(q => q.ConfigId == config.Id && q.Type == QuestionType.Accepted)
                     .ToArrayAsync();
             }
 
@@ -106,7 +111,7 @@ namespace OpenQotd.Bot.QotdSending
             if (!config.EnableSuggestions)
                 return;
 
-            DiscordButtonComponent suggestButton = new(DiscordButtonStyle.Secondary, "suggest-qotd", $"Suggest a new {config.QotdTitle ?? "QOTD"}");
+            DiscordButtonComponent suggestButton = new(DiscordButtonStyle.Secondary, $"suggest-qotd/{config.ProfileId}", $"Suggest a new {config.QotdShorthandText}");
 
             messageBuilder.AddActionRowComponent(suggestButton);
         }
@@ -144,7 +149,9 @@ namespace OpenQotd.Bot.QotdSending
             if (!d.config.EnableQotdCreateThread)
                 return;
 
-            await sentMessage.CreateThreadAsync($"QOTD{(sentQuestionsCount is null ? "" : $" #{sentQuestionsCount}")} Discussion ({DateTime.UtcNow:yyyy-MM-dd})", DiscordAutoArchiveDuration.Day, reason: "Automatic QOTD thread");
+            await sentMessage.CreateThreadAsync(
+                $"{d.QotdShorthand}{(sentQuestionsCount is null ? "" : $" #{sentQuestionsCount}")} Discussion ({DateTime.UtcNow:yyyy-MM-dd})", 
+                DiscordAutoArchiveDuration.Day, reason: $"Automatic {d.QotdShorthand} thread");
         }
 
         public static async Task AddPingRoleIfEnabledAndExistent(SendQotdData d, DiscordMessageBuilder builder)
@@ -162,7 +169,7 @@ namespace OpenQotd.Bot.QotdSending
             catch (NotFoundException)
             {
                 await (await d.GetQotdChannelAsync()).SendMessageAsync(
-                    GenericEmbeds.Warning("QOTD ping role is set, but not found.\n\n" +
+                    GenericEmbeds.Warning($"{d.QotdShorthand} ping role is set, but not found.\n\n" +
                     "*It can be set using `/config set qotd_ping_role [channel]`, or unset using `/config reset qotd_ping_role`.*")
                     );
                 return;

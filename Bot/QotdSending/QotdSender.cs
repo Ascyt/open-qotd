@@ -16,56 +16,59 @@ namespace OpenQotd.Bot.QotdSending
         /// Fetches the guild by ID and tries to send the next QOTD.
         /// </summary>
         /// <exception cref="QotdSendException"></exception>
-        public static async Task FetchGuildAndSendNextQotdAsync(ulong guildId, Notices.Notice? latestAvailableNotice)
+        public static async Task FetchGuildAndSendNextQotdAsync(Config config, Notices.Notice? latestAvailableNotice)
         {
             DiscordGuild guild;
             try
             {
-                guild = await Program.Client.GetGuildAsync(guildId);
+                guild = await Program.Client.GetGuildAsync(config.GuildId);
             }
             catch (NotFoundException)
             {
-                using AppDbContext dbContext = new();
-                Config? config = await dbContext.Configs.Where(c => c.GuildId == guildId).FirstOrDefaultAsync();
+                // TODO: Add guildIds which are not found in an array, if a guild is not found and is in that array erase all data of said guild
 
-                if (config is null)
-                    return;
+                //using AppDbContext dbContext = new();
+                //Config? foundConfig = await dbContext.Configs
+                //    .FindAsync(config.Id);
 
-                dbContext.Configs.Remove(config);
+                //if (foundConfig is null)
+                //    return;
 
-                await dbContext.SaveChangesAsync();
-                Console.WriteLine($"Removed dead guild with ID {guildId}");
+                //dbContext.Configs.Remove(foundConfig);
+
+                //await dbContext.SaveChangesAsync();
+                //Console.WriteLine($"Removed dead config with ID {foundConfig.Id} (guild {foundConfig.GuildIdx})");
                 return;
             }
 
-            await SendNextQotdAsync(guild, latestAvailableNotice);
+            await SendNextQotdAsync(guild, config, latestAvailableNotice);
         }
 
         /// <summary>
         /// Sends the next QOTD to the specified guild.
         /// </summary>
         /// <exception cref="QotdSendException"></exception>
-        public static async Task SendNextQotdAsync(DiscordGuild guild, Notices.Notice? latestAvaliableNotice)
+        public static async Task SendNextQotdAsync(DiscordGuild guild, Config config, Notices.Notice? latestAvaliableNotice)
         {
-            await SendQotdAsync(guild, await QotdSenderHelpers.GetRandomQotd(guild.Id), latestAvaliableNotice);
+            await SendQotdAsync(guild, config, await QotdSenderHelpers.GetRandomQotd(config), latestAvaliableNotice);
         }
 
         /// <summary>
         /// Sends the specified QOTD or a preset/unavailable message if null.
         /// </summary>
-        public static async Task SendQotdAsync(DiscordGuild guild, Question? question, Notices.Notice? latestAvailableNotice)
+        public static async Task SendQotdAsync(DiscordGuild guild, Config config, Question? question, Notices.Notice? latestAvailableNotice)
         {
             // Fetch the config and update the last sent timestamp
-            Config? config;
             DateTime? previousLastSentTimestamp;
             using (AppDbContext dbContext = new())
             {
-                config = await dbContext.Configs
-                    .Where(c => c.GuildId == guild.Id)
-                    .FirstOrDefaultAsync();
+                Config? foundConfig = await dbContext.Configs
+                    .FindAsync(config.Id);
 
-                if (config == null)
+                if (foundConfig == null)
                     return;
+
+                config = foundConfig;
 
                 previousLastSentTimestamp = config.LastSentTimestamp;
                 config.LastSentTimestamp = DateTime.UtcNow;
@@ -95,7 +98,7 @@ namespace OpenQotd.Bot.QotdSending
                 using (AppDbContext dbContext = new())
                 {
                     presetSents = await dbContext.PresetSents
-                        .Where(ps => ps.GuildId == guild.Id)
+                        .Where(ps => ps.ConfigId == config.Id)
                         .ToListAsync();
                 }
 
@@ -122,9 +125,9 @@ namespace OpenQotd.Bot.QotdSending
             DiscordMessageBuilder messageBuilder = new();
 
             messageBuilder.AddEmbed(
-                GenericEmbeds.Custom(title: $"No {d.config.QotdTitle ?? Config.DEFAULT_QOTD_TITLE} Available", message: $"There is currently no {d.config.QotdTitle ?? Config.DEFAULT_QOTD_TITLE}" +
+                GenericEmbeds.Custom(title: $"No {d.QotdShorthand} Available", message: $"There is currently no {d.QotdTitle}" +
                 $"{(d.config.EnableQotdAutomaticPresets ? " or Preset question" : "")} available." +
-                (d.config.EnableSuggestions ? $"\n\n*Suggest some using `/qotd`!*" : ""), color: "#dc5051"));
+                (d.config.EnableSuggestions ? $"\n\n*Suggest some using `{d.SuggestCommand}`!*" : ""), color: "#dc5051"));
             QotdSenderHelpers.AddSuggestButtonIfEnabled(d.config, messageBuilder);
 
             await qotdChannel.SendMessageAsync(messageBuilder);
@@ -143,12 +146,12 @@ namespace OpenQotd.Bot.QotdSending
 
             DiscordMessageBuilder messageBuilder = new();
             messageBuilder.AddEmbed(
-                GenericEmbeds.Custom($"{d.config.QotdTitle ?? Config.DEFAULT_QOTD_TITLE}",
+                GenericEmbeds.Custom($"{d.QotdTitle}",
                 $"**{Presets.Values[presetIndex]}**\n" +
                 $"\n" +
                 $"*Preset Question*",
                 color: "#8acfac")
-                .WithFooter($"{presetsAvailable - 1} preset{(presetsAvailable - 1 == 1 ? "" : "s")} left{(d.config.EnableSuggestions ? $", /qotd to suggest" : "")} \x2022 Preset ID: {presetIndex}")
+                .WithFooter($"{presetsAvailable - 1} preset{(presetsAvailable - 1 == 1 ? "" : "s")} left{(d.config.EnableSuggestions ? $", {d.SuggestCommand}" : "")} \x2022 Preset ID: {presetIndex}")
                 );
             await QotdSenderHelpers.AddPingRoleIfEnabledAndExistent(d, messageBuilder);
 
@@ -158,13 +161,15 @@ namespace OpenQotd.Bot.QotdSending
 
             using (AppDbContext dbContext = new())
             {
-                Config? foundConfig = await dbContext.Configs.Where(c => c.GuildId == d.guild.Id).FirstOrDefaultAsync();
-                if (foundConfig != null)
+                Config? foundConfig = await dbContext.Configs
+                    .FindAsync(d.config.Id);
+
+                if (foundConfig is not null)
                 {
                     foundConfig.LastQotdMessageId = sentMessage.Id;
                 }
 
-                await dbContext.PresetSents.AddAsync(new PresetSent() { GuildId = d.guild.Id, PresetIndex = presetIndex });
+                await dbContext.PresetSents.AddAsync(new PresetSent() { ConfigId = d.config.Id, GuildId = d.guild.Id, PresetIndex = presetIndex });
 
                 await dbContext.SaveChangesAsync();
             }
@@ -188,19 +193,23 @@ namespace OpenQotd.Bot.QotdSending
             int sentQuestionsCount;
             using (AppDbContext dbContext = new())
             {
-                acceptedQuestionsCount = await dbContext.Questions.Where(q => q.GuildId == d.guild.Id && q.Type == QuestionType.Accepted).CountAsync()
+                acceptedQuestionsCount = await dbContext.Questions
+                    .Where(q => q.ConfigId == d.config.Id && q.Type == QuestionType.Accepted)
+                    .CountAsync()
                     - 1;
-                sentQuestionsCount = await dbContext.Questions.Where(q => q.GuildId == d.guild.Id && q.Type == QuestionType.Sent).CountAsync()
+                sentQuestionsCount = await dbContext.Questions
+                    .Where(q => q.ConfigId == d.config.Id && q.Type == QuestionType.Sent)
+                    .CountAsync()
                     + 1;
             }
 
             messageBuilder.AddEmbed(
-                GenericEmbeds.Custom($"{d.config.QotdTitle ?? Config.DEFAULT_QOTD_TITLE} #{sentQuestionsCount}",
+                GenericEmbeds.Custom($"{d.QotdTitle} #{sentQuestionsCount}",
                 $"**{question.Text}**\n" +
                 $"\n" +
                 $"*Submitted by <@{question.SubmittedByUserId}>*",
                 color: "#8acfac")
-                .WithFooter($"{acceptedQuestionsCount} question{(acceptedQuestionsCount == 1 ? "" : "s")} left{(d.config.EnableSuggestions ? $", /qotd to suggest" : "")} \x2022 Question ID: {question.GuildDependentId}")
+                .WithFooter($"{acceptedQuestionsCount} question{(acceptedQuestionsCount == 1 ? "" : "s")} left{(d.config.EnableSuggestions ? $", {d.SuggestCommand}" : "")} \x2022 Question ID: {question.GuildDependentId}")
                 );
 
             DiscordChannel qotdChannel = await d.GetQotdChannelAsync();
@@ -210,13 +219,15 @@ namespace OpenQotd.Bot.QotdSending
             using (AppDbContext dbContext = new())
             {
                 // Update the question and config in the database
-                Config? foundConfig = await dbContext.Configs.Where(c => c.GuildId == d.guild.Id).FirstOrDefaultAsync();
+                Config? foundConfig = await dbContext.Configs
+                    .FindAsync(d.config.Id);
                 if (foundConfig != null)
                 {
                     foundConfig.LastQotdMessageId = sentMessage.Id;
                 }
 
-                Question? foundQuestion = await dbContext.Questions.Where(q => q.Id == question.Id).FirstOrDefaultAsync();
+                Question? foundQuestion = await dbContext.Questions
+                    .FindAsync(question.Id);
 
                 if (foundQuestion != null)
                 {
@@ -236,18 +247,18 @@ namespace OpenQotd.Bot.QotdSending
                 int presetsSent;
                 using (AppDbContext dbContext = new())
                 {
-                    presetsSent = await dbContext.PresetSents.Where(ps => ps.GuildId == d.guild.Id).CountAsync();
+                    presetsSent = await dbContext.PresetSents.Where(ps => ps.ConfigId == d.config.Id).CountAsync();
                 }
                 int presetsLeft = Presets.Values.Length - presetsSent;
 
                 // TODO: Enable once #65 is added
                 //lastQuestionWarning.AddEmbed(
-                //    GenericEmbeds.Warning(title: $"Warning: Last {d.config.QotdTitle ?? Config.DEFAULT_QOTD_TITLE}", message:
+                //    GenericEmbeds.Warning(title: $"Warning: Last {d.QotdShorthand}", message:
                 //    "There is no more Accepted QOTD of this server left." +
                 //    (presetsLeft > 0 && d.config.EnableQotdAutomaticPresets ? $"\nIf none are added, one of **{presetsLeft} Presets** will start to be used instead." : "") +
                 //    (d.config.EnableSuggestions ? $"\n\n*More can be suggested using `/qotd`!*" : "")));
-
-                await qotdChannel.SendMessageAsync(lastQuestionWarning);
+                //
+                //await qotdChannel.SendMessageAsync(lastQuestionWarning);
             }
 
             await SendNoticeIfAvailable(d);

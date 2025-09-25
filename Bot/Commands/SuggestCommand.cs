@@ -1,13 +1,13 @@
-﻿using CommunityToolkit.HighPerformance.Helpers;
-using OpenQotd.Bot.Database;
+﻿using OpenQotd.Bot.Database;
 using OpenQotd.Bot.Database.Entities;
 using OpenQotd.Bot.Helpers;
 using DSharpPlus.Commands;
 using DSharpPlus.Commands.Processors.SlashCommands;
 using DSharpPlus.Entities;
 using DSharpPlus.Exceptions;
-using Microsoft.EntityFrameworkCore;
 using System.ComponentModel;
+using OpenQotd.Bot.Helpers.Profiles;
+using DSharpPlus.Commands.Processors.SlashCommands.ArgumentModifiers;
 
 namespace OpenQotd.Bot.Commands
 {
@@ -16,21 +16,26 @@ namespace OpenQotd.Bot.Commands
         [Command("suggest")]
         [Description("Suggest a Question Of The Day to be added.")]
         public static async Task SuggestAsync(CommandContext context,
-            [Description ("The question to be added.")] string question)
+            [Description("Which OpenQOTD profile your question should be suggested to.")][SlashAutoCompleteProvider<SuggestableProfilesAutoCompleteProvider>] int For,
+            [Description("Your suggestion.")] string suggestion)
         {
-            Config? config = await CommandRequirements.TryGetConfig(context);
+            int profileId = For;
 
-            if (config is null || !await CommandRequirements.UserIsBasic(context, config) || !await CommandRequirements.IsWithinMaxQuestionsAmount(context, 1))
+            Config? config = await ProfileHelpers.TryGetConfigAsync(context, profileId);
+            if (config is null || !await CommandRequirements.UserIsBasic(context, config))
+                return;
+
+            if (!await CommandRequirements.IsWithinMaxQuestionsAmount(context, 1))
                 return;
 
             if (!config.EnableSuggestions)
             {
                 await context.RespondAsync(
-                    GenericEmbeds.Error(title: "Suggestions Disabled", message: "Suggesting of QOTDs using `/qotd` or `/suggest` has been disabled by staff."));
+                    GenericEmbeds.Error(title: "Suggestions Disabled", message: "Suggesting of QOTDs for this profile using `/qotd` or `/suggest` has been disabled by staff."));
                 return;
             }
 
-            (bool, DiscordEmbed) result = await SuggestNoContextAsync(question, context.Guild!, context.Channel, context.User, config);
+            (bool, DiscordEmbed) result = await SuggestNoContextAsync(suggestion, config, context.Guild!, context.Channel, context.User);
 
             if (context is SlashCommandContext && result.Item1) // Is slash command and not errored
             {
@@ -45,48 +50,43 @@ namespace OpenQotd.Bot.Commands
         }
 
         /// <returns>(whether or not successful, response message)</returns>
-        public static async Task<(bool, DiscordEmbed)> SuggestNoContextAsync(string question, DiscordGuild guild, DiscordChannel discordChannel, DiscordUser user, Config config)
+        public static async Task<(bool, DiscordEmbed)> SuggestNoContextAsync(string question, Config config, DiscordGuild guild, DiscordChannel discordChannel, DiscordUser user)
         {
             if (!await Question.CheckTextValidity(question, null, config))
                 return (false, GenericEmbeds.Error("Text validity check failed"));
 
-            ulong guildId = guild.Id;
-            ulong userId = user.Id;
-
             Question newQuestion;
-            ulong? suggestionsChannelId;
-            ulong? suggestionsPingRoleId;
             using (AppDbContext dbContext = new())
             {
                 newQuestion = new Question()
                 {
-                    GuildId = guildId,
-                    GuildDependentId = await Question.GetNextGuildDependentId(guildId),
+                    ConfigId = config.Id,
+                    GuildId = guild.Id,
+                    GuildDependentId = await Question.GetNextGuildDependentId(config),
                     Type = QuestionType.Suggested,
                     Text = question,
-                    SubmittedByUserId = userId,
+                    SubmittedByUserId = user.Id,
                     Timestamp = DateTime.UtcNow
                 };
                 await dbContext.Questions.AddAsync(newQuestion);
                 await dbContext.SaveChangesAsync();
-
-                suggestionsChannelId = await dbContext.Configs.Where(c => c.GuildId == guildId).Select(c => c.SuggestionsChannelId).FirstOrDefaultAsync();
-                suggestionsPingRoleId = await dbContext.Configs.Where(c => c.GuildId == guildId).Select(c => c.SuggestionsPingRoleId).FirstOrDefaultAsync();
             }
 
-            (bool, DiscordEmbedBuilder) result = (true, GenericEmbeds.Success("QOTD Suggested!",
-                    $"Your Question Of The Day:\n" +
+            (bool, DiscordEmbedBuilder) result = (true, GenericEmbeds.Success($"{config.QotdShorthandText} Suggested!",
+                    $"Your **{config.QotdTitleText}** suggestion:\n" +
                     $"\"**{newQuestion.Text}**\"\n" +
                     $"\n" +
                     $"Has successfully been suggested!\n" +
                     $"You will be notified when it gets accepted or denied."));
 
 
-            await Logging.LogUserAction(guildId, discordChannel, user, "Suggested QOTD", $"\"**{newQuestion.Text}**\"\nID: `{newQuestion.GuildDependentId}`");
+            await Logging.LogUserAction(discordChannel, user, config, 
+                title:$"Suggested {config.QotdShorthandText}", 
+                message:$"\"**{newQuestion.Text}**\"\nID: `{newQuestion.GuildDependentId}`");
 
-            if (suggestionsChannelId == null)
+            if (config.SuggestionsChannelId is null)
             {
-                if (suggestionsPingRoleId == null)
+                if (config.SuggestionsPingRoleId is not null)
                 {
                     await discordChannel.SendMessageAsync(GenericEmbeds.Warning("Suggestions ping role is set, but suggestions channel is not.\n\n" +
                         "*The channel can be set using `/config set suggestions_channel [channel]`, or the ping role can be removed using `/config reset suggestions_ping_role`.*"));
@@ -96,11 +96,11 @@ namespace OpenQotd.Bot.Commands
             }
 
             DiscordRole? pingRole = null;
-            if (suggestionsPingRoleId != null)
+            if (config.SuggestionsPingRoleId is not null)
             {
                 try
                 {
-                    pingRole = await guild.GetRoleAsync(suggestionsPingRoleId.Value);
+                    pingRole = await guild.GetRoleAsync(config.SuggestionsPingRoleId.Value);
                 }
                 catch (NotFoundException)
                 {
@@ -114,7 +114,7 @@ namespace OpenQotd.Bot.Commands
             DiscordChannel channel;
             try
             {
-                channel = await guild.GetChannelAsync(suggestionsChannelId.Value);
+                channel = await guild.GetChannelAsync(config.SuggestionsChannelId.Value);
             }
             catch (NotFoundException)
             {
@@ -132,12 +132,12 @@ namespace OpenQotd.Bot.Commands
                 $"By: {user.Mention} (`{user.Id}`)\n" +
                 $"ID: `{newQuestion.GuildDependentId}`";
 
-            messageBuilder.AddEmbed(GenericEmbeds.Custom("A new QOTD Suggestion is available!", embedBody,
+            messageBuilder.AddEmbed(GenericEmbeds.Custom($"A new {config.QotdShorthandText} Suggestion is available!", embedBody,
                 color: "#f0b132"));
 
             messageBuilder.AddActionRowComponent(
-                new DiscordButtonComponent(DiscordButtonStyle.Success, $"suggestions-accept/{newQuestion.GuildDependentId}", "Accept"),
-                new DiscordButtonComponent(DiscordButtonStyle.Danger, $"suggestions-deny/{newQuestion.GuildDependentId}", "Deny")
+                new DiscordButtonComponent(DiscordButtonStyle.Success, $"suggestions-accept/{config.ProfileId}/{newQuestion.GuildDependentId}", "Accept"),
+                new DiscordButtonComponent(DiscordButtonStyle.Danger, $"suggestions-deny/{config.ProfileId}/{newQuestion.GuildDependentId}", "Deny")
             );
 
             DiscordMessage message = await channel.SendMessageAsync(
@@ -173,9 +173,15 @@ namespace OpenQotd.Bot.Commands
 
 
         [Command("qotd")]
-        [Description("Suggest a Question Of The Day to be added.")]
+        [Description("Suggest a Question Of The Day to be added. Unlike /suggest, this uses the default profile.")]
         public static async Task QotdAsync(CommandContext context,
-            [Description("The question to be added.")] string question)
-            => await SuggestAsync(context, question);
+            [Description("Your suggestion.")] string suggestion)
+        { 
+            Config? defaultConfig = await ProfileHelpers.TryGetDefaultConfigAsync(context);
+            if (defaultConfig is null)
+                return;
+
+            await SuggestAsync(context, defaultConfig.ProfileId, suggestion);
+        }
     }
 }

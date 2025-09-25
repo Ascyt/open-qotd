@@ -1,4 +1,5 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using Microsoft.EntityFrameworkCore;
+using System.ComponentModel.DataAnnotations;
 
 namespace OpenQotd.Bot.Database.Entities
 {
@@ -17,6 +18,24 @@ namespace OpenQotd.Bot.Database.Entities
         public int Id { get; set; }
 
         public ulong GuildId { get; set; }
+
+        /// <summary>
+        /// Guild-dependent ID of the profile this config belongs to. 
+        /// </summary>
+        /// <remarks>
+        /// One profile is unique per config, but a guild can have multiple profiles.
+        /// </remarks>
+        public int ProfileId { get; set; }
+
+        /// <summary>
+        /// Whether this is the default profile for the guild. Each guild can only have one default profile.
+        /// </summary>
+        public bool IsDefaultProfile { get; set; } = false;
+
+        /// <summary>
+        /// User-defined name for this config profile.
+        /// </summary>
+        public string ProfileName { get; set; } = string.Empty;
 
         /// <summary>
         /// Users without this role cannot use basic commands like suggesting questions or viewing the leaderboard. If null, everyone can use basic commands.
@@ -86,7 +105,13 @@ namespace OpenQotd.Bot.Database.Entities
         /// The title of the QOTD message. If null the default is used which is "Question Of The Day"
         /// </summary>
         public string? QotdTitle { get; set; } = null;
-        public const string DEFAULT_QOTD_TITLE = "Question Of The Day";
+        public string QotdTitleText => QotdTitle ?? Program.AppSettings.ConfigQotdTitleDefault;
+
+        /// <summary>
+        /// The shorthand of the QOTD title. If null the default is used which is "QOTD"
+        /// </summary>
+        public string? QotdShorthand { get; set; } = null;
+        public string QotdShorthandText => QotdShorthand ?? Program.AppSettings.ConfigQotdShorthandDefault;
 
         /// <summary>
         /// If true, users can suggest questions using /suggest or /qotd.
@@ -142,11 +167,14 @@ namespace OpenQotd.Bot.Database.Entities
         public override string ToString()
         {
             return
+                $"**Profile:** *{ProfileName}*{(IsDefaultProfile ? " (default profile)" : "")}\n" +
+                $"\n" +
                 $"- basic_role: {FormatRole(BasicRoleId)}\n" +
                 $"- admin_role: {FormatRole(AdminRoleId)}\n" +
                 $"- qotd_channel: {FormatChannel(QotdChannelId)}\n" +
                 $"- qotd_ping_role: {FormatRole(QotdPingRoleId)}\n" +
-                $"- qotd_title: *{QotdTitle ?? DEFAULT_QOTD_TITLE}*\n" +
+                $"- qotd_title: *{QotdTitle ?? Program.AppSettings.ConfigQotdTitleDefault}*\n" +
+                $"- qotd_shorthand: *{QotdShorthand ?? Program.AppSettings.ConfigQotdShorthandDefault}*\n" +
                 $"- enable_automatic_qotd: **{EnableAutomaticQotd}**\n" +
                 $"- enable_qotd_pin_message: **{EnableQotdPinMessage}**\n" +
                 $"- enable_qotd_create_thread: **{EnableQotdCreateThread}**\n" +
@@ -169,6 +197,41 @@ namespace OpenQotd.Bot.Database.Entities
         private static string FormatChannel(ulong? channelId)
         {
             return channelId is null ? "*unset*" : $"<#{channelId}>";
+        }
+
+        /// <summary>
+        /// Generates the next available ProfileId for a new question in the specified config.
+        /// </summary>
+        /// <returns>The next ID, or null if default config is not initialized yet.</returns>
+        public static async Task<int?> TryGetNextProfileId(ulong guildId)
+        {
+            using AppDbContext dbContext = new();
+            try
+            {
+                int maxExistentProfile = await dbContext.Configs
+                    .Where(q => q.GuildId == guildId)
+                    .Select(q => q.ProfileId)
+                    .MaxAsync();
+
+                int maxSelectedProfile;
+                try
+                {
+                    maxSelectedProfile = await dbContext.ProfileSelections
+                        .Where(gu => gu.GuildId == guildId)
+                        .Select(gu => gu.SelectedProfileId)
+                        .MaxAsync();
+                }
+                catch (InvalidOperationException)
+                {
+                    maxSelectedProfile = -1; // Nobody has a selected profile yet
+                }
+
+                return Math.Max(maxExistentProfile, maxSelectedProfile) + 1;
+            }
+            catch (InvalidOperationException)
+            {
+                return null; // No configs yet for this guild
+            }
         }
     }
 }

@@ -9,7 +9,16 @@
     public class PresetSent
     {
         public int Id { get; set; }
+        public int ConfigId { get; set; }
+
+        /// <summary>
+        /// For convenience, could otherwise be fetched from a join using <see cref="ConfigId"/>
+        /// </summary>
         public ulong GuildId { get; set; }
+
+        /// <summary>
+        /// The line number of the preset within presets.txt.
+        /// </summary>
         public int PresetIndex { get; set; }
     }
 }

@@ -4,6 +4,7 @@ using OpenQotd.Bot.Helpers;
 using DSharpPlus.Commands;
 using Microsoft.EntityFrameworkCore;
 using System.ComponentModel;
+using OpenQotd.Bot.Helpers.Profiles;
 
 namespace OpenQotd.Bot.Commands
 {
@@ -21,17 +22,20 @@ namespace OpenQotd.Bot.Commands
             [Description("Optionally filter by only active or completed presets.")] PresetsType? type = null,
             [Description("The page of the listing (default 1).")] int page = 1)
         {
-            if (!await CommandRequirements.UserIsAdmin(context, null))
+            Config? config = await ProfileHelpers.TryGetSelectedOrDefaultConfigAsync(context);
+            if (config is null)
                 return;
 
-            await PrintPresetDisabledWarningIfRequired(context);
+            if (!await CommandRequirements.UserIsAdmin(context, config))
+                return;
 
+            await PrintPresetDisabledWarningIfRequired(context, config);
 
             HashSet<PresetSent> presetSents;
             using (AppDbContext dbContext = new())
             {
                 presetSents = [.. await dbContext.PresetSents
-                        .Where(p => p.GuildId == context.Guild!.Id).ToListAsync()];
+                        .Where(p => p.ConfigId == config.Id).ToListAsync()];
             }
             List<Presets.GuildDependentPreset> guildDependentPresets = Presets.GetPresetsAsGuildDependent(presetSents);
 
@@ -67,10 +71,14 @@ namespace OpenQotd.Bot.Commands
             [Description("The ID of the preset.")] int id,
             [Description("Whether to set the preset as active to be sendable as QOTD.")] bool active)
         {
-            if (!await CommandRequirements.UserIsAdmin(context, null))
+            Config? config = await ProfileHelpers.TryGetSelectedOrDefaultConfigAsync(context);
+            if (config is null)
                 return;
 
-            await PrintPresetDisabledWarningIfRequired(context);
+            if (!await CommandRequirements.UserIsAdmin(context, config))
+                return;
+
+            await PrintPresetDisabledWarningIfRequired(context, config);
 
             if (id < 0 || id >= Presets.Values.Length)
             {
@@ -82,7 +90,7 @@ namespace OpenQotd.Bot.Commands
 
             using (AppDbContext dbContext = new())
             {
-                PresetSent? preset = await dbContext.PresetSents.FirstOrDefaultAsync(p => p.GuildId == context.Guild!.Id && p.PresetIndex == id);
+                PresetSent? preset = await dbContext.PresetSents.FirstOrDefaultAsync(p => p.ConfigId == config.Id && p.PresetIndex == id);
 
                 if (preset != null) // Preset sent and disabled
                 {
@@ -96,7 +104,7 @@ namespace OpenQotd.Bot.Commands
                 {
                     if (!active)
                     {
-                        await dbContext.PresetSents.AddAsync(new PresetSent() { GuildId = context.Guild!.Id, PresetIndex = id });
+                        await dbContext.PresetSents.AddAsync(new PresetSent() { ConfigId = config.Id, PresetIndex = id });
                         changesMade = true;
                     }
                 }
@@ -125,14 +133,18 @@ namespace OpenQotd.Bot.Commands
         [Description("Reset the active state of all presets, making them all QOTD-sendable again.")]
         public static async Task ResetPresetsAsync(CommandContext context)
         {
-            if (!await CommandRequirements.UserIsAdmin(context, null))
+            Config? config = await ProfileHelpers.TryGetSelectedOrDefaultConfigAsync(context);
+            if (config is null)
                 return;
 
-            await PrintPresetDisabledWarningIfRequired(context);
+            if (!await CommandRequirements.UserIsAdmin(context, config))
+                return;
+
+            await PrintPresetDisabledWarningIfRequired(context, config);
 
             using (AppDbContext dbContext = new())
             {
-                List<PresetSent> toRemove = await dbContext.PresetSents.Where(ps => ps.GuildId == context.Guild!.Id).ToListAsync();
+                List<PresetSent> toRemove = await dbContext.PresetSents.Where(ps => ps.ConfigId == config.Id).ToListAsync();
 
                 dbContext.RemoveRange(toRemove);
 
@@ -150,18 +162,12 @@ namespace OpenQotd.Bot.Commands
             [Description("The QOTD question text to be suggested.")] string question)
             => await SimpleCommands.FeedbackAsync(context, $"Preset Suggestion: {question}");
 
-        private static async Task PrintPresetDisabledWarningIfRequired(CommandContext context)
+        /// <summary>
+        /// Prints a warning message if automatic presets are disabled in the guild config.
+        /// </summary>
+        private static async Task PrintPresetDisabledWarningIfRequired(CommandContext context, Config config)
         {
-            bool enableQotdAutomaticPresets;
-            using (AppDbContext dbContext = new())
-            {
-                enableQotdAutomaticPresets = dbContext.Configs
-                    .Where(c => c.GuildId == context.Guild!.Id)
-                    .Select(c => c.EnableQotdAutomaticPresets)
-                    .First();
-            }
-
-            if (enableQotdAutomaticPresets)
+            if (config.EnableQotdAutomaticPresets)
                 return;
 
             await context.Channel.SendMessageAsync(

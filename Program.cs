@@ -82,6 +82,7 @@ namespace OpenQotd
                 (IServiceProvider provider, CommandsExtension extension) =>
                 {
                     extension.AddCommands([
+                        typeof(ProfilesCommand),
                         typeof(ConfigCommand),
                         typeof(QuestionsCommand),
                         typeof(SuggestCommand),
@@ -92,7 +93,7 @@ namespace OpenQotd
                         typeof(LeaderboardCommand),
                         typeof(TopicCommand),
                         typeof(SimpleCommands),
-                        typeof(MyQuestionsCommand)]);
+                        /*typeof(MyQuestionsCommand)*/]);
 
                     // Text commands disabled because of missing MessageContent intent. It would require an application to Discord.
                     /*TextCommandProcessor textCommandProcessor = new(new()

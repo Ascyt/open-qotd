@@ -1,14 +1,15 @@
-﻿using OpenQotd.Bot.Database;
-using OpenQotd.Bot.Database.Entities;
-using OpenQotd.Bot.Helpers;
-using DSharpPlus.Commands;
+﻿using DSharpPlus.Commands;
+using DSharpPlus.Commands.Processors.SlashCommands.ArgumentModifiers;
 using DSharpPlus.Entities;
 using DSharpPlus.EventArgs;
 using DSharpPlus.Interactivity;
 using DSharpPlus.Interactivity.Extensions;
 using Microsoft.EntityFrameworkCore;
+using OpenQotd.Bot.Database;
+using OpenQotd.Bot.Database.Entities;
+using OpenQotd.Bot.Helpers;
+using OpenQotd.Bot.Helpers.Profiles;
 using System.ComponentModel;
-using System.Threading.Channels;
 
 namespace OpenQotd.Bot.Commands
 {
@@ -17,18 +18,22 @@ namespace OpenQotd.Bot.Commands
         private static readonly Random _random = new();
 
         [Command("topic")]
-        [Description("Send a random Sent QOTD to the current channel.")]
+        [Description("Sends a random Sent QOTD to the current channel.")]
         public static async Task TopicAsync(CommandContext context,
+            [Description("Which OpenQOTD profile to take the topic from.")][SlashAutoCompleteProvider<ViewableProfilesAutoCompleteProvider>] int from,
             [Description("Whether or not to include all existing Preset questions.")] bool includePresets=true)
         {
-            if (!await CommandRequirements.UserIsBasic(context, null))
+            int profileId = from;
+
+            Config? config = await ProfileHelpers.TryGetConfigAsync(context, from);
+            if (config is null || !await CommandRequirements.UserIsBasic(context, config))
                 return;
 
             Question[] questions;
             using (AppDbContext dbContext = new())
             {
                 questions = await dbContext.Questions
-                    .Where(q => q.GuildId == context.Guild!.Id && q.Type == QuestionType.Sent)
+                    .Where(q => q.ConfigId == config.Id && q.Type == QuestionType.Sent)
                     .ToArrayAsync();
             }
 
@@ -40,17 +45,17 @@ namespace OpenQotd.Bot.Commands
                 return;
             }
 
-            DiscordButtonComponent rerollButton = new DiscordButtonComponent(DiscordButtonStyle.Secondary, "reroll", "⟳");
+            DiscordButtonComponent rerollButton = new(DiscordButtonStyle.Secondary, "reroll", "⟳");
 
             DiscordEmbed embed = GetRandomTopic(questions, includePresets);
 
-            DiscordMessageBuilder messageBuilder = new DiscordMessageBuilder();
+            DiscordMessageBuilder messageBuilder = new();
             messageBuilder.AddEmbed(embed);
             messageBuilder.AddActionRowComponent(
                 rerollButton
                 );
 
-            DiscordMessageBuilder messageBuilderNoButtons = new DiscordMessageBuilder();
+            DiscordMessageBuilder messageBuilderNoButtons = new();
             messageBuilderNoButtons.AddEmbed(embed);
 
             await context.RespondAsync(
@@ -59,7 +64,7 @@ namespace OpenQotd.Bot.Commands
 
             DiscordMessage? message = await context.GetResponseAsync();
 
-            if (message == null)
+            if (message is null)
             {
                 return;
             }

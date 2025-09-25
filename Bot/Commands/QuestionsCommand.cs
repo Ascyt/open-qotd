@@ -6,6 +6,7 @@ using DSharpPlus.Entities;
 using Microsoft.EntityFrameworkCore;
 using System.ComponentModel;
 using System.Text;
+using OpenQotd.Bot.Helpers.Profiles;
 
 namespace OpenQotd.Bot.Commands
 {
@@ -17,14 +18,15 @@ namespace OpenQotd.Bot.Commands
         public static async Task ViewQuestionAsync(CommandContext context,
         [Description("The ID of the question.")] int questionId)
         {
-            if (!await CommandRequirements.UserIsAdmin(context, null))
+            Config? config = await ProfileHelpers.TryGetSelectedOrDefaultConfigAsync(context);
+            if (config is null || !await CommandRequirements.UserIsAdmin(context, config))
                 return;
 
             Question? question;
             using (AppDbContext dbContext = new())
             {
                 question = await dbContext.Questions
-                    .Where(q => q.GuildId == context.Guild!.Id && q.GuildDependentId == questionId)
+                    .Where(q => q.ConfigId == config.Id && q.GuildDependentId == questionId)
                     .FirstOrDefaultAsync();
             }
 
@@ -69,12 +71,11 @@ namespace OpenQotd.Bot.Commands
             [Description("The question to add.")] string question,
             [Description("The type of the question to add.")] QuestionType type)
         {
-            Config? config = await CommandRequirements.TryGetConfig(context);
-
-            if (config is null || !await CommandRequirements.UserIsAdmin(context, null) || !await CommandRequirements.IsWithinMaxQuestionsAmount(context, 1))
+            Config? config = await ProfileHelpers.TryGetSelectedOrDefaultConfigAsync(context);
+            if (config is null || !await CommandRequirements.UserIsAdmin(context, config))
                 return;
 
-            if (!await Question.CheckTextValidity(question, context, config))
+            if (!await CommandRequirements.IsWithinMaxQuestionsAmount(context, 1) || !await Question.CheckTextValidity(question, context, config))
                 return;
 
             ulong guildId = context.Guild!.Id;
@@ -86,8 +87,9 @@ namespace OpenQotd.Bot.Commands
             {
                 newQuestion = new Question()
                 {
+                    ConfigId = config.Id,
                     GuildId = guildId,
-                    GuildDependentId = await Question.GetNextGuildDependentId(guildId),
+                    GuildDependentId = await Question.GetNextGuildDependentId(config),
                     Type = type,
                     Text = question,
                     SubmittedByUserId = submittedByUserId,
@@ -102,7 +104,7 @@ namespace OpenQotd.Bot.Commands
 			await context.RespondAsync(
                 GenericEmbeds.Success("Added Question", body)
                 );
-            await Logging.LogUserAction(context, "Added Question", body);
+            await Logging.LogUserAction(context, config, "Added Question", message: body);
         }
 
         [Command("addbulk")]
@@ -111,8 +113,7 @@ namespace OpenQotd.Bot.Commands
             [Description("A file containing the questions, each seperated by line-breaks.")] DiscordAttachment questionsFile,
             [Description("The type of the questions to add.")] QuestionType type)
         {
-            Config? config = await CommandRequirements.TryGetConfig(context);
-
+            Config? config = await ProfileHelpers.TryGetSelectedOrDefaultConfigAsync(context);
             if (config is null || !await CommandRequirements.UserIsAdmin(context, config))
                 return;
 
@@ -182,10 +183,11 @@ namespace OpenQotd.Bot.Commands
                     return;
             }
 
-            int startId = await Question.GetNextGuildDependentId(context.Guild!.Id);
+            int startId = await Question.GetNextGuildDependentId(config);
             DateTime now = DateTime.UtcNow;
             IEnumerable<Question> questions = lines.Select((line, index) => new Question()
             {
+                ConfigId = config.Id,
                 GuildId = context.Guild!.Id,
                 GuildDependentId = startId + index,
                 Type = type,
@@ -212,7 +214,8 @@ namespace OpenQotd.Bot.Commands
             [Description("The ID of the question.")] int questionId,
             [Description("The type to set the question to.")] QuestionType type)
         {
-            if (!await CommandRequirements.UserIsAdmin(context, null))
+            Config? config = await ProfileHelpers.TryGetSelectedOrDefaultConfigAsync(context);
+            if (config is null || !await CommandRequirements.UserIsAdmin(context, config))
                 return;
 
             ulong guildId = context.Guild!.Id;
@@ -221,7 +224,7 @@ namespace OpenQotd.Bot.Commands
             string body;
             using (AppDbContext dbContext = new())
             {
-                question = await dbContext.Questions.Where(q => q.GuildId == guildId && q.GuildDependentId == questionId).FirstOrDefaultAsync();
+                question = await dbContext.Questions.Where(q => q.ConfigId == config.Id && q.GuildDependentId == questionId).FirstOrDefaultAsync();
 
                 if (question == null)
                 {
@@ -242,7 +245,7 @@ namespace OpenQotd.Bot.Commands
             await context.RespondAsync(
                 GenericEmbeds.Success("Set Question Type", body)
                 );
-            await Logging.LogUserAction(context, "Set Question Type", body);
+            await Logging.LogUserAction(context, config, "Set Question Type", message: body);
 		}
 
 		[Command("changetypebulk")]
@@ -250,11 +253,12 @@ namespace OpenQotd.Bot.Commands
 		public static async Task ChangeTypeOfQuestionsBulkAsync(CommandContext context,
 			[Description("The type of the questions to change the type of.")] QuestionType fromType,
 			[Description("The type to set all of those questions to.")] QuestionType toType)
-		{
-			if (!await CommandRequirements.UserIsAdmin(context, null))
-				return;
+        {
+            Config? config = await ProfileHelpers.TryGetSelectedOrDefaultConfigAsync(context);
+            if (config is null || !await CommandRequirements.UserIsAdmin(context, config))
+                return;
 
-			if (fromType == toType)
+            if (fromType == toType)
 			{
 				await context.RespondAsync(
 					GenericEmbeds.Error(message: $"Arguments `from_type` and `to_type` cannot be the same."));
@@ -266,7 +270,7 @@ namespace OpenQotd.Bot.Commands
 			List<Question>? questions;
 			using (AppDbContext dbContext = new())
 			{
-				questions = await dbContext.Questions.Where(q => q.GuildId == guildId && q.Type == fromType).ToListAsync();
+				questions = await dbContext.Questions.Where(q => q.ConfigId == config.Id && q.Type == fromType).ToListAsync();
 
 				foreach (Question question in questions)
 				{
@@ -280,32 +284,22 @@ namespace OpenQotd.Bot.Commands
 			await context.RespondAsync(
 				GenericEmbeds.Success("Set Bulk Question Types", body)
 				);
-			await Logging.LogUserAction(context, "Set Bulk Question Types", body);
+			await Logging.LogUserAction(context, config, "Set Bulk Question Types", message: body);
 		}
 
 		[Command("removebulk")]
 		[Description("Remove all questions of a certain to stash or irreversably delete them if disabled.")]
 		public static async Task RemoveQuestionsBulkAsync(CommandContext context,
 			[Description("The type of the questions to remove.")] QuestionType type)
-		{
-			if (!await CommandRequirements.UserIsAdmin(context, null))
-				return;
-
-			ulong guildId = context.Guild!.Id;
+        {
+            Config? config = await ProfileHelpers.TryGetSelectedOrDefaultConfigAsync(context);
+            if (config is null || !await CommandRequirements.UserIsAdmin(context, config))
+                return;
 
 			List<Question>? questions;
-            Config? config;
 			using (AppDbContext dbContext = new())
 			{
-				questions = await dbContext.Questions.Where(q => q.GuildId == guildId && q.Type == type).ToListAsync();
-
-                config = await dbContext.Configs.Where(c => c.GuildId == guildId).FirstOrDefaultAsync();
-                if (config == null)
-                {
-                    await context.RespondAsync(
-                        GenericEmbeds.Error(title: "Config Not Found", message: "The bot configuration could not be found."));
-                    return;
-                }
+				questions = await dbContext.Questions.Where(q => q.ConfigId == config.Id && q.Type == type).ToListAsync();
 
 				if (config.EnableDeletedToStash && type != QuestionType.Stashed) 
 				{
@@ -328,30 +322,22 @@ namespace OpenQotd.Bot.Commands
 			await context.RespondAsync(
 				GenericEmbeds.Success(title, body)
 				);
-			await Logging.LogUserAction(context, title, body);
+			await Logging.LogUserAction(context, config, title, message: body);
 		}
         [Command("clearstash")]
         [Description("Remove all questions of Stashed type.")]
         public static async Task ClearStashAsync(CommandContext context)
         {
-			if (!await CommandRequirements.UserIsAdmin(context, null))
-				return;
+            Config? config = await ProfileHelpers.TryGetSelectedOrDefaultConfigAsync(context);
+            if (config is null || !await CommandRequirements.UserIsAdmin(context, config))
+                return;
 
-			ulong guildId = context.Guild!.Id;
+            ulong guildId = context.Guild!.Id;
 
 			List<Question>? questions;
-			Config? config;
 			using (AppDbContext dbContext = new())
 			{
-				questions = await dbContext.Questions.Where(q => q.GuildId == guildId && q.Type == QuestionType.Stashed).ToListAsync();
-
-				config = await dbContext.Configs.Where(c => c.GuildId == guildId).FirstOrDefaultAsync();
-				if (config == null)
-				{
-					await context.RespondAsync(
-						GenericEmbeds.Error(title: "Config Not Found", message: "The bot configuration could not be found."));
-					return;
-				}
+				questions = await dbContext.Questions.Where(q => q.ConfigId == config.Id && q.Type == QuestionType.Stashed).ToListAsync();
 
 				dbContext.Questions.RemoveRange(questions);
 				await dbContext.SaveChangesAsync();
@@ -363,7 +349,7 @@ namespace OpenQotd.Bot.Commands
 			await context.RespondAsync(
 				GenericEmbeds.Success(title, body)
 				);
-			await Logging.LogUserAction(context, title, body);
+			await Logging.LogUserAction(context, config, title, body);
 		}
 
 		[Command("remove")]
@@ -371,17 +357,17 @@ namespace OpenQotd.Bot.Commands
         public static async Task RemoveQuestionAsync(CommandContext context,
         [Description("The ID of the question.")] int questionId)
         {
-            if (!await CommandRequirements.UserIsAdmin(context, null))
+            Config? config = await ProfileHelpers.TryGetSelectedOrDefaultConfigAsync(context);
+            if (config is null || !await CommandRequirements.UserIsAdmin(context, config))
                 return;
 
             ulong guildId = context.Guild!.Id;
 
             Question? question;
             string body;
-            Config? config;
             using (AppDbContext dbContext = new())
             {
-                question = await dbContext.Questions.Where(q => q.GuildId == guildId && q.GuildDependentId == questionId).FirstOrDefaultAsync();
+                question = await dbContext.Questions.Where(q => q.ConfigId == config.Id && q.GuildDependentId == questionId).FirstOrDefaultAsync();
 
                 if (question == null)
                 {
@@ -390,14 +376,6 @@ namespace OpenQotd.Bot.Commands
                     return;
                 }
                 body = question.ToString();
-
-                config = await dbContext.Configs.Where(c => c.GuildId == guildId).FirstOrDefaultAsync();
-                if (config == null)
-                {
-					await context.RespondAsync(
-						GenericEmbeds.Error(title: "Config Not Found", message: "The bot configuration could not be found."));
-					return;
-				}
 
                 if (config.EnableDeletedToStash && question.Type != QuestionType.Stashed)
                 {
@@ -415,7 +393,7 @@ namespace OpenQotd.Bot.Commands
 			await context.RespondAsync(
                 GenericEmbeds.Success(title, body)
                 );
-            await Logging.LogUserAction(context, title, body);
+            await Logging.LogUserAction(context, config, title, body);
         }
 
         [Command("list")]
@@ -424,14 +402,13 @@ namespace OpenQotd.Bot.Commands
             [Description("The type of questions to show.")] QuestionType? type = null,
             [Description("The page of the listing (default 1).")] int page = 1)
         {
-            if (!await CommandRequirements.UserIsAdmin(context, null))
+            Config? config = await ProfileHelpers.TryGetSelectedOrDefaultConfigAsync(context);
+            if (config is null || !await CommandRequirements.UserIsAdmin(context, config))
                 return;
 
-            await ListQuestionsNoPermcheckAsync(context, type, page);
+            await ListQuestionsNoPermcheckAsync(context, config, type, page);
         }
-        public static async Task ListQuestionsNoPermcheckAsync(CommandContext context,
-            [Description("The type of questions to show.")] QuestionType? type = null,
-            [Description("The page of the listing (default 1).")] int page = 1)
+        public static async Task ListQuestionsNoPermcheckAsync(CommandContext context, Config config, QuestionType? type = null, int page = 1)
         {
             int itemsPerPage = Program.AppSettings.ListMessageItemsPerPage;
 
@@ -444,7 +421,7 @@ namespace OpenQotd.Bot.Commands
                     if (type is null)
                     {
                         sqlQuery = dbContext.Questions
-                            .Where(q => q.GuildId == context.Guild!.Id)
+                            .Where(q => q.ConfigId == config.Id)
                             .OrderBy(q => q.Type)
                             .ThenByDescending(q => q.Timestamp)
                             .ThenByDescending(q => q.Id);
@@ -452,7 +429,7 @@ namespace OpenQotd.Bot.Commands
                     else
                     {
                         sqlQuery = dbContext.Questions
-                            .Where(q => q.GuildId == context.Guild!.Id && q.Type == type)
+                            .Where(q => q.ConfigId == config.Id && q.Type == type)
                             .OrderByDescending(q => q.Timestamp)
                             .ThenByDescending(q => q.Id);
                     }
@@ -490,7 +467,8 @@ namespace OpenQotd.Bot.Commands
             [Description("The type of questions to show (default all).")] QuestionType? type = null,
             [Description("The page of the listing (default 1).")] int page = 1)
         {
-            if (!await CommandRequirements.UserIsAdmin(context, null))
+            Config? config = await ProfileHelpers.TryGetSelectedOrDefaultConfigAsync(context);
+            if (config is null || !await CommandRequirements.UserIsAdmin(context, config))
                 return;
 
             int itemsPerPage = Program.AppSettings.ListMessageItemsPerPage;
@@ -501,7 +479,7 @@ namespace OpenQotd.Bot.Commands
 
                     // Build the base query
                     IQueryable<Question> sqlQuery = dbContext.Questions
-                        .Where(q => q.GuildId == context.Guild!.Id && (type == null || q.Type == type))
+                        .Where(q => q.ConfigId == config.Id && (type == null || q.Type == type))
                         .Where(q => EF.Functions.Like(q.Text, $"%{query}%"));
 
                     // Get the total number of questions

@@ -1,9 +1,11 @@
 ﻿using DSharpPlus.Commands;
 using DSharpPlus.Entities;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Storage.ValueConversion.Internal;
 using OpenQotd.Bot.Database;
 using OpenQotd.Bot.Database.Entities;
 using OpenQotd.Bot.Helpers;
+using OpenQotd.Bot.Helpers.Profiles;
 using System.ComponentModel;
 using System.Threading.Tasks;
 using static OpenQotd.Bot.Logging;
@@ -20,9 +22,11 @@ namespace OpenQotd.Bot.Commands
             [Description("The channel the QOTD should get sent in.")] DiscordChannel QotdChannel,
             [Description("The UTC hour of the day the QOTDs should get sent (0-23).")] int QotdTimeHourUtc,
             [Description("The UTC minute of the day the QOTDs should get sent (0-59).")] int QotdTimeMinuteUtc,
+            [Description("The display name of the profile this config belongs to (default \"QOTD\")")] string? ProfileName = null,
             [Description("The role a user needs to have to execute any basic commands (allows anyone by default).")] DiscordRole? BasicRole = null,
             [Description("The role that will get pinged when a new QOTD is sent.")] DiscordRole? QotdPingRole = null,
             [Description("The title that is displayed in QOTD messages. (defaults to \"Question Of The Day\") if unset)")] string? QotdTitle = null,
+            [Description("The shorthand that is sometimes displayed in place of the title. (defaults to \"QOTD\") if unset)")] string? QotdShorthand = null,
             [Description("Whether to send a QOTD daily automatically, if disabled `/trigger` is needed (true by default).")] bool EnableAutomaticQotd = true,
             [Description("Whether to pin the most recent QOTD to the channel or not (true by default).")] bool EnableQotdPinMessage = true,
             [Description("Whether to automatically create a thread for every QOTD that gets sent (false by default).")] bool EnableQotdCreateThread = false,
@@ -35,28 +39,40 @@ namespace OpenQotd.Bot.Commands
 			[Description("Whether questions should get the \"Stashed\" type instead of being deleted (true by default).")] bool EnableDeletedToStash = true,
 			[Description("The channel where commands, QOTDs and more get logged to.")] DiscordChannel? LogsChannel = null)
         {
-            if (!context.Member!.Permissions.HasPermission(DiscordPermission.Administrator))
-            {
-                await context.RespondAsync(
-                    GenericEmbeds.Error("Server Administrator permission is required to run this command.")
-                    );
+            if (!await CommandRequirements.UserHasAdministratorPermission(context))
                 return;
-            }
 
             QotdTimeMinuteUtc = Math.Clamp(QotdTimeMinuteUtc, 0, 59);
             QotdTimeHourUtc = Math.Clamp(QotdTimeHourUtc, 0, 23);
 
+            if (ProfileName is not null && !await IsProfileNameValid(context, ProfileName))
+                return;
             if (QotdTitle is not null && !await IsQotdTitleValid(context, QotdTitle))
                 return;
+            if (QotdShorthand is not null && !await IsQotdShorthandValid(context, QotdShorthand))
+                return;
+
+            int existingConfigsCount;
+            using (AppDbContext dbContext = new())
+            {
+                existingConfigsCount = await dbContext.Configs
+                    .CountAsync(c => c.GuildId == context.Guild!.Id);
+            }
+
+            int profileId = await ProfileHelpers.GetSelectedOrDefaultProfileIdAsync(context.Guild!.Id, context.Member!.Id);
 
             Config config = new()
             {
                 GuildId = context!.Guild!.Id,
+                ProfileId = profileId,
+                IsDefaultProfile = existingConfigsCount == 0,
+                ProfileName = ProfileName ?? ProfileHelpers.GenerateProfileName(profileId),
                 BasicRoleId = BasicRole?.Id,
                 AdminRoleId = AdminRole.Id,
                 QotdChannelId = QotdChannel.Id,
                 QotdPingRoleId = QotdPingRole?.Id,
                 QotdTitle = QotdTitle,
+                QotdShorthand = QotdShorthand,
                 EnableAutomaticQotd = EnableAutomaticQotd,
                 EnableQotdPinMessage = EnableQotdPinMessage,
                 EnableQotdCreateThread = EnableQotdCreateThread,
@@ -68,13 +84,15 @@ namespace OpenQotd.Bot.Commands
                 SuggestionsChannelId = SuggestionsChannel?.Id,
                 SuggestionsPingRoleId = SuggestionsPingRole?.Id,
                 NoticesLevel = NoticesLevel,
-				EnableDeletedToStash = EnableDeletedToStash,
-				LogsChannelId = LogsChannel?.Id
+                EnableDeletedToStash = EnableDeletedToStash,
+                LogsChannelId = LogsChannel?.Id
             };
             bool reInitialized = false;
+
             using (AppDbContext dbContext = new())
             {
-                Config? existingConfig = await dbContext.Configs.FirstOrDefaultAsync(c => c.GuildId == context!.Guild.Id);
+                Config? existingConfig = await dbContext.Configs
+                    .FirstOrDefaultAsync(c => c.GuildId == context.Guild.Id && c.ProfileId == profileId);
 
                 if (existingConfig != null)
                 {
@@ -89,7 +107,7 @@ namespace OpenQotd.Bot.Commands
             string configString = config.ToString();
 
             await context.RespondAsync(
-                    GenericEmbeds.Success($"Successfully {(reInitialized ? "re-" : "")}initialized config", configString)
+                    GenericEmbeds.Success($"Successfully {(reInitialized ? "re-" : "")}initialized config", configString, profileName:config.ProfileName)
                 );
 
             // Can cause issues
@@ -100,16 +118,10 @@ namespace OpenQotd.Bot.Commands
         [Description("Get all config values")]
         public static async Task GetAsync(CommandContext context)
         {
-            if (!context.Member!.Permissions.HasPermission(DiscordPermission.Administrator))
-            {
-                await context.RespondAsync(
-                    GenericEmbeds.Error("Server Administrator permission is required to run this command.")
-                    );
+            if (!await CommandRequirements.UserHasAdministratorPermission(context))
                 return;
-            }
 
-            Config? config = await CommandRequirements.TryGetConfig(context);
-
+            Config? config = await ProfileHelpers.TryGetSelectedOrDefaultConfigAsync(context);
             if (config is null)
                 return;
 
@@ -122,7 +134,8 @@ namespace OpenQotd.Bot.Commands
 
         [Command("set")]
         [Description("Set a config value")]
-        public static async Task SetAsync(CommandContext context,
+        public static async Task SetAsync(CommandContext context, 
+            [Description("The display name of the profile this config belongs to (default \"QOTD\")")] string? ProfileName = null,
             [Description("The role a user needs to have to execute any basic commands (allows anyone by default).")] DiscordRole? BasicRole = null,
             [Description("The role a user needs to have to execute admin commands (overrides BasicRole).")] DiscordRole? AdminRole = null,
             [Description("The channel the QOTD should get sent in.")] DiscordChannel? QotdChannel = null,
@@ -130,6 +143,7 @@ namespace OpenQotd.Bot.Commands
             [Description("The UTC minute of the day the QOTDs should get sent (0-59).")] int? QotdTimeMinuteUtc = null,
             [Description("The role that will get pinged when a new QOTD is sent.")] DiscordRole? QotdPingRole = null,
             [Description("The title that is displayed in QOTD messages. (defaults to \"Question Of The Day\") if unset)")] string? QotdTitle = null,
+            [Description("The shorthand that is sometimes displayed in place of the title. (defaults to \"QOTD\") if unset)")] string? QotdShorthand = null,
             [Description("Whether to send a QOTD daily automatically, if disabled `/trigger` is needed (true by default).")] bool? EnableAutomaticQotd = null,
             [Description("Whether to pin the most recent QOTD to the channel or not (true by default).")] bool? EnableQotdPinMessage = null,
             [Description("Whether to automatically create a thread for every QOTD that gets sent (false by default).")] bool? EnableQotdCreateThread = null,
@@ -142,14 +156,10 @@ namespace OpenQotd.Bot.Commands
 			[Description("Whether questions should get the \"Stashed\" type instead of being deleted (true by default).")] bool? EnableDeletedToStash = null,
 			[Description("The channel where commands, QOTDs and more get logged to.")] DiscordChannel? LogsChannel = null)
         {
-            if (!context.Member!.Permissions.HasPermission(DiscordPermission.Administrator))
-            {
-                await context.RespondAsync(
-                    GenericEmbeds.Error("Server Administrator permission is required to run this command.")
-                    );
+            if (!await CommandRequirements.UserHasAdministratorPermission(context))
                 return;
-            }
-            Config? config = await CommandRequirements.TryGetConfig(context);
+
+            Config? config = await ProfileHelpers.TryGetSelectedOrDefaultConfigAsync(context);
 
             if (config is null)
                 return;
@@ -159,15 +169,21 @@ namespace OpenQotd.Bot.Commands
             if (QotdTimeHourUtc is not null)
                 QotdTimeHourUtc = Math.Clamp(QotdTimeHourUtc.Value, 0, 23);
 
+            if (ProfileName is not null && !await IsProfileNameValid(context, ProfileName))
+                return;
             if (QotdTitle is not null && !await IsQotdTitleValid(context, QotdTitle))
+                return;
+            if (QotdShorthand is not null && !await IsQotdShorthandValid(context, QotdShorthand))
                 return;
 
             using (AppDbContext dbContext = new())
             {
                 // Without extra retrieval config changes don't get saved
-                config = dbContext.Configs
-                    .Where(c => c.GuildId == context.Guild!.Id)
-                    .FirstOrDefault()!;
+                config = await dbContext.Configs
+                    .FindAsync(config.Id);
+
+                if (config is null)
+                    throw new Exception("Config not found");
 
                 if (QotdTimeMinuteUtc is not null || QotdTimeHourUtc is not null)
                 {
@@ -175,11 +191,13 @@ namespace OpenQotd.Bot.Commands
 
                     if (config.LastSentTimestamp?.Day == currentDay)
                     {
-                        await context.Channel!.SendMessageAsync(GenericEmbeds.Warning("Since a QOTD has already been sent today, the next one will be sent tomorrow at the specified time.\n\n" +
-                            "*Use `/trigger` to send a QOTD anyways!*"));
+                        await context.Channel!.SendMessageAsync(GenericEmbeds.Warning($"Since a {config.QotdShorthandText} has already been sent today, the next one will be sent tomorrow at the specified time.\n\n" +
+                            $"*Use `/trigger` to send a {config.QotdShorthandText} anyways!*"));
                     }
                 }
 
+                if (ProfileName is not null)
+                    config.ProfileName = ProfileName;
                 if (BasicRole is not null) 
                     config.BasicRoleId = BasicRole.Id;
                 if (AdminRole is not null)
@@ -188,6 +206,8 @@ namespace OpenQotd.Bot.Commands
                     config.QotdChannelId = QotdChannel.Id;
                 if (QotdTitle is not null)
                     config.QotdTitle = QotdTitle;
+                if (QotdShorthand is not null)
+                    config.QotdShorthand = QotdShorthand;
                 if (EnableAutomaticQotd is not null)
                     config.EnableAutomaticQotd = EnableAutomaticQotd.Value;
                 if (EnableQotdPinMessage is not null)
@@ -226,7 +246,7 @@ namespace OpenQotd.Bot.Commands
                     GenericEmbeds.Success("Successfully set config values", $"{configString}")
                 );
 
-            await LogUserAction(context, "Set config values", configString);
+            await LogUserAction(context, config, "Set config values", message: configString);
         }
 
         public enum SingleOption
@@ -244,20 +264,22 @@ namespace OpenQotd.Bot.Commands
             [Description("The role that will get pinged when a new QOTD is suggested.")] SingleOption? SuggestionsPingRole = null,
             [Description("The channel where commands, QOTDs and more get logged to.")] SingleOption? LogsChannel = null)
         {
-            if (!context.Member!.Permissions.HasPermission(DiscordPermission.Administrator))
-            {
-                await context.RespondAsync(
-                    GenericEmbeds.Error("Server Administrator permission is required to run this command.")
-                    );
+            if (!await CommandRequirements.UserHasAdministratorPermission(context))
                 return;
-            }
 
-            Config config;
+            Config? config = await ProfileHelpers.TryGetSelectedOrDefaultConfigAsync(context);
+
+            if (config is null)
+                return;
+
             using (AppDbContext dbContext = new())
             {
-                config = dbContext.Configs
-                    .Where(c => c.GuildId == context.Guild!.Id)
-                    .FirstOrDefault()!;
+                // Without extra retrieval config changes don't get saved
+                config = await dbContext.Configs
+                    .FindAsync(config.Id);
+
+                if (config is null)
+                    throw new Exception("Config not found");
 
                 if (BasicRole is not null)
                     config.BasicRoleId = null;
@@ -281,9 +303,9 @@ namespace OpenQotd.Bot.Commands
                     GenericEmbeds.Success("Successfully set config values", $"{configString}")
                 );
 
-            await LogUserAction(context, "Set config values", configString);
+            await LogUserAction(context, config, "Set config values", message: configString);
         }
-        
+
         /// <summary>
         /// Checks whether or not the <paramref name="qotdTitle"/> is within valid length (provided by <see cref="AppSettings.ConfigQotdTitleMaxLength"/>)
         /// and does not contain any forbidden characters.
@@ -295,12 +317,58 @@ namespace OpenQotd.Bot.Commands
                 await context.RespondAsync(
                     GenericEmbeds.Error($"The provided QOTD Title must not exceed {Program.AppSettings.ConfigQotdTitleMaxLength} characters in length (provided length is {qotdTitle.Length}).")
                     );
-                return false; 
+                return false;
             }
 
             if (qotdTitle.Contains('\n'))
             {
                 await context.RespondAsync($"The provided QOTD title must not contain any line-breaks.");
+                return false;
+            }
+
+            return true;
+        }
+
+        /// <summary>
+        /// Checks whether or not the <paramref name="qotdShorthand"/> is within valid length (provided by <see cref="AppSettings.ConfigQotdTitleMaxLength"/>)
+        /// and does not contain any forbidden characters.
+        /// </summary>
+        private static async Task<bool> IsQotdShorthandValid(CommandContext context, string qotdShorthand)
+        {
+            if (qotdShorthand.Length > Program.AppSettings.ConfigQotdShorthandMaxLength)
+            {
+                await context.RespondAsync(
+                    GenericEmbeds.Error($"The provided QOTD shorthand must not exceed {Program.AppSettings.ConfigQotdShorthandMaxLength} characters in length (provided length is {qotdShorthand.Length}).")
+                    );
+                return false;
+            }
+
+            if (qotdShorthand.Contains('\n'))
+            {
+                await context.RespondAsync($"The provided QOTD shorthand must not contain any line-breaks.");
+                return false;
+            }
+
+            return true;
+        }
+
+        /// <summary>
+        /// Checks whether or not the <paramref name="profileName"/> is within valid length (provided by <see cref="AppSettings.ConfigQotdTitleMaxLength"/>)
+        /// and does not contain any forbidden characters.
+        /// </summary>
+        private static async Task<bool> IsProfileNameValid(CommandContext context, string profileName)
+        {
+            if (profileName.Length > Program.AppSettings.ConfigProfileNameMaxLength)
+            {
+                await context.RespondAsync(
+                    GenericEmbeds.Error($"The provided profile name must not exceed {Program.AppSettings.ConfigProfileNameMaxLength} characters in length (provided length is {profileName.Length}).")
+                    );
+                return false;
+            }
+
+            if (profileName.Contains('\n'))
+            {
+                await context.RespondAsync($"The provided profile name must not contain any line-breaks.");
                 return false;
             }
 

@@ -5,65 +5,28 @@ using DSharpPlus.Commands;
 using DSharpPlus.Entities;
 using DSharpPlus.EventArgs;
 using DSharpPlus.Exceptions;
-using Microsoft.EntityFrameworkCore;
+using OpenQotd.Bot.Helpers.Profiles;
 
 namespace OpenQotd.Bot
 {
     public static class CommandRequirements
     {
         /// <summary>
-        /// Checks if the config has been initialized using `/config initialize` for the current guild.
+        /// Checks if a user has the "Server Administrator" permission.
         /// </summary>
-        /// <remarks>
-        /// This also handles sending error messages, so it's recommended to end your function if it retuns false.
-        /// </remarks>
-        public static async Task<Config?> TryGetConfig(CommandContext context)
+        public static async Task<bool> UserHasAdministratorPermission(CommandContext context, bool responseOnError = true)
         {
-            (Config?, string?) result = await IsConfigInitialized(context.Guild!);
-
-            if (result.Item1 is null)
+            if (!context.Member!.Permissions.HasPermission(DiscordPermission.Administrator))
             {
-                await context.RespondAsync(
-                    GenericEmbeds.Error(result.Item2!));
+                if (responseOnError)
+                {
+                    await context.RespondAsync(
+                        GenericEmbeds.Error("Server Administrator permission is required to run this command.")
+                        );
+                }
+                return false;
             }
-
-            return result.Item1;
-        }
-
-        /// <summary>
-        /// See <see cref="IsConfigInitialized(DiscordGuild)"/>.
-        /// </summary>
-        public static async Task<Config?> TryGetConfig(ComponentInteractionCreatedEventArgs args)
-        {
-            (Config?, string?) result = await IsConfigInitialized(args.Guild!);
-
-            if (result.Item1 is null)
-            {
-                DiscordInteractionResponseBuilder response = new();
-                response.AddEmbed(
-                    GenericEmbeds.Error(result.Item2!));
-                response.IsEphemeral = true;
-
-                await args.Interaction.CreateResponseAsync(DiscordInteractionResponseType.ChannelMessageWithSource, response);
-            }
-
-            return result.Item1;
-        }
-
-        /// <summary>
-        /// Checks whether or not the config has been initialized using `/config initialize` for the specified guild.
-        /// </summary>
-        /// <returns>(config if initialized, error if not)</returns>
-        public static async Task<(Config?, string?)> IsConfigInitialized(DiscordGuild guild)
-        {
-            using (AppDbContext dbContext = new())
-            {
-                Config? c = await dbContext.Configs.FirstOrDefaultAsync(c => c.GuildId == guild.Id);
-
-                return c is null ? 
-                    (null, $"The QOTD bot configuration has not been initialized yet. Use `/config initialize` to initialize.") : 
-                    (c, null);
-            }
+            return true;
         }
 
         /// <summary>
@@ -95,35 +58,33 @@ namespace OpenQotd.Bot
             {
                 using AppDbContext dbContext = new();
 
-                config = await dbContext.Configs
-                    .Where(c => c.GuildId == guild.Id)
-                    .FirstOrDefaultAsync();
+                (config, string? error) = await ProfileHelpers.TryGetSelectedOrDefaultConfigAsync(guild.Id, member.Id);
 
                 if (config is null)
-                    return (false, "The QOTD bot configuration has not been initialized yet. Use `/config initialize` to initialize.");
+                    return (false, error);
             }
 
-            ulong roleId = config.AdminRoleId;
+            ulong adminRoleId = config.AdminRoleId;
 
-            if (!member.Roles.Any(role => role.Id == roleId))
+            if (member.Roles.Any(role => role.Id == adminRoleId))
             {
-                DiscordRole role;
-                try
-                {
-                    role = await guild.GetRoleAsync(roleId);
-                }
-                catch (NotFoundException)
-                {
-                    return (false,
-                        $"The role in the admin_role config value with ID {roleId} could not be found.\n\n" +
-                            $"*It can be set using `/config set admin_role [role]`.*");
-                }
-
-                return (false,
-                    $"You need to have the \"{role.Mention}\" role or Server Administrator permission to be able to run this command.");
+                return (true, null);
             }
 
-            return (true, null);
+            DiscordRole role;
+            try
+            {
+                role = await guild.GetRoleAsync(adminRoleId);
+            }
+            catch (NotFoundException)
+            {
+                return (false,
+                    $"The role in the admin_role config value with ID {adminRoleId} could not be found.\n\n" +
+                        $"*It can be set using `/config set admin_role [role]`.*");
+            }
+
+            return (false,
+                $"You need to have the \"{role.Mention}\" role or Server Administrator permission to be able to run this command.");
         }
 
         /// <summary>
@@ -148,9 +109,9 @@ namespace OpenQotd.Bot
         /// <summary>
         /// See <see cref="UserIsBasic(CommandContext, Config?, bool)"/>.
         /// </summary>
-        public static async Task<bool> UserIsBasic(ComponentInteractionCreatedEventArgs args, Config? config)
+        public static async Task<bool> UserIsBasic(InteractionCreatedEventArgs args, Config? config)
         {
-            (bool, string?) result = await UserIsBasic(args.Guild!, await args.Guild.GetMemberAsync(args.User.Id), config);
+            (bool, string?) result = await UserIsBasic(args.Interaction.Guild!, await args.Interaction.Guild!.GetMemberAsync(args.Interaction.User!.Id), config);
 
             if (!result.Item1)
             {
@@ -176,38 +137,32 @@ namespace OpenQotd.Bot
             if (config is null)
             {
                 using AppDbContext dbContext = new();
-                config = await dbContext.Configs
-                    .Where(c => c.GuildId == guild.Id)
-                    .FirstOrDefaultAsync();
+
+                (config, string? error) = await ProfileHelpers.TryGetSelectedOrDefaultConfigAsync(guild.Id, member.Id);
 
                 if (config is null)
-                    return (false, "The QOTD bot configuration has not been initialized yet. Use `/config initialize` to initialize.");
+                    return (false, error);
             }
 
-            ulong? roleId = config.BasicRoleId;
+            ulong? basicRoleId = config.BasicRoleId;
 
-            if (roleId == null)
+            if (basicRoleId == null || member.Roles.Any(role => role.Id == basicRoleId) || (await UserIsAdmin(guild, member, config)).Item1)
                 return (true, null);
 
-            if (!member.Roles.Any(role => role.Id == roleId) && !(await UserIsAdmin(guild, member, config)).Item1)
+            DiscordRole role;
+            try
             {
-                DiscordRole role;
-                try
-                {
-                    role = await guild.GetRoleAsync(roleId.Value);
-                }
-                catch (NotFoundException)
-                {
-                    return (false, 
-                        $"The role in the basic_role config value with ID {roleId} could not be found.\n\n" +
-                            $"*It can be set using `/config set basic_role [role]`.*");
-                }
-
+                role = await guild.GetRoleAsync(basicRoleId.Value);
+            }
+            catch (NotFoundException)
+            {
                 return (false,
-                    $"You need to have the \"{role.Mention}\" role or Server Administrator permission to be able to run this command.");
+                    $"The role in the basic_role config value with ID `{basicRoleId}` could not be found.\n\n" +
+                        $"*It can be set using `/config set basic_role [role]`.*");
             }
 
-            return (true, null);
+            return (false,
+                $"You need to have the \"{role.Mention}\" role or Server Administrator permission to be able to run this command.");
         }
 
         /// <summary>
