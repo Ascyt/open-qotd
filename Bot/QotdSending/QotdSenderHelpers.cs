@@ -19,6 +19,10 @@ namespace OpenQotd.Bot.QotdSending
         public DateTime? previousLastSentTimestamp;
         public Notices.Notice? latestAvailableNotice;
 
+        public readonly string QotdTitle => config.QotdTitle ?? Program.AppSettings.ConfigQotdTitleDefault;
+        public readonly string QotdShorthand => config.QotdShorthand ?? Program.AppSettings.ConfigQotdShorthandDefault;
+        public readonly string SuggestCommand => config.IsDefaultProfile ? "/qotd" : $"/suggest for:{QotdTitle}";
+
         private DiscordChannel? _qotdChannel;
 
         /// <exception cref="QotdChannelNotFoundException"></exception>
@@ -107,7 +111,7 @@ namespace OpenQotd.Bot.QotdSending
             if (!config.EnableSuggestions)
                 return;
 
-            DiscordButtonComponent suggestButton = new(DiscordButtonStyle.Secondary, $"suggest-qotd/{config.ProfileId}", $"Suggest a new {config.QotdTitle ?? "QOTD"}");
+            DiscordButtonComponent suggestButton = new(DiscordButtonStyle.Secondary, $"suggest-qotd/{config.ProfileId}", $"Suggest a new {config.QotdShorthand ?? Program.AppSettings.ConfigQotdShorthandDefault}");
 
             messageBuilder.AddActionRowComponent(suggestButton);
         }
@@ -145,7 +149,9 @@ namespace OpenQotd.Bot.QotdSending
             if (!d.config.EnableQotdCreateThread)
                 return;
 
-            await sentMessage.CreateThreadAsync($"QOTD{(sentQuestionsCount is null ? "" : $" #{sentQuestionsCount}")} Discussion ({DateTime.UtcNow:yyyy-MM-dd})", DiscordAutoArchiveDuration.Day, reason: "Automatic QOTD thread");
+            await sentMessage.CreateThreadAsync(
+                $"{d.QotdShorthand}{(sentQuestionsCount is null ? "" : $" #{sentQuestionsCount}")} Discussion ({DateTime.UtcNow:yyyy-MM-dd})", 
+                DiscordAutoArchiveDuration.Day, reason: $"Automatic {d.QotdShorthand} thread");
         }
 
         public static async Task AddPingRoleIfEnabledAndExistent(SendQotdData d, DiscordMessageBuilder builder)

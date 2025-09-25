@@ -125,9 +125,9 @@ namespace OpenQotd.Bot.QotdSending
             DiscordMessageBuilder messageBuilder = new();
 
             messageBuilder.AddEmbed(
-                GenericEmbeds.Custom(title: $"No {d.config.QotdTitle ?? Config.DEFAULT_QOTD_TITLE} Available", message: $"There is currently no {d.config.QotdTitle ?? Config.DEFAULT_QOTD_TITLE}" +
+                GenericEmbeds.Custom(title: $"No {d.QotdShorthand} Available", message: $"There is currently no {d.QotdTitle}" +
                 $"{(d.config.EnableQotdAutomaticPresets ? " or Preset question" : "")} available." +
-                (d.config.EnableSuggestions ? $"\n\n*Suggest some using `/qotd`!*" : ""), color: "#dc5051"));
+                (d.config.EnableSuggestions ? $"\n\n*Suggest some using `{d.SuggestCommand}`!*" : ""), color: "#dc5051"));
             QotdSenderHelpers.AddSuggestButtonIfEnabled(d.config, messageBuilder);
 
             await qotdChannel.SendMessageAsync(messageBuilder);
@@ -146,12 +146,12 @@ namespace OpenQotd.Bot.QotdSending
 
             DiscordMessageBuilder messageBuilder = new();
             messageBuilder.AddEmbed(
-                GenericEmbeds.Custom($"{d.config.QotdTitle ?? Config.DEFAULT_QOTD_TITLE}",
+                GenericEmbeds.Custom($"{d.QotdTitle}",
                 $"**{Presets.Values[presetIndex]}**\n" +
                 $"\n" +
                 $"*Preset Question*",
                 color: "#8acfac")
-                .WithFooter($"{presetsAvailable - 1} preset{(presetsAvailable - 1 == 1 ? "" : "s")} left{(d.config.EnableSuggestions ? $", /qotd to suggest" : "")} \x2022 Preset ID: {presetIndex}")
+                .WithFooter($"{presetsAvailable - 1} preset{(presetsAvailable - 1 == 1 ? "" : "s")} left{(d.config.EnableSuggestions ? $", {d.SuggestCommand}" : "")} \x2022 Preset ID: {presetIndex}")
                 );
             await QotdSenderHelpers.AddPingRoleIfEnabledAndExistent(d, messageBuilder);
 
@@ -204,12 +204,12 @@ namespace OpenQotd.Bot.QotdSending
             }
 
             messageBuilder.AddEmbed(
-                GenericEmbeds.Custom($"{d.config.QotdTitle ?? Config.DEFAULT_QOTD_TITLE} #{sentQuestionsCount}",
+                GenericEmbeds.Custom($"{d.QotdTitle} #{sentQuestionsCount}",
                 $"**{question.Text}**\n" +
                 $"\n" +
                 $"*Submitted by <@{question.SubmittedByUserId}>*",
                 color: "#8acfac")
-                .WithFooter($"{acceptedQuestionsCount} question{(acceptedQuestionsCount == 1 ? "" : "s")} left{(d.config.EnableSuggestions ? $", /qotd to suggest" : "")} \x2022 Question ID: {question.GuildDependentId}")
+                .WithFooter($"{acceptedQuestionsCount} question{(acceptedQuestionsCount == 1 ? "" : "s")} left{(d.config.EnableSuggestions ? $", {d.SuggestCommand}" : "")} \x2022 Question ID: {question.GuildDependentId}")
                 );
 
             DiscordChannel qotdChannel = await d.GetQotdChannelAsync();
@@ -253,7 +253,7 @@ namespace OpenQotd.Bot.QotdSending
 
                 // TODO: Enable once #65 is added
                 //lastQuestionWarning.AddEmbed(
-                //    GenericEmbeds.Warning(title: $"Warning: Last {d.config.QotdTitle ?? Config.DEFAULT_QOTD_TITLE}", message:
+                //    GenericEmbeds.Warning(title: $"Warning: Last {d.QotdShorthand}", message:
                 //    "There is no more Accepted QOTD of this server left." +
                 //    (presetsLeft > 0 && d.config.EnableQotdAutomaticPresets ? $"\nIf none are added, one of **{presetsLeft} Presets** will start to be used instead." : "") +
                 //    (d.config.EnableSuggestions ? $"\n\n*More can be suggested using `/qotd`!*" : "")));

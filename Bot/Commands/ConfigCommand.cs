@@ -26,6 +26,7 @@ namespace OpenQotd.Bot.Commands
             [Description("The role a user needs to have to execute any basic commands (allows anyone by default).")] DiscordRole? BasicRole = null,
             [Description("The role that will get pinged when a new QOTD is sent.")] DiscordRole? QotdPingRole = null,
             [Description("The title that is displayed in QOTD messages. (defaults to \"Question Of The Day\") if unset)")] string? QotdTitle = null,
+            [Description("The shorthand that is sometimes displayed in place of the title. (defaults to \"QOTD\") if unset)")] string? QotdShorthand = null,
             [Description("Whether to send a QOTD daily automatically, if disabled `/trigger` is needed (true by default).")] bool EnableAutomaticQotd = true,
             [Description("Whether to pin the most recent QOTD to the channel or not (true by default).")] bool EnableQotdPinMessage = true,
             [Description("Whether to automatically create a thread for every QOTD that gets sent (false by default).")] bool EnableQotdCreateThread = false,
@@ -48,6 +49,8 @@ namespace OpenQotd.Bot.Commands
                 return;
             if (QotdTitle is not null && !await IsQotdTitleValid(context, QotdTitle))
                 return;
+            if (QotdShorthand is not null && !await IsQotdShorthandValid(context, QotdShorthand))
+                return;
 
             int existingConfigsCount;
             using (AppDbContext dbContext = new())
@@ -69,6 +72,7 @@ namespace OpenQotd.Bot.Commands
                 QotdChannelId = QotdChannel.Id,
                 QotdPingRoleId = QotdPingRole?.Id,
                 QotdTitle = QotdTitle,
+                QotdShorthand = QotdShorthand,
                 EnableAutomaticQotd = EnableAutomaticQotd,
                 EnableQotdPinMessage = EnableQotdPinMessage,
                 EnableQotdCreateThread = EnableQotdCreateThread,
@@ -139,6 +143,7 @@ namespace OpenQotd.Bot.Commands
             [Description("The UTC minute of the day the QOTDs should get sent (0-59).")] int? QotdTimeMinuteUtc = null,
             [Description("The role that will get pinged when a new QOTD is sent.")] DiscordRole? QotdPingRole = null,
             [Description("The title that is displayed in QOTD messages. (defaults to \"Question Of The Day\") if unset)")] string? QotdTitle = null,
+            [Description("The shorthand that is sometimes displayed in place of the title. (defaults to \"QOTD\") if unset)")] string? QotdShorthand = null,
             [Description("Whether to send a QOTD daily automatically, if disabled `/trigger` is needed (true by default).")] bool? EnableAutomaticQotd = null,
             [Description("Whether to pin the most recent QOTD to the channel or not (true by default).")] bool? EnableQotdPinMessage = null,
             [Description("Whether to automatically create a thread for every QOTD that gets sent (false by default).")] bool? EnableQotdCreateThread = null,
@@ -167,6 +172,8 @@ namespace OpenQotd.Bot.Commands
             if (ProfileName is not null && !await IsProfileNameValid(context, ProfileName))
                 return;
             if (QotdTitle is not null && !await IsQotdTitleValid(context, QotdTitle))
+                return;
+            if (QotdShorthand is not null && !await IsQotdShorthandValid(context, QotdShorthand))
                 return;
 
             using (AppDbContext dbContext = new())
@@ -199,6 +206,8 @@ namespace OpenQotd.Bot.Commands
                     config.QotdChannelId = QotdChannel.Id;
                 if (QotdTitle is not null)
                     config.QotdTitle = QotdTitle;
+                if (QotdShorthand is not null)
+                    config.QotdShorthand = QotdShorthand;
                 if (EnableAutomaticQotd is not null)
                     config.EnableAutomaticQotd = EnableAutomaticQotd.Value;
                 if (EnableQotdPinMessage is not null)
@@ -314,6 +323,29 @@ namespace OpenQotd.Bot.Commands
             if (qotdTitle.Contains('\n'))
             {
                 await context.RespondAsync($"The provided QOTD title must not contain any line-breaks.");
+                return false;
+            }
+
+            return true;
+        }
+
+        /// <summary>
+        /// Checks whether or not the <paramref name="qotdShorthand"/> is within valid length (provided by <see cref="AppSettings.ConfigQotdTitleMaxLength"/>)
+        /// and does not contain any forbidden characters.
+        /// </summary>
+        private static async Task<bool> IsQotdShorthandValid(CommandContext context, string qotdShorthand)
+        {
+            if (qotdShorthand.Length > Program.AppSettings.ConfigQotdShorthandMaxLength)
+            {
+                await context.RespondAsync(
+                    GenericEmbeds.Error($"The provided QOTD shorthand must not exceed {Program.AppSettings.ConfigQotdShorthandMaxLength} characters in length (provided length is {qotdShorthand.Length}).")
+                    );
+                return false;
+            }
+
+            if (qotdShorthand.Contains('\n'))
+            {
+                await context.RespondAsync($"The provided QOTD shorthand must not contain any line-breaks.");
                 return false;
             }
 

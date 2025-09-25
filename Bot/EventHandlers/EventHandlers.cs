@@ -1,7 +1,5 @@
 ﻿using OpenQotd.Bot.Helpers;
 using DSharpPlus;
-using DSharpPlus.Commands;
-using DSharpPlus.Commands.EventArgs;
 using DSharpPlus.EventArgs;
 using DSharpPlus.Entities;
 using OpenQotd.Bot.Commands;
@@ -115,10 +113,10 @@ namespace OpenQotd.Bot.EventHandlers
             }
 
             DiscordInteractionResponseBuilder modal = new DiscordInteractionResponseBuilder()
-                .WithTitle("Suggest a new QOTD!")
+                .WithTitle($"Suggest a new {config.QotdShorthand ?? Program.AppSettings.ConfigQotdShorthandDefault}!")
                 .WithCustomId($"suggest-qotd/{config.ProfileId}")
                 .AddTextInputComponent(new DiscordTextInputComponent(
-                    label: "Content", customId: "text", placeholder: $"This will require approval by the staff of this server.", max_length: 256, required: true, style: DiscordTextInputStyle.Short));
+                    label: "Contents", customId: "text", placeholder: $"This will require approval by the staff of this server.", max_length: 256, required: true, style: DiscordTextInputStyle.Short));
 
             await args.Interaction.CreateResponseAsync(DiscordInteractionResponseType.Modal, modal);
         }
@@ -147,7 +145,7 @@ namespace OpenQotd.Bot.EventHandlers
 
             if (!config.EnableSuggestions)
             {
-                DiscordEmbed errorEmbed = GenericEmbeds.Error($"Suggestions are not enabled for this server.");
+                DiscordEmbed errorEmbed = GenericEmbeds.Error($"Suggestions are not enabled for this profile ({config.ProfileName}).");
 
                 await args.Interaction.CreateResponseAsync(DiscordInteractionResponseType.ChannelMessageWithSource, new DiscordInteractionResponseBuilder()
                     .AddEmbed(errorEmbed)

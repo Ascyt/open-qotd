@@ -48,6 +48,24 @@
         public int ConfigQotdTitleMaxLength { get; set; } = 64;
 
         /// <summary>
+        /// The default title for QOTD messages if Config.QotdTitle is not immediatelly initialized.
+        /// </summary>
+        public string ConfigQotdTitleDefault { get; set; } = "Question Of The Day";
+
+        /// <summary>
+        /// The maximum amount of characters that Config.QotdTitle can be. Does not add a database constraint.
+        /// </summary>
+        /// <remarks>
+        /// This should be lower than <see cref="ConfigQotdTitleMaxLength"/>.
+        /// </remarks>
+        public int ConfigQotdShorthandMaxLength { get; set; } = 16;
+
+        /// <summary>
+        /// The default shorthand for QOTD messages if Config.QotdShorthand is not immediatelly initialized.
+        /// </summary>
+        public string ConfigQotdShorthandDefault { get; set; } = "QOTD";
+
+        /// <summary>
         /// The maximum amount of characters that Config.ProfileLength can be. Does not add a database constraint.
         /// </summary>
         public int ConfigProfileNameMaxLength { get; set; } = 32;

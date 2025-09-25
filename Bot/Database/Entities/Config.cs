@@ -105,7 +105,11 @@ namespace OpenQotd.Bot.Database.Entities
         /// The title of the QOTD message. If null the default is used which is "Question Of The Day"
         /// </summary>
         public string? QotdTitle { get; set; } = null;
-        public const string DEFAULT_QOTD_TITLE = "Question Of The Day";
+
+        /// <summary>
+        /// The shorthand of the QOTD title. If null the default is used which is "QOTD"
+        /// </summary>
+        public string? QotdShorthand { get; set; } = null;
 
         /// <summary>
         /// If true, users can suggest questions using /suggest or /qotd.
@@ -167,7 +171,8 @@ namespace OpenQotd.Bot.Database.Entities
                 $"- admin_role: {FormatRole(AdminRoleId)}\n" +
                 $"- qotd_channel: {FormatChannel(QotdChannelId)}\n" +
                 $"- qotd_ping_role: {FormatRole(QotdPingRoleId)}\n" +
-                $"- qotd_title: *{QotdTitle ?? DEFAULT_QOTD_TITLE}*\n" +
+                $"- qotd_title: *{QotdTitle ?? Program.AppSettings.ConfigQotdTitleDefault}*\n" +
+                $"- qotd_shorthand: *{QotdShorthand ?? Program.AppSettings.ConfigQotdShorthandDefault}*\n" +
                 $"- enable_automatic_qotd: **{EnableAutomaticQotd}**\n" +
                 $"- enable_qotd_pin_message: **{EnableQotdPinMessage}**\n" +
                 $"- enable_qotd_create_thread: **{EnableQotdCreateThread}**\n" +
