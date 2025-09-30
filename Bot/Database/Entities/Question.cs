@@ -80,6 +80,24 @@ namespace OpenQotd.Bot.Database.Entities
         public ulong SubmittedByUserId { get; set; }
 
         /// <summary>
+        /// Notes associated with the question, visible to users using a button when the question is sent as QOTD.
+        /// </summary>
+        public string? Notes { get; set; }
+
+        /// <summary>
+        /// The URL of a thumbnail image associated with the question. Will be fetched when the question is sent as QOTD.
+        /// </summary>
+        /// <remarks>
+        /// Only image URLs from Discord or Imgur are allowed.
+        /// </remarks>
+        public string? ThumbnailImageUrl { get; set; }
+
+        /// <summary>
+        /// Additional information for staff, visible only to users with the <see cref="Config.AdminRoleId"/> or access to the suggestions channel when reviewing suggestions.
+        /// </summary>
+        public string? SuggesterAdminOnlyInfo { get; set; }
+
+        /// <summary>
         /// The timestamp when the question was initially submitted or manually added.
         /// </summary>
         public DateTime Timestamp { get; set; }

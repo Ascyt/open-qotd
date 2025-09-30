@@ -34,14 +34,7 @@ namespace OpenQotd.Bot.Commands
                 return;
             }
 
-            DiscordMessageBuilder messageBuilder = new();
-            messageBuilder.AddEmbed(
-                GenericEmbeds.Info(title: $"Suggest a new {config.QotdShorthandText}", message: $"Click the button below to open a modal to suggest a new {config.QotdTitleText}.")); 
-
-            messageBuilder.AddActionRowComponent(
-                new DiscordButtonComponent(DiscordButtonStyle.Primary, $"suggest-qotd/{config.ProfileId}", "Suggest"));
-
-            await context.RespondAsync(messageBuilder);
+            await (context as SlashCommandContext)!.RespondWithModalAsync(QotdBuilderHelpers.GetQotdModal(config, context.Guild!.Name));
         }
 
         /// <returns>(whether or not successful, response message)</returns>
@@ -169,14 +162,13 @@ namespace OpenQotd.Bot.Commands
 
         [Command("qotd")]
         [Description("Suggest a Question Of The Day to be added. Unlike /suggest, this uses the default profile.")]
-        public static async Task QotdAsync(CommandContext context,
-            [Description("Your suggestion.")] string suggestion)
+        public static async Task QotdAsync(CommandContext context)
         { 
             Config? defaultConfig = await ProfileHelpers.TryGetDefaultConfigAsync(context);
             if (defaultConfig is null)
                 return;
 
-            await SuggestAsync(context, defaultConfig.ProfileId, suggestion);
+            await SuggestAsync(context, defaultConfig.ProfileId);
         }
     }
 }

@@ -92,6 +92,11 @@ namespace OpenQotd.Bot.Database.Entities
         public bool EnableQotdUnavailableMessage { get; set; } = true;
 
         /// <summary>
+        /// If true, show an info button for general info about the bot under the QOTD message.
+        /// </summary>
+        public bool EnableQotdShowInfoButton { get; set; } = true;
+
+        /// <summary>
         /// The hour (0-23) in UTC when the daily QOTD is sent if automatic QOTDs are enabled.
         /// </summary>
         public int QotdTimeHourUtc { get; set; }
