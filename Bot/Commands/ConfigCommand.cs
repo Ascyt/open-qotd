@@ -128,7 +128,7 @@ namespace OpenQotd.Bot.Commands
             string configString = config.ToString();
 
             await context.RespondAsync(
-                    GenericEmbeds.Custom($"Config values", $"{configString}")
+                    GenericEmbeds.Info(title:$"Config values", message:$"{configString}")
                 );
         }
 

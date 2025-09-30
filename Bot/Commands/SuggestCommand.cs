@@ -16,8 +16,7 @@ namespace OpenQotd.Bot.Commands
         [Command("suggest")]
         [Description("Suggest a Question Of The Day to be added.")]
         public static async Task SuggestAsync(CommandContext context,
-            [Description("Which OpenQOTD profile your question should be suggested to.")][SlashAutoCompleteProvider<SuggestableProfilesAutoCompleteProvider>] int For,
-            [Description("Your suggestion.")] string suggestion)
+            [Description("Which OpenQOTD profile your question should be suggested to.")][SlashAutoCompleteProvider<SuggestableProfilesAutoCompleteProvider>] int For)
         {
             int profileId = For;
 
@@ -35,18 +34,14 @@ namespace OpenQotd.Bot.Commands
                 return;
             }
 
-            (bool, DiscordEmbed) result = await SuggestNoContextAsync(suggestion, config, context.Guild!, context.Channel, context.User);
+            DiscordMessageBuilder messageBuilder = new();
+            messageBuilder.AddEmbed(
+                GenericEmbeds.Info(title: $"Suggest a new {config.QotdShorthandText}", message: $"Click the button below to open a modal to suggest a new {config.QotdTitleText}.")); 
 
-            if (context is SlashCommandContext && result.Item1) // Is slash command and not errored
-            {
-                SlashCommandContext? slashCommandcontext = context as SlashCommandContext;
+            messageBuilder.AddActionRowComponent(
+                new DiscordButtonComponent(DiscordButtonStyle.Primary, $"suggest-qotd/{config.ProfileId}", "Suggest"));
 
-                await slashCommandcontext!.RespondAsync(result.Item2, ephemeral: true);
-            }
-            else
-            {
-                await context.RespondAsync(result.Item2);
-            }
+            await context.RespondAsync(messageBuilder);
         }
 
         /// <returns>(whether or not successful, response message)</returns>
@@ -132,7 +127,7 @@ namespace OpenQotd.Bot.Commands
                 $"By: {user.Mention} (`{user.Id}`)\n" +
                 $"ID: `{newQuestion.GuildDependentId}`";
 
-            messageBuilder.AddEmbed(GenericEmbeds.Custom($"A new {config.QotdShorthandText} Suggestion is available!", embedBody,
+            messageBuilder.AddEmbed(GenericEmbeds.Custom(title: $"A new {config.QotdShorthandText} Suggestion is available!", message: embedBody,
                 color: "#f0b132"));
 
             messageBuilder.AddActionRowComponent(

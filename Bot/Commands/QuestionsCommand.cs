@@ -62,7 +62,7 @@ namespace OpenQotd.Bot.Commands
             }
 
             await context.RespondAsync(
-                GenericEmbeds.Custom(question.Text!, sb.ToString()));
+                GenericEmbeds.Info(title: question.Text!, message: sb.ToString()));
         }
 
         [Command("add")]

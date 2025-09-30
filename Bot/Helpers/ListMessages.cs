@@ -176,7 +176,7 @@ namespace OpenQotd.Bot.Helpers
         /// Generates the embed for the list message.
         /// </summary>
         private static DiscordEmbed GetMessageEmbed<T>(PageInfo<T> pi, ElementToString<T> elementToString, string title)
-            => GenericEmbeds.Custom(message: ElementListToString(pi, elementToString), title: title)
+            => GenericEmbeds.Info(message: ElementListToString(pi, elementToString), title: title)
                 .WithFooter($"Page {pi.CurrentPage} of {pi.TotalPagesCount} \x2022 {pi.TotalElementsCount} elements");
 
         /// <summary>

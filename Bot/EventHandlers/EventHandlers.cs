@@ -120,7 +120,7 @@ namespace OpenQotd.Bot.EventHandlers
                 .AddTextInputComponent(new DiscordTextInputComponent(
                     label: "Contents", customId: "text", placeholder: $"Write your {config.QotdTitleText} suggestion here!", max_length: Program.AppSettings.QuestionTextMaxLength, required: true, style: DiscordTextInputStyle.Paragraph))
                 .AddTextInputComponent(new DiscordTextInputComponent(
-                    label: "(optional) Additional Information", customId: "suggester-notes", placeholder: $"There will be a button for people to view this info under the sent {config.QotdShorthandText}.", max_length: 1000, required: false, style: DiscordTextInputStyle.Paragraph))
+                    label: "(optional) Additional Information", customId: "notes", placeholder: $"There will be a button for people to view this info under the sent {config.QotdShorthandText}.", max_length: 1000, required: false, style: DiscordTextInputStyle.Paragraph))
                 .AddTextInputComponent(new DiscordTextInputComponent(
                     label: "(optional) Thumbnail (Image link)", customId: "thumbnail-url", placeholder: "Only image URLs from Discord or Imgur are allowed.", max_length: 1024, required: false, style: DiscordTextInputStyle.Short))
                 .AddTextInputComponent(new DiscordTextInputComponent(
