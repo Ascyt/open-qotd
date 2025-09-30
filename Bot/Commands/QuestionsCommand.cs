@@ -412,7 +412,7 @@ namespace OpenQotd.Bot.Commands
         {
             int itemsPerPage = Program.AppSettings.ListMessageItemsPerPage;
 
-            await ListMessages.SendNew(context, page, type is null ? $"Questions List" : $"{type} Questions List", 
+            await ListMessages.SendNew(context, page, type is null ? $"{config.QotdShorthandText} Questions List" : $"{type} {config.QotdShorthandText} Questions List", 
                 async Task<PageInfo<Question>> (int page) =>
                 {
                     using AppDbContext dbContext = new();

@@ -9,6 +9,7 @@ using Microsoft.EntityFrameworkCore;
 using System.ComponentModel;
 using System.Text;
 using OpenQotd.Bot.Helpers.Profiles;
+using DSharpPlus.Commands.Processors.SlashCommands;
 
 namespace OpenQotd.Bot.Commands
 {
@@ -59,10 +60,28 @@ namespace OpenQotd.Bot.Commands
             return suggestionMessage;
         }
 
-        public static string GetEmbedBody(Question question)
+        private static string GetEmbedBody(Question question)
             => $"\"**{question.Text}**\"\n" +
                 $"By: <@!{question.SubmittedByUserId}> (`{question.SubmittedByUserId}`)\n" +
                 $"ID: `{question.GuildDependentId}`";
+
+        /// <summary>
+        /// Users in the suggestions channel can also accept/deny suggestions, even without admin permissions
+        /// </summary>
+        private static async Task<bool> IsInSuggestionsChannelOrHasAdmin(CommandContext context, Config config)
+        {
+            bool isInSuggestionsChannel = config.SuggestionsChannelId is not null && config.SuggestionsChannelId.Value == context.Channel.Id;
+            if (!isInSuggestionsChannel && !await CommandRequirements.UserIsAdmin(context, config, responseOnError: config.SuggestionsChannelId is null))
+            {
+                if (config.SuggestionsChannelId is not null)
+                {
+                    await context.RespondAsync(
+                        GenericEmbeds.Error(title: "Incorrect Channel", message: $"This command can only be run in the <#{config.SuggestionsChannelId.Value}> channel."));
+                }
+                return false;
+            }
+            return true;
+        }
 
         [Command("accept")]
         [Description("Accept a suggestion.")]
@@ -70,9 +89,12 @@ namespace OpenQotd.Bot.Commands
         [Description("The ID of the suggestion.")] int suggestionId)
         {
             Config? config = await ProfileHelpers.TryGetSelectedOrDefaultConfigAsync(context);
-            if (config is null || !await CommandRequirements.UserIsAdmin(context, config))
+            if (config is null)
                 return;
-            
+
+            if (!await IsInSuggestionsChannelOrHasAdmin(context, config))
+                return;
+
             Question? question;
             using (AppDbContext dbContext = new())
             {
@@ -83,7 +105,7 @@ namespace OpenQotd.Bot.Commands
                 if (question == null)
                 {
                     await context.RespondAsync(
-                        GenericEmbeds.Error(title: "Suggestion Not Found", message: $"The suggestion with ID `{suggestionId}` could not be found."));
+                        GenericEmbeds.Error(title: "Suggestion Not Found", message: $"The suggestion with ID `{suggestionId}` could not be found in profile *{config.ProfileName}*."));
                     return;
                 }
             }
@@ -106,11 +128,13 @@ namespace OpenQotd.Bot.Commands
         [Command("deny")]
         [Description("Deny a suggestion.")]
         public static async Task DenySuggestionAsync(CommandContext context,
-        [Description("The ID of the suggestion.")] int suggestionId,
-        [Description("The reason why the suggestion is denied, which will be sent to the user.")] string reason)
+        [Description("The ID of the suggestion.")] int suggestionId)
         {
             Config? config = await ProfileHelpers.TryGetSelectedOrDefaultConfigAsync(context);
-            if (config is null || !await CommandRequirements.UserIsAdmin(context, config))
+            if (config is null)
+                return;
+
+            if (!await IsInSuggestionsChannelOrHasAdmin(context, config))
                 return;
 
             Question? question;
@@ -123,7 +147,7 @@ namespace OpenQotd.Bot.Commands
                 if (question == null)
                 {
                     await context.RespondAsync(
-                        GenericEmbeds.Error(title: "Suggestion Not Found", message: $"The suggestion with ID `{suggestionId}` could not be found."));
+                        GenericEmbeds.Error(title: "Suggestion Not Found", message: $"The suggestion with ID `{suggestionId}` could not be found in profile * {config.ProfileName} *."));
                     return;
                 }
             }
@@ -135,14 +159,7 @@ namespace OpenQotd.Bot.Commands
                 return;
             }
 
-            DiscordMessage? suggestionMessage = await GetSuggestionMessage(question, config, context.Guild!);
-
-            string embedBody = GetEmbedBody(question);
-
-            await DenySuggestionNoContextAsync(question, config, suggestionMessage, null, context, reason);
-
-            await context.RespondAsync(
-                GenericEmbeds.Success("Suggestion Denied", $"Successfully denied suggestion with ID `{question.GuildDependentId}`."));
+            await (context as SlashCommandContext)!.RespondWithModalAsync(GeneralHelpers.GetSuggestionDenyModal(config, question));
         }
 
         [Command("acceptall")]
@@ -150,7 +167,10 @@ namespace OpenQotd.Bot.Commands
         public static async Task AcceptAllSuggestionsAsync(CommandContext context)
         {
             Config? config = await ProfileHelpers.TryGetSelectedOrDefaultConfigAsync(context);
-            if (config is null || !await CommandRequirements.UserIsAdmin(context, config))
+            if (config is null)
+                return;
+
+            if (!await IsInSuggestionsChannelOrHasAdmin(context, config))
                 return;
 
             await context.DeferResponseAsync();
@@ -258,7 +278,10 @@ namespace OpenQotd.Bot.Commands
         public static async Task DenyAllSuggestionsAsync(CommandContext context)
         {
             Config? config = await ProfileHelpers.TryGetSelectedOrDefaultConfigAsync(context);
-            if (config is null || !await CommandRequirements.UserIsAdmin(context, config))
+            if (config is null)
+                return;
+
+            if (!await IsInSuggestionsChannelOrHasAdmin(context, config))
                 return;
 
             await context.DeferResponseAsync();
@@ -376,7 +399,7 @@ namespace OpenQotd.Bot.Commands
 
                 if (modifyQuestion == null)
                 {
-                    DiscordEmbed embed = GenericEmbeds.Error(title: "Suggestion Not Found", message: $"The suggestion with ID `{question.GuildDependentId}` could not be found.");
+                    DiscordEmbed embed = GenericEmbeds.Error(title: "Suggestion Not Found", message: $"The suggestion with ID `{question.GuildDependentId}` could not be found in profile *{config.ProfileName}*.");
 
                     if (suggestionMessage is null)
                         await context!.Channel.SendMessageAsync(embed);
@@ -464,7 +487,7 @@ namespace OpenQotd.Bot.Commands
 
                 if (disableQuestion == null)
                 {
-                    DiscordEmbed embed = GenericEmbeds.Error(title: "Suggestion Not Found", message: $"The suggestion with ID `{question.GuildDependentId}` could not be found.");
+                    DiscordEmbed embed = GenericEmbeds.Error(title: "Suggestion Not Found", message: $"The suggestion with ID `{question.GuildDependentId}` could not be found in profile *{config.ProfileName}*.");
 
                     if (suggestionMessage is null)
                         await context!.Channel.SendMessageAsync(embed);
@@ -497,12 +520,23 @@ namespace OpenQotd.Bot.Commands
                 messageBuilder.AddEmbed(GenericEmbeds.Custom($"{config.QotdShorthandText} Suggestion Denied", embedBody +
                     $"\n\nDenied by: {user.Mention}{(reason != null ? $"\nReason: \"**{reason}**\"" : "")}", color: "#ff2020"));
 
-                if (result is null)
-                    await suggestionMessage.ModifyAsync(messageBuilder);
-                else
-                    await result.Interaction.CreateResponseAsync(DiscordInteractionResponseType.UpdateMessage, new DiscordInteractionResponseBuilder(messageBuilder));
-
+                await suggestionMessage.ModifyAsync(messageBuilder);
                 await suggestionMessage.UnpinAsync();
+            }
+
+            DiscordEmbed responseEmbed = GenericEmbeds.Success($"Successfully Denied {config.QotdShorthandText} Suggestion",
+                $"{(reason != null ? $"\nReason: \"**{reason}**\"" : "")}");
+
+            if (result is not null) 
+            {
+                DiscordInteractionResponseBuilder responseBuilder = new();
+                responseBuilder.AddEmbed(responseEmbed);
+                responseBuilder.AsEphemeral(true);
+                await result.Interaction.CreateResponseAsync(DiscordInteractionResponseType.ChannelMessageWithSource, responseBuilder); 
+            }
+            if (context is not null)
+            {
+                await (context as SlashCommandContext)!.RespondAsync(responseEmbed, ephemeral: true);
             }
 
             if (!logAndNotify)

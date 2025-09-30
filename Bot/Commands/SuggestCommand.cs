@@ -34,7 +34,9 @@ namespace OpenQotd.Bot.Commands
                 return;
             }
 
-            await (context as SlashCommandContext)!.RespondWithModalAsync(QotdBuilderHelpers.GetQotdModal(config, context.Guild!.Name));
+            DiscordInteractionResponseBuilder modal = QotdBuilderHelpers.GetQotdModal(config, context.Guild!.Name);
+
+            await (context as SlashCommandContext)!.RespondWithModalAsync(modal);
         }
 
         /// <returns>(whether or not successful, response message)</returns>

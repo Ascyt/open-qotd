@@ -84,13 +84,7 @@ namespace OpenQotd.Bot.EventHandlers
                 return;
             }
 
-            DiscordInteractionResponseBuilder modal = new DiscordInteractionResponseBuilder()
-                .WithTitle(question.Text!.Length > 32 ? $"Denial of \"{question.Text[..32]}…\"" : $"Denial of \"{question.Text}\"")
-                .WithCustomId($"suggestions-deny/{config.ProfileId}/{questionGuildDependentId}")
-                .AddTextInputComponent(new DiscordTextInputComponent(
-                    label: "Denial Reason", customId: "reason", placeholder: "This will be sent to the user.", max_length: 1024, required: true, style: DiscordTextInputStyle.Paragraph));
-
-            await args.Interaction.CreateResponseAsync(DiscordInteractionResponseType.Modal, modal);
+            await args.Interaction.CreateResponseAsync(DiscordInteractionResponseType.Modal, GeneralHelpers.GetSuggestionDenyModal(config, question));
         }
 
         public static async Task SuggestionsDenyReasonModalSubmitted(DiscordClient client, ModalSubmittedEventArgs args, int profileId, int guildDependentId)
