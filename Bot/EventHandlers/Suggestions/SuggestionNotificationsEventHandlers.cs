@@ -13,8 +13,8 @@ namespace OpenQotd.Bot.EventHandlers.Suggestions
     public static class SuggestionNotificationsEventHandlers
     {
 
-        /// <returns>(Config, Question, Suggestion notification message?)?</returns>
-        public static async Task<(Config, Question, DiscordMessage?)?> GetSuggestionData(DiscordClient client, InteractionCreatedEventArgs args, Config config, int questionGuildDepedentId)
+        /// <returns>(Config, Question), null on error</returns>
+        public static async Task<Question?> TryGetSuggestion(InteractionCreatedEventArgs args, Config config, int questionGuildDepedentId)
         {
             Question? question;
             using (AppDbContext dbContext = new())
@@ -29,16 +29,7 @@ namespace OpenQotd.Bot.EventHandlers.Suggestions
                 return null;
             }
 
-            if (config.SuggestionsChannelId is null || question.SuggestionMessageId is null)
-                return (config, question, null);
-
-            DiscordChannel? channel = await GeneralHelpers.GetDiscordChannel(config.SuggestionsChannelId.Value, args.Interaction.Guild);
-            if (channel is null)
-                return (config, question, null);
-
-            DiscordMessage? message = await GeneralHelpers.GetDiscordMessage(question.SuggestionMessageId.Value, channel);
-
-            return (config, question, message);
+            return question;
         }
 
         public static async Task RespondWithError(InteractionCreatedEventArgs args, string error)
@@ -53,19 +44,19 @@ namespace OpenQotd.Bot.EventHandlers.Suggestions
                 new DiscordInteractionResponseBuilder(builder).AsEphemeral());
         }
 
-        public static async Task SuggestionsAcceptButtonClicked(DiscordClient client, ComponentInteractionCreatedEventArgs args, int profileId, int questionGuildDepedentId)
+        public static async Task SuggestionsAcceptButtonClicked(ComponentInteractionCreatedEventArgs args, int profileId, int questionGuildDepedentId)
         {
             Config? config = await ProfileHelpers.TryGetConfigAsync(args, profileId);
             if (config is null || !await CommandRequirements.UserIsBasic(args, config))
                 return;
 
-            (Config, Question, DiscordMessage?)? suggestionData = await GetSuggestionData(client, args, config, questionGuildDepedentId);
-            if (suggestionData is null)
+            Question? suggestion = await TryGetSuggestion(args, config, questionGuildDepedentId);
+            if (suggestion is null)
                 return;
 
-            await SuggestionsCommands.AcceptSuggestionNoContextAsync(suggestionData.Value.Item2, config, suggestionData.Value.Item3, args, null);
+            await SuggestionsAcceptDenyHelpers.AcceptSuggestionAsync(suggestion, config, args, null);
         }
-        public static async Task SuggestionsDenyButtonClicked(DiscordClient client, ComponentInteractionCreatedEventArgs args, int profileId, int questionGuildDependentId)
+        public static async Task SuggestionsDenyButtonClicked(ComponentInteractionCreatedEventArgs args, int profileId, int questionGuildDependentId)
         {
             Config? config = await ProfileHelpers.TryGetConfigAsync(args, profileId);
             if (config is null || !await CommandRequirements.UserIsBasic(args, config))
@@ -87,19 +78,19 @@ namespace OpenQotd.Bot.EventHandlers.Suggestions
             await args.Interaction.CreateResponseAsync(DiscordInteractionResponseType.Modal, GeneralHelpers.GetSuggestionDenyModal(config, question));
         }
 
-        public static async Task SuggestionsDenyReasonModalSubmitted(DiscordClient client, ModalSubmittedEventArgs args, int profileId, int guildDependentId)
+        public static async Task SuggestionsDenyReasonModalSubmitted(ModalSubmittedEventArgs args, int profileId, int guildDependentId)
         {
             Config? config = await ProfileHelpers.TryGetConfigAsync(args, profileId);
             if (config is null || !await CommandRequirements.UserIsBasic(args, config))
                 return;
 
-            (Config, Question, DiscordMessage?)? suggestionData = await GetSuggestionData(client, args, config, guildDependentId);
-            if (suggestionData is null)
+            Question? suggestion = await TryGetSuggestion(args, config, guildDependentId);
+            if (suggestion is null)
                 return;
 
             string reason = args.Values["reason"];
 
-            await SuggestionsCommands.DenySuggestionNoContextAsync(suggestionData.Value.Item2, config, suggestionData.Value.Item3, args, null, reason);
+            await SuggestionsAcceptDenyHelpers.DenySuggestionAsync(suggestion, config, args, null, reason);
         }
     }
 }

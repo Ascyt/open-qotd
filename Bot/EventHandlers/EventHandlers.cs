@@ -30,13 +30,13 @@ namespace OpenQotd.Bot.EventHandlers
                     if (!await HasExactlyNArguments(args, idArgs, 2))
                         return;
 
-                    await SuggestionNotificationsEventHandlers.SuggestionsAcceptButtonClicked(client, args, int.Parse(idArgs[1]), int.Parse(idArgs[2]));
+                    await SuggestionNotificationsEventHandlers.SuggestionsAcceptButtonClicked(args, int.Parse(idArgs[1]), int.Parse(idArgs[2]));
                     return;
                 case "suggestions-deny":
                     if (!await HasExactlyNArguments(args, idArgs, 2))
                         return;
 
-                    await SuggestionNotificationsEventHandlers.SuggestionsDenyButtonClicked(client, args, int.Parse(idArgs[1]), int.Parse(idArgs[2]));
+                    await SuggestionNotificationsEventHandlers.SuggestionsDenyButtonClicked(args, int.Parse(idArgs[1]), int.Parse(idArgs[2]));
                     return;
                 case "suggest-qotd":
                     if (!await HasExactlyNArguments(args, idArgs, 1))
@@ -75,13 +75,13 @@ namespace OpenQotd.Bot.EventHandlers
                     if (!await HasExactlyNArguments(args, idArgs, 2))
                         return;
 
-                    await SuggestionNotificationsEventHandlers.SuggestionsDenyReasonModalSubmitted(client, args, int.Parse(idArgs[1]), int.Parse(idArgs[2]));
+                    await SuggestionNotificationsEventHandlers.SuggestionsDenyReasonModalSubmitted(args, int.Parse(idArgs[1]), int.Parse(idArgs[2]));
                     return;
                 case "suggest-qotd":
                     if (!await HasExactlyNArguments(args, idArgs, 1))
                         return;
 
-                    await CreateSuggestionEventHandlers.SuggestQotdModalSubmitted(client, args, int.Parse(idArgs[1]));
+                    await CreateSuggestionEventHandlers.SuggestQotdModalSubmitted(args, int.Parse(idArgs[1]));
                     return;
             }
 

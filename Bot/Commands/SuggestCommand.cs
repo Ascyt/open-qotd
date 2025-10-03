@@ -15,7 +15,7 @@ namespace OpenQotd.Bot.Commands
     public class SuggestCommand
     {
         [Command("suggest")]
-        [Description("Suggest a Question Of The Day to be added.")]
+        [Description("Suggest a Question Of The Day to be added. Opens up a modal to enter the question and details.")]
         public static async Task SuggestAsync(CommandContext context,
             [Description("Which OpenQOTD profile your question should be suggested to.")][SlashAutoCompleteProvider<SuggestableProfilesAutoCompleteProvider>] int For)
         {

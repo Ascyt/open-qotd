@@ -50,7 +50,7 @@ namespace OpenQotd.Bot.EventHandlers.Suggestions
                     label: "(optional) Staff Info", customId: "suggester-adminonly", placeholder: "This will only be visible to staff for reviewing the suggestion.", max_length: Program.AppSettings.QuestionSuggesterAdminInfoMaxLength, required: false, style: DiscordTextInputStyle.Paragraph));
         }
 
-        public static async Task SuggestQotdModalSubmitted(DiscordClient client, ModalSubmittedEventArgs args, int profileId)
+        public static async Task SuggestQotdModalSubmitted(ModalSubmittedEventArgs args, int profileId)
         {
             Config? config = await ProfileHelpers.TryGetConfigAsync(args, profileId);
             if (config is null || !await CommandRequirements.UserIsBasic(args, config))
@@ -108,7 +108,7 @@ namespace OpenQotd.Bot.EventHandlers.Suggestions
                 SubmittedByUserId = args.Interaction.User.Id,
                 Timestamp = DateTime.UtcNow
             };
-            (bool, DiscordEmbed) result = await SuggestNoContextAsync(newQuestion, config, args.Interaction.Guild!, args.Interaction.Channel, args.Interaction.User);
+            (bool, DiscordEmbed) result = await SuggestAsync(newQuestion, config, args.Interaction.Guild!, args.Interaction.Channel, args.Interaction.User);
 
             DiscordMessageBuilder messageBuilder = new();
             messageBuilder.AddEmbed(result.Item2);
@@ -121,7 +121,7 @@ namespace OpenQotd.Bot.EventHandlers.Suggestions
         }
 
         /// <returns>(whether or not successful, response message)</returns>
-        public static async Task<(bool, DiscordEmbed)> SuggestNoContextAsync(Question newQuestion, Config config, DiscordGuild guild, DiscordChannel channel, DiscordUser user)
+        public static async Task<(bool, DiscordEmbed)> SuggestAsync(Question newQuestion, Config config, DiscordGuild guild, DiscordChannel channel, DiscordUser user)
         {
             if (!await Question.CheckQuestionValidity(newQuestion, null, config))
                 return (false, GenericEmbeds.Error("Text validity check failed"));
@@ -134,7 +134,7 @@ namespace OpenQotd.Bot.EventHandlers.Suggestions
 
             (bool, DiscordEmbedBuilder) result = (true, GenericEmbeds.Success($"{config.QotdShorthandText} Suggested!",
                     $"Your **{config.QotdTitleText}** suggestion:\n" +
-                    $"\"**{newQuestion.Text}**\"\n" +
+                    $"\"{GeneralHelpers.Italicize(newQuestion.Text!)}\"\n" +
                     $"\n" +
                     $"Has successfully been suggested!\n" +
                     $"You will be notified when it gets accepted or denied."));
@@ -187,12 +187,28 @@ namespace OpenQotd.Bot.EventHandlers.Suggestions
 
             AddPingIfAvailable(messageBuilder, pingRole);
 
-            string embedBody = $"\"**{newQuestion.Text}**\"\n" +
+            string embedBody = $"**Contents:**\n" +
+                $"\"{GeneralHelpers.Italicize(newQuestion.Text!)}\"\n" +
+                $"\n" + (
+                newQuestion.Notes is not null ? 
+                    "**Additional Information:**\n" +
+                    $"\"{GeneralHelpers.Italicize(newQuestion.Notes)}\"\n" +
+                    $"\n" 
+                    : string.Empty
+                ) +
                 $"By: {user.Mention} (`{user.Id}`)\n" +
                 $"ID: `{newQuestion.GuildDependentId}`";
 
             messageBuilder.AddEmbed(GenericEmbeds.Custom(title: $"A new {config.QotdShorthandText} Suggestion is available!", message: embedBody,
                 color: "#f0b132"));
+
+            if (newQuestion.SuggesterAdminOnlyInfo is not null)
+            {
+                messageBuilder.AddEmbed(
+                    GenericEmbeds.Info(title:"Staff Note", message:GeneralHelpers.Italicize(newQuestion.SuggesterAdminOnlyInfo))
+                    .WithFooter("Written by the suggester, only visible to staff.")
+                    );
+            }
 
             messageBuilder.AddActionRowComponent(
                 new DiscordButtonComponent(DiscordButtonStyle.Success, $"suggestions-accept/{config.ProfileId}/{newQuestion.GuildDependentId}", "Accept"),
