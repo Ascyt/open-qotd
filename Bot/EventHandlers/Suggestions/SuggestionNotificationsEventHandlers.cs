@@ -8,9 +8,9 @@ using DSharpPlus.EventArgs;
 using Microsoft.EntityFrameworkCore;
 using OpenQotd.Bot.Helpers.Profiles;
 
-namespace OpenQotd.Bot.EventHandlers
+namespace OpenQotd.Bot.EventHandlers.Suggestions
 {
-    public static class SuggestionsEventHandlers
+    public static class SuggestionNotificationsEventHandlers
     {
 
         /// <returns>(Config, Question, Suggestion notification message?)?</returns>

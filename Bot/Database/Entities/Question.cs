@@ -135,15 +135,15 @@ namespace OpenQotd.Bot.Database.Entities
         /// </summary>
         public static string GetEmoji(QuestionType type)
         {
-			return type switch
-			{
-				QuestionType.Suggested => ":red_square:",
-				QuestionType.Accepted => ":large_blue_diamond:",
-				QuestionType.Sent => ":green_circle:",
-				QuestionType.Stashed => ":heavy_multiplication_x:",
-				_ => ":black_large_square:",
-			};
-		}
+            return type switch
+            {
+                QuestionType.Suggested => ":red_square:",
+                QuestionType.Accepted => ":large_blue_diamond:",
+                QuestionType.Sent => ":green_circle:",
+                QuestionType.Stashed => ":heavy_multiplication_x:",
+                _ => ":black_large_square:",
+            };
+        }
         /// <summary>
         /// Converts a QuestionType to a styled string with an emoji and markdown formatting.
         /// </summary>
@@ -158,10 +158,10 @@ namespace OpenQotd.Bot.Database.Entities
         /// <param name="longType">If true, the type gets written out; otherwise, only an emoji is used.</param>
         public string ToString(bool longType)
         {
-		    return longType ? 
-                $"\"**{Text}**\" (Type: {TypeToStyledString(Type)}); by: <@{SubmittedByUserId}>; ID: `{GuildDependentId}`)" : 
+            return longType ?
+                $"\"**{Text}**\" (Type: {TypeToStyledString(Type)}); by: <@{SubmittedByUserId}>; ID: `{GuildDependentId}`)" :
                 $"{GetEmoji(Type)} \"**{Text}**\" (by: <@{SubmittedByUserId}>; ID: `{GuildDependentId}`)";
-		}
+        }
         /// <summary>
         /// Generates the next available GuildDependentId for a new question in the specified config.
         /// </summary>
@@ -189,35 +189,98 @@ namespace OpenQotd.Bot.Database.Entities
         /// and does not contain any line-breaks. If the text is invalid and a <see cref="CommandContext"/> is provided,
         /// an appropriate error message is sent to the context.
         /// </remarks>
-        public static async Task<bool> CheckTextValidity(string text, CommandContext? context, Config config, int? lineNumber=null)
+        public static async Task<bool> CheckQuestionValidity(Question question, CommandContext? context, Config config, int? lineNumber = null)
         {
             string lineNumberString = lineNumber is null ? "" : $" (line {lineNumber})";
 
-            if (string.IsNullOrWhiteSpace(text))
+            if (string.IsNullOrWhiteSpace(question.Text))
             {
                 if (context is not null)
                     await context.RespondAsync(
-                        GenericEmbeds.Error(title: "Empty Question", message: $"Your question{lineNumberString} must not be empty."));
+                        GenericEmbeds.Error(title: "Empty Question", message: $"Your question contents{lineNumberString} must not be empty."));
                 return false;
             }
 
-            if (text.Length > Program.AppSettings.QuestionTextMaxLength)
-            {
-                if (context is not null)
-                    await context.RespondAsync(
-                        GenericEmbeds.Error(title: "Maximum Length Exceeded", message: $"Your question{lineNumberString} is {text.Length} characters in length, however it must not exceed **{Program.AppSettings.QuestionTextMaxLength}** characters."));
+            if (!await CheckTextLengthValidity(question.Text, Program.AppSettings.QuestionTextMaxLength, "Contents", context, lineNumberString))
                 return false;
-            }
 
-            if (text.Contains('\n'))
-            {
-                if (context is not null)
-                    await context.RespondAsync(
-                        GenericEmbeds.Error(title: "Line-breaks are forbidden", message: $"Your question{lineNumberString} must not contain any line-breaks and must all be written in one line."));
+            if (question.Notes is not null && !await CheckTextLengthValidity(question.Notes, Program.AppSettings.QuestionNotesMaxLength, "Notes", context, lineNumberString))
                 return false;
-            }
+
+            if (question.ThumbnailImageUrl is not null && !await CheckTextLengthValidity(question.ThumbnailImageUrl, Program.AppSettings.QuestionThumbnailImageUrlMaxLength, "Thumbnail Image URL", context, lineNumberString))
+                return false;
+
+            if (question.ThumbnailImageUrl is not null && !await IsValidImageUrl(question.ThumbnailImageUrl!, context, lineNumberString))
+                return false;
+
+            if (question.SuggesterAdminOnlyInfo is not null && !await CheckTextLengthValidity(question.SuggesterAdminOnlyInfo, 2000, "Staff Notes", context, lineNumberString))
+                return false;
 
             return true;
+        }
+
+        private static async Task<bool> CheckTextLengthValidity(string text, int maxLength, string propertyName, CommandContext? context, string lineNumberString = "")
+        {
+            if (text.Length > maxLength)
+            {
+                if (context is not null)
+                    await context.RespondAsync(
+                        GenericEmbeds.Error(title: "Maximum Length Exceeded", message: $"The property **{propertyName}** of your question{lineNumberString} is {text.Length} characters in length, however it must not exceed **{maxLength}** characters."));
+                return false;
+            }
+            return true;
+        }
+
+        private static async Task<bool> IsValidImageUrl(string url, CommandContext? context, string lineNumberString) 
+        {
+            if (!Uri.TryCreate(url, UriKind.Absolute, out Uri? uriResult))
+            {
+                if (context is not null)
+                    await context.RespondAsync(
+                        GenericEmbeds.Error(title: "Invalid URL", message: $"The thumbnail image URL of your question{lineNumberString} is not a valid URL."));
+
+                return false;
+            }
+
+            if (uriResult.Scheme != Uri.UriSchemeHttps)
+            {
+                if (context is not null)
+                    await context.RespondAsync(
+                        GenericEmbeds.Error(title: "HTTPS URL Required", message: $"The thumbnail image URL of your question{lineNumberString} must use HTTPS."));
+                return false;
+            }
+
+            // Check for Discord CDN URLs
+            if (uriResult.Host.EndsWith("discordapp.com") || uriResult.Host.EndsWith("discord.com"))
+            {
+                string[] discordImageExtensions = [".png", ".jpg", ".jpeg", ".gif", ".webp"];
+                if (!discordImageExtensions.Any(ext => uriResult.AbsolutePath.EndsWith(ext, StringComparison.OrdinalIgnoreCase)))
+                {
+                    if (context is not null)
+                        await context.RespondAsync(
+                            GenericEmbeds.Error(title: "Invalid Discord Image URL", message: $"The thumbnail image URL of your question{lineNumberString} is not a valid Discord image URL. Only direct links to images are allowed."));
+                    return false;
+                }
+                return true;
+            }
+            // Check for Imgur URLs
+            if (uriResult.Host.EndsWith("imgur.com") || uriResult.Host.EndsWith("i.imgur.com"))
+            {
+                string[] imgurImageExtensions = [".png", ".jpg", ".jpeg", ".gif", ".webp"];
+                if (!imgurImageExtensions.Any(ext => uriResult.AbsolutePath.EndsWith(ext, StringComparison.OrdinalIgnoreCase)))
+                {
+                    if (context is not null)
+                        await context.RespondAsync(
+                            GenericEmbeds.Error(title: "Invalid Imgur Image URL", message: $"The thumbnail image URL of your question{lineNumberString} is not a valid Imgur image URL. Only direct links to images are allowed."));
+                    return false;
+                }
+                return true;
+            }
+
+            if (context is not null)
+                await context.RespondAsync(
+                    GenericEmbeds.Error(title: "Unsupported Image Host", message: $"The thumbnail image URL of your question{lineNumberString} must be hosted on either Discord or Imgur."));
+            return false;
         }
     }
 }

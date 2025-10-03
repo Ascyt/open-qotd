@@ -75,26 +75,28 @@ namespace OpenQotd.Bot.Commands
             if (config is null || !await CommandRequirements.UserIsAdmin(context, config))
                 return;
 
-            if (!await CommandRequirements.IsWithinMaxQuestionsAmount(context, 1) || !await Question.CheckTextValidity(question, context, config))
+            if (!await CommandRequirements.IsWithinMaxQuestionsAmount(context, 1))
                 return;
 
             ulong guildId = context.Guild!.Id;
             ulong submittedByUserId = context.User.Id;
 
             Question newQuestion;
+            newQuestion = new Question()
+            {
+                ConfigId = config.Id,
+                GuildId = guildId,
+                GuildDependentId = await Question.GetNextGuildDependentId(config),
+                Type = type,
+                Text = question,
+                SubmittedByUserId = submittedByUserId,
+                Timestamp = DateTime.UtcNow
+            };
+            if (!await Question.CheckQuestionValidity(newQuestion, context, config))
+                return;
 
             using (AppDbContext dbContext = new())
             {
-                newQuestion = new Question()
-                {
-                    ConfigId = config.Id,
-                    GuildId = guildId,
-                    GuildDependentId = await Question.GetNextGuildDependentId(config),
-                    Type = type,
-                    Text = question,
-                    SubmittedByUserId = submittedByUserId,
-                    Timestamp = DateTime.UtcNow
-                };
                 await dbContext.Questions.AddAsync(newQuestion);
                 await dbContext.SaveChangesAsync();
             }
@@ -177,12 +179,6 @@ namespace OpenQotd.Bot.Commands
             if (!await CommandRequirements.IsWithinMaxQuestionsAmount(context, lines.Length))
                 return;
 
-            for (int i = 0; i < lines.Length; i++)
-            {
-                if (!await Question.CheckTextValidity(lines[i], context, config, i+1))
-                    return;
-            }
-
             int startId = await Question.GetNextGuildDependentId(config);
             DateTime now = DateTime.UtcNow;
             IEnumerable<Question> questions = lines.Select((line, index) => new Question()
@@ -195,6 +191,13 @@ namespace OpenQotd.Bot.Commands
                 SubmittedByUserId = context.User.Id,
                 Timestamp = now
             });
+            int lineNumber = 1;
+            foreach (Question question in questions)
+            {
+                if (!await Question.CheckQuestionValidity(question, context, config, lineNumber))
+                    return;
+                lineNumber++;
+            }
 
             using (AppDbContext dbContext = new())
             {
