@@ -96,7 +96,7 @@ namespace OpenQotd.Bot.Commands
                 if (question == null)
                 {
                     await context.RespondAsync(
-                        GenericEmbeds.Error(title: "Suggestion Not Found", message: $"The suggestion with ID `{suggestionId}` could not be found in profile * {config.ProfileName} *."));
+                        GenericEmbeds.Error(title: "Suggestion Not Found", message: $"The suggestion with ID `{suggestionId}` could not be found in profile *{config.ProfileName}*."));
                     return;
                 }
             }
