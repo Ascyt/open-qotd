@@ -284,7 +284,7 @@ namespace OpenQotd.Bot.Commands
             if (result.TimedOut)
             {
                 await sentMessage.ModifyAsync(new DiscordMessageBuilder()
-                    .AddEmbed(GenericEmbeds.Custom(title:"Profile Deletion Cancelled", message:"Profile deletion was cancelled because no response has been received within 30 seconds.")));
+                    .AddEmbed(GenericEmbeds.Info(title:"Profile Deletion Cancelled", message:"Profile deletion was cancelled because no response has been received within 30 seconds.")));
                 return;
             }
 
@@ -294,7 +294,7 @@ namespace OpenQotd.Bot.Commands
                     break;
                 case "cancel_choice":
                     await sentMessage.ModifyAsync(new DiscordMessageBuilder()
-                        .AddEmbed(GenericEmbeds.Custom(title:"Profile Deletion Cancelled", message:"The profile deletion has been cancelled.")));
+                        .AddEmbed(GenericEmbeds.Info(title:"Profile Deletion Cancelled", message:"The profile deletion has been cancelled.")));
                     return;
                 default:
                     await sentMessage.ModifyAsync(new DiscordMessageBuilder()

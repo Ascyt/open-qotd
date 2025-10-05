@@ -1,12 +1,12 @@
-﻿using OpenQotd.Bot.Database;
-using OpenQotd.Bot.Database.Entities;
-using OpenQotd.Bot.Helpers;
-using DSharpPlus.Commands;
+﻿using DSharpPlus.Commands;
 using DSharpPlus.Entities;
 using Microsoft.EntityFrameworkCore;
+using OpenQotd.Bot.Database;
+using OpenQotd.Bot.Database.Entities;
+using OpenQotd.Bot.Helpers;
+using OpenQotd.Bot.Helpers.Profiles;
 using System.ComponentModel;
 using System.Text;
-using OpenQotd.Bot.Helpers.Profiles;
 
 namespace OpenQotd.Bot.Commands
 {
@@ -37,32 +37,52 @@ namespace OpenQotd.Bot.Commands
                 return;
             }
 
-            StringBuilder sb = new();
+            await context.RespondAsync(GetQuestionsViewResponse(config, question));
+        }
 
-            sb.AppendLine($"ID: `{question.GuildDependentId}`");
-            sb.AppendLine($"Type: {Question.TypeToStyledString(question.Type)}");
-            sb.AppendLine();
-            sb.AppendLine($"Submitted by: <@{question.SubmittedByUserId}> (`{question.SubmittedByUserId}`)");
-            sb.AppendLine($"Submitted at: {DSharpPlus.Formatter.Timestamp(question.Timestamp, DSharpPlus.TimestampFormat.ShortDateTime)}");
-            if (question.AcceptedByUserId != null || question.AcceptedTimestamp != null)
-            {
-                sb.AppendLine();
-                if (question.AcceptedByUserId != null)
-                    sb.AppendLine($"Accepted by: <@{question.AcceptedByUserId}> (`{question.AcceptedByUserId}`)");
-                if (question.AcceptedTimestamp != null)
-                    sb.AppendLine($"Accepted at: {DSharpPlus.Formatter.Timestamp(question.AcceptedTimestamp.Value, DSharpPlus.TimestampFormat.ShortDateTime)}");
-            }
-            if (question.SentTimestamp != null || question.SentNumber != null)
-            {
-                sb.AppendLine();
-                if (question.SentTimestamp != null)
-                    sb.AppendLine($"Sent at: {DSharpPlus.Formatter.Timestamp(question.SentTimestamp.Value, DSharpPlus.TimestampFormat.ShortDateTime)}");
-                if (question.SentNumber != null)
-                    sb.AppendLine($"Sent number: **{question.SentNumber}**");
-            }
+        public static DiscordMessageBuilder GetQuestionsViewResponse(Config config, Question question)
+        {
+            DiscordMessageBuilder response = new();
 
-            await context.RespondAsync(
-                GenericEmbeds.Custom(question.Text!, sb.ToString()));
+            StringBuilder generalInfo = new();
+            generalInfo.AppendLine($"Belongs to profile: **{config.ProfileName}**");
+            generalInfo.AppendLine($"ID: `{question.GuildDependentId}`");
+            generalInfo.AppendLine($"Type: {Question.TypeToStyledString(question.Type)}");
+            generalInfo.AppendLine();
+            generalInfo.AppendLine($"Submitted by: <@{question.SubmittedByUserId}> (`{question.SubmittedByUserId}`)");
+            generalInfo.AppendLine($"Submitted at: {DSharpPlus.Formatter.Timestamp(question.Timestamp, DSharpPlus.TimestampFormat.ShortDateTime)}");
+            if (question.AcceptedByUserId is not null || question.AcceptedTimestamp is not null)
+            {
+                generalInfo.AppendLine();
+                if (question.AcceptedByUserId is not null)
+                    generalInfo.AppendLine($"Accepted by: <@{question.AcceptedByUserId}> (`{question.AcceptedByUserId}`)");
+                if (question.AcceptedTimestamp is not null)
+                    generalInfo.AppendLine($"Accepted at: {DSharpPlus.Formatter.Timestamp(question.AcceptedTimestamp.Value, DSharpPlus.TimestampFormat.ShortDateTime)}");
+            }
+            if (question.SentTimestamp is not null || question.SentNumber is not null)
+            {
+                generalInfo.AppendLine();
+                if (question.SentTimestamp is not null)
+                    generalInfo.AppendLine($"Sent at: {DSharpPlus.Formatter.Timestamp(question.SentTimestamp.Value, DSharpPlus.TimestampFormat.ShortDateTime)}");
+                if (question.SentNumber is not null)
+                    generalInfo.AppendLine($"Sent number: **{question.SentNumber}**");
+            }
+            response.AddEmbed(GenericEmbeds.Info(title: "General", message: generalInfo.ToString()));
+
+            response.AddEmbed(GenericEmbeds.Info(title: "Contents", message: question.Text!).WithFooter($"Written by the submittor. Gets sent as the main {config.QotdShorthandText} body."));
+
+            if (!string.IsNullOrWhiteSpace(question.Notes))
+                response.AddEmbed(GenericEmbeds.Info(title: "Additional Notes", message: question.Notes).WithFooter($"Written by the submittor. Gets shown when a button under the {config.QotdShorthandText} is pressed."));
+
+            if (!string.IsNullOrWhiteSpace(question.SuggesterAdminOnlyInfo))
+                response.AddEmbed(GenericEmbeds.Info(title: "Admin-Only Info", message: question.SuggesterAdminOnlyInfo).WithFooter("Written by the submittor. Visible to staff only."));
+
+            if (!string.IsNullOrWhiteSpace(question.ThumbnailImageUrl))
+                response.AddEmbed(GenericEmbeds.Info(title: "Thumbnail Image", message: $"URL: <{question.ThumbnailImageUrl}>")
+                    .WithImageUrl(question.ThumbnailImageUrl)
+                    .WithFooter("Thumbnail image URL, as provided by the submittor. Gets shown as a small image above the main body."));
+
+            return response;
         }
 
         [Command("add")]
@@ -75,31 +95,33 @@ namespace OpenQotd.Bot.Commands
             if (config is null || !await CommandRequirements.UserIsAdmin(context, config))
                 return;
 
-            if (!await CommandRequirements.IsWithinMaxQuestionsAmount(context, 1) || !await Question.CheckTextValidity(question, context, config))
+            if (!await CommandRequirements.IsWithinMaxQuestionsAmount(context, 1))
                 return;
 
             ulong guildId = context.Guild!.Id;
             ulong submittedByUserId = context.User.Id;
 
             Question newQuestion;
+            newQuestion = new Question()
+            {
+                ConfigId = config.Id,
+                GuildId = guildId,
+                GuildDependentId = await Question.GetNextGuildDependentId(config),
+                Type = type,
+                Text = question,
+                SubmittedByUserId = submittedByUserId,
+                Timestamp = DateTime.UtcNow
+            };
+            if (!await Question.CheckQuestionValidity(newQuestion, context, config))
+                return;
 
             using (AppDbContext dbContext = new())
             {
-                newQuestion = new Question()
-                {
-                    ConfigId = config.Id,
-                    GuildId = guildId,
-                    GuildDependentId = await Question.GetNextGuildDependentId(config),
-                    Type = type,
-                    Text = question,
-                    SubmittedByUserId = submittedByUserId,
-                    Timestamp = DateTime.UtcNow
-                };
                 await dbContext.Questions.AddAsync(newQuestion);
                 await dbContext.SaveChangesAsync();
             }
 
-            string body = newQuestion.ToString(longType: true);
+            string body = newQuestion.ToString(longVersion: true);
 
 			await context.RespondAsync(
                 GenericEmbeds.Success("Added Question", body)
@@ -177,12 +199,6 @@ namespace OpenQotd.Bot.Commands
             if (!await CommandRequirements.IsWithinMaxQuestionsAmount(context, lines.Length))
                 return;
 
-            for (int i = 0; i < lines.Length; i++)
-            {
-                if (!await Question.CheckTextValidity(lines[i], context, config, i+1))
-                    return;
-            }
-
             int startId = await Question.GetNextGuildDependentId(config);
             DateTime now = DateTime.UtcNow;
             IEnumerable<Question> questions = lines.Select((line, index) => new Question()
@@ -195,6 +211,13 @@ namespace OpenQotd.Bot.Commands
                 SubmittedByUserId = context.User.Id,
                 Timestamp = now
             });
+            int lineNumber = 1;
+            foreach (Question question in questions)
+            {
+                if (!await Question.CheckQuestionValidity(question, context, config, lineNumber))
+                    return;
+                lineNumber++;
+            }
 
             using (AppDbContext dbContext = new())
             {
@@ -397,7 +420,7 @@ namespace OpenQotd.Bot.Commands
         }
 
         [Command("list")]
-        [Description("List all questions of a certain type.")]
+        [Description("List all questions.")]
         public static async Task ListQuestionsAsync(CommandContext context,
             [Description("The type of questions to show.")] QuestionType? type = null,
             [Description("The page of the listing (default 1).")] int page = 1)
@@ -412,7 +435,7 @@ namespace OpenQotd.Bot.Commands
         {
             int itemsPerPage = Program.AppSettings.ListMessageItemsPerPage;
 
-            await ListMessages.SendNew(context, page, type is null ? $"Questions List" : $"{type} Questions List", 
+            await ListMessages.SendNew(context, page, type is null ? $"{config.QotdShorthandText} Questions List" : $"{type} {config.QotdShorthandText} Questions List", 
                 async Task<PageInfo<Question>> (int page) =>
                 {
                     using AppDbContext dbContext = new();

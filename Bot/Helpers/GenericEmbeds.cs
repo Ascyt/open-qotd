@@ -14,7 +14,10 @@ namespace OpenQotd.Bot.Helpers
         public static DiscordEmbedBuilder Warning(string message, string title = "Warning") =>
             Custom(title, message, "#ffc000");
 
-        public static DiscordEmbedBuilder Custom(string title, string message, string color = "#5865f2") => new DiscordEmbedBuilder()
+        public static DiscordEmbedBuilder Info(string message, string title = "Info") =>
+            Custom(title, message, "#5865f2");
+
+        public static DiscordEmbedBuilder Custom(string title, string message, string color) => new DiscordEmbedBuilder()
             .WithTitle(title)
             .WithColor(new DiscordColor(color))
             .WithDescription(message);

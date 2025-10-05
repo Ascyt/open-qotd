@@ -83,7 +83,22 @@
         /// <summary>
         /// The maximum amount of characters that Question.Text can be. Does not add a database constraint.
         /// </summary>
-        public int QuestionTextMaxLength { get; set; } = 256;
+        public int QuestionTextMaxLength { get; set; } = 2000;
+
+        /// <summary>
+        /// The maximum amount of characters that Question.Notes can be. Does not add a database constraint.
+        /// </summary>
+        public int QuestionNotesMaxLength { get; set; } = 1000;
+
+        /// <summary>
+        /// The maximum amount of characters that Question.ThumbnailImageUrl can be. Does not add a database constraint.
+        /// </summary>
+        public int QuestionThumbnailImageUrlMaxLength { get; set; } = 1024;
+
+        /// <summary>
+        /// The maximum amount of characters that Question.SuggesterAdminInfo can be. Does not add a database constraint.
+        /// </summary>
+        public int QuestionSuggesterAdminInfoMaxLength { get; set; } = 1000;
 
         /// <summary>
         /// The amount of items to show per page for list messages. 

@@ -1,11 +1,13 @@
-﻿using OpenQotd.Bot.Helpers;
-using DSharpPlus;
-using DSharpPlus.EventArgs;
+﻿using DSharpPlus;
 using DSharpPlus.Entities;
+using DSharpPlus.EventArgs;
+using DSharpPlus.Exceptions;
+using Microsoft.EntityFrameworkCore;
 using OpenQotd.Bot.Commands;
 using OpenQotd.Bot.Database;
 using OpenQotd.Bot.Database.Entities;
-using Microsoft.EntityFrameworkCore;
+using OpenQotd.Bot.EventHandlers.Suggestions;
+using OpenQotd.Bot.Helpers;
 using OpenQotd.Bot.Helpers.Profiles;
 
 namespace OpenQotd.Bot.EventHandlers
@@ -18,9 +20,19 @@ namespace OpenQotd.Bot.EventHandlers
 
             if (idArgs.Length == 0)
             {
-                await SuggestionsEventHandlers.RespondWithError(args, "Interaction ID is empty");
+                await RespondWithError(args, "Interaction ID is empty");
                 return;
             }
+
+            bool editMessage = false;
+            if (idArgs[0].StartsWith("edit_"))
+            {
+                editMessage = true;
+                idArgs[0] = idArgs[0][5..];
+            }
+
+            if (idArgs[0].StartsWith("prompt-option-"))
+                return;
 
             switch (idArgs[0])
             {
@@ -28,19 +40,44 @@ namespace OpenQotd.Bot.EventHandlers
                     if (!await HasExactlyNArguments(args, idArgs, 2))
                         return;
 
-                    await SuggestionsEventHandlers.SuggestionsAcceptButtonClicked(client, args, int.Parse(idArgs[1]), int.Parse(idArgs[2]));
+                    await SuggestionNotificationsEventHandlers.SuggestionsAcceptButtonClicked(args, int.Parse(idArgs[1]), int.Parse(idArgs[2]));
                     return;
                 case "suggestions-deny":
                     if (!await HasExactlyNArguments(args, idArgs, 2))
                         return;
 
-                    await SuggestionsEventHandlers.SuggestionsDenyButtonClicked(client, args, int.Parse(idArgs[1]), int.Parse(idArgs[2]));
+                    await SuggestionNotificationsEventHandlers.SuggestionsDenyButtonClicked(args, int.Parse(idArgs[1]), int.Parse(idArgs[2]));
                     return;
                 case "suggest-qotd":
                     if (!await HasExactlyNArguments(args, idArgs, 1))
                         return;
 
-                    await SuggestQotdButtonClicked(client, args, int.Parse(idArgs[1]));
+                    await CreateSuggestionEventHandlers.SuggestQotdButtonClicked(args, int.Parse(idArgs[1]));
+                    return;
+
+                case "show-qotd-notes":
+                    if (!await HasExactlyNArguments(args, idArgs, 2))
+                        return;
+                    await QotdInfoButtonsEventHandlers.ShowQotdNotesButtonClicked(args, int.Parse(idArgs[1]), int.Parse(idArgs[2]));
+                    return;
+
+                case "show-general-info":
+                    if (!await HasExactlyNArguments(args, idArgs, 2))
+                        return;
+                    await QotdInfoButtonsEventHandlers.ShowGeneralInfoButtonClicked(args, int.Parse(idArgs[1]), int.Parse(idArgs[2]));
+                    return;
+
+                case "show-general-info-no-prompt":
+                    if (!await HasExactlyNArguments(args, idArgs, 1))
+                        return;
+                    await QotdInfoButtonsEventHandlers.ShowGeneralInfoNoPromptButtonClicked(args, int.Parse(idArgs[1]), editMessage);
+                    return;
+
+                case "show-qotd-info":
+                    if (!await HasExactlyNArguments(args, idArgs, 2))
+                        return;
+
+                    await QotdInfoButtonsEventHandlers.ShowQotdInfoButtonClicked(args, int.Parse(idArgs[1]), int.Parse(idArgs[2]), editMessage);
                     return;
 
                 case "forward":
@@ -54,7 +91,7 @@ namespace OpenQotd.Bot.EventHandlers
                     return;
             }
 
-            await SuggestionsEventHandlers.RespondWithError(args, $"Unknown event: `{args.Id}`");
+            await RespondWithError(args, $"Unknown event: `{args.Id}`");
         }
 
         public static async Task ModalSubmittedEvent(DiscordClient client, ModalSubmittedEventArgs args)
@@ -63,7 +100,7 @@ namespace OpenQotd.Bot.EventHandlers
 
             if (idArgs.Length == 0)
             {
-                await SuggestionsEventHandlers.RespondWithError(args, "Interaction ID is empty");
+                await RespondWithError(args, "Interaction ID is empty");
                 return;
             }
 
@@ -73,17 +110,17 @@ namespace OpenQotd.Bot.EventHandlers
                     if (!await HasExactlyNArguments(args, idArgs, 2))
                         return;
 
-                    await SuggestionsEventHandlers.SuggestionsDenyReasonModalSubmitted(client, args, int.Parse(idArgs[1]), int.Parse(idArgs[2]));
+                    await SuggestionNotificationsEventHandlers.SuggestionsDenyReasonModalSubmitted(args, int.Parse(idArgs[1]), int.Parse(idArgs[2]));
                     return;
                 case "suggest-qotd":
                     if (!await HasExactlyNArguments(args, idArgs, 1))
                         return;
 
-                    await SuggestQotdModalSubmitted(client, args, int.Parse(idArgs[1]));
+                    await CreateSuggestionEventHandlers.SuggestQotdModalSubmitted(args, int.Parse(idArgs[1]));
                     return;
             }
 
-            await SuggestionsEventHandlers.RespondWithError(args, $"Unknown event: `{args.Interaction.Data.CustomId}`");
+            await RespondWithError(args, $"Unknown event: `{args.Interaction.Data.CustomId}`");
         }
 
         private static async Task<bool> HasExactlyNArguments(InteractionCreatedEventArgs args, string[] idArgs, int n)
@@ -91,81 +128,17 @@ namespace OpenQotd.Bot.EventHandlers
             if (idArgs.Length - 1 == n)
                 return true;
 
-            await SuggestionsEventHandlers.RespondWithError(args, $"Component ID for `{idArgs[0]}` must have exactly {n} arguments (provided is {idArgs.Length}).");
+            await RespondWithError(args, $"Component ID for `{idArgs[0]}` must have exactly {n} arguments (provided is {idArgs.Length - 1}).");
             return false;
         }
 
-
-        private static async Task SuggestQotdButtonClicked(DiscordClient client, ComponentInteractionCreatedEventArgs args, int profileId)
+        public static async Task RespondWithError(InteractionCreatedEventArgs args, string message, string? title=null)
         {
-            Config? config = await ProfileHelpers.TryGetConfigAsync(args, profileId);
-            if (config is null || !await CommandRequirements.UserIsBasic(args, config))
-                return;
+            DiscordEmbed errorEmbed = GenericEmbeds.Error(title: title ?? "Error", message: message);
 
-            if (!config.EnableSuggestions)
-            {
-                DiscordEmbed errorEmbed = GenericEmbeds.Error($"Suggestions are not enabled for this profile ({config.ProfileName}).");
-
-                await args.Interaction.CreateResponseAsync(DiscordInteractionResponseType.ChannelMessageWithSource, new DiscordInteractionResponseBuilder()
-                    .AddEmbed(errorEmbed)
-                    .AsEphemeral());
-                return;
-            }
-
-            DiscordInteractionResponseBuilder modal = new DiscordInteractionResponseBuilder()
-                .WithTitle($"Suggest a new {config.QotdShorthandText}!")
-                .WithCustomId($"suggest-qotd/{config.ProfileId}")
-                .AddTextInputComponent(new DiscordTextInputComponent(
-                    label: "Contents", customId: "text", placeholder: $"This will require approval by the staff of this server.", max_length: 256, required: true, style: DiscordTextInputStyle.Short));
-
-            await args.Interaction.CreateResponseAsync(DiscordInteractionResponseType.Modal, modal);
-        }
-
-        private static async Task SuggestQotdModalSubmitted(DiscordClient client, ModalSubmittedEventArgs args, int profileId)
-        {
-            Config? config = await ProfileHelpers.TryGetConfigAsync(args, profileId);
-            if (config is null || !await CommandRequirements.UserIsBasic(args, config))
-                return;
-
-            using (AppDbContext dbContext = new())
-            {
-                int questionsCount = await dbContext.Questions
-                    .Where(q => q.ConfigId == config.Id)
-                    .CountAsync();
-
-                if (questionsCount >= Program.AppSettings.QuestionsPerGuildMaxAmount)
-                {
-                    DiscordEmbed errorEmbed = GenericEmbeds.Error($"The maximum amount of questions for this guild (**{Program.AppSettings.QuestionsPerGuildMaxAmount}**) has been reached.");
-                    await args.Interaction.CreateResponseAsync(DiscordInteractionResponseType.ChannelMessageWithSource, new DiscordInteractionResponseBuilder()
-                        .AddEmbed(errorEmbed)
-                        .AsEphemeral());
-                    return;
-                }
-            }
-
-            if (!config.EnableSuggestions)
-            {
-                DiscordEmbed errorEmbed = GenericEmbeds.Error($"Suggestions are not enabled for this profile ({config.ProfileName}).");
-
-                await args.Interaction.CreateResponseAsync(DiscordInteractionResponseType.ChannelMessageWithSource, new DiscordInteractionResponseBuilder()
-                    .AddEmbed(errorEmbed)
-                    .AsEphemeral());
-                return;
-            }
-
-            string question = args.Values["text"];
-
-            (bool, DiscordEmbed) result = await SuggestCommand.SuggestNoContextAsync(question, config, args.Interaction.Guild!, args.Interaction.Channel, args.Interaction.User);
-
-            DiscordMessageBuilder messageBuilder = new();
-            messageBuilder.AddEmbed(result.Item2);
-            DiscordInteractionResponseBuilder responseBuilder = new(messageBuilder)
-            {
-                IsEphemeral = true
-            };
-
-            await args.Interaction.CreateResponseAsync(DiscordInteractionResponseType.ChannelMessageWithSource, responseBuilder);
-
+            await args.Interaction.CreateResponseAsync(DiscordInteractionResponseType.ChannelMessageWithSource, new DiscordInteractionResponseBuilder()
+                .AddEmbed(errorEmbed)
+                .AsEphemeral());
         }
     }
 }

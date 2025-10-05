@@ -48,6 +48,26 @@ namespace OpenQotd.Bot
         /// <summary>
         /// See <see cref="UserIsAdmin(CommandContext, Config?, bool)"/>.
         /// </summary>
+        public static async Task<bool> UserIsAdmin(InteractionCreatedEventArgs args, Config? config)
+        {
+            (bool, string?) result = await UserIsAdmin(args.Interaction.Guild!, await args.Interaction.Guild!.GetMemberAsync(args.Interaction.User!.Id), config);
+
+            if (!result.Item1)
+            {
+                DiscordInteractionResponseBuilder response = new();
+                response.AddEmbed(
+                    GenericEmbeds.Error(result.Item2!));
+                response.IsEphemeral = true;
+
+                await args.Interaction.CreateResponseAsync(DiscordInteractionResponseType.ChannelMessageWithSource, response);
+            }
+
+            return result.Item1;
+        }
+
+        /// <summary>
+        /// See <see cref="UserIsAdmin(CommandContext, Config?, bool)"/>.
+        /// </summary>
         /// <returns>(If config is initialized, error message if not)</returns>
         public static async Task<(bool, string?)> UserIsAdmin(DiscordGuild guild, DiscordMember member, Config? config)
         {
@@ -109,9 +129,10 @@ namespace OpenQotd.Bot
         /// <summary>
         /// See <see cref="UserIsBasic(CommandContext, Config?, bool)"/>.
         /// </summary>
-        public static async Task<bool> UserIsBasic(InteractionCreatedEventArgs args, Config? config)
+        /// <param name="member">Optionally provided to avoid re-fetching</param>
+        public static async Task<bool> UserIsBasic(InteractionCreatedEventArgs args, Config? config, DiscordMember? member = null)
         {
-            (bool, string?) result = await UserIsBasic(args.Interaction.Guild!, await args.Interaction.Guild!.GetMemberAsync(args.Interaction.User!.Id), config);
+            (bool, string?) result = await UserIsBasic(args.Interaction.Guild!, member ?? await args.Interaction.Guild!.GetMemberAsync(args.Interaction.User!.Id), config);
 
             if (!result.Item1)
             {

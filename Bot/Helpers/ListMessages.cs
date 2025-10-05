@@ -91,6 +91,13 @@ namespace OpenQotd.Bot.Helpers
 
             while (!result.TimedOut && result.Result?.Id != null)
             {
+                if (result.Result.User.Id != context.User.Id)
+                {
+                    await EventHandlers.EventHandlers.RespondWithError(result.Result, "You cannot interact with a different user's list message.");
+                    result = await message.WaitForButtonAsync();
+                    continue;
+                }
+
                 switch (result.Result.Id)
                 {
                     case "first":
@@ -165,10 +172,10 @@ namespace OpenQotd.Bot.Helpers
         private static void AddPaginationButtonsToMessage<T>(IDiscordMessageBuilder messageBuilder, PageInfo<T> pi)
         {
             messageBuilder.AddActionRowComponent(
-                new DiscordButtonComponent(DiscordButtonStyle.Secondary, "first", "<<", disabled: pi.CurrentPage == 1),
-                new DiscordButtonComponent(DiscordButtonStyle.Primary, "backward", "<", disabled: pi.CurrentPage == 1),
-                new DiscordButtonComponent(DiscordButtonStyle.Primary, "forward", ">", disabled: pi.CurrentPage == pi.TotalPagesCount),
-                new DiscordButtonComponent(DiscordButtonStyle.Secondary, "last", ">>", disabled: pi.CurrentPage == pi.TotalPagesCount)
+                new DiscordButtonComponent(DiscordButtonStyle.Secondary, "first", "⭰", disabled: pi.CurrentPage == 1),
+                new DiscordButtonComponent(DiscordButtonStyle.Primary, "backward", "⭠", disabled: pi.CurrentPage == 1),
+                new DiscordButtonComponent(DiscordButtonStyle.Primary, "forward", "⭢", disabled: pi.CurrentPage == pi.TotalPagesCount),
+                new DiscordButtonComponent(DiscordButtonStyle.Secondary, "last", "⭲", disabled: pi.CurrentPage == pi.TotalPagesCount)
             );
         }
 
@@ -176,7 +183,7 @@ namespace OpenQotd.Bot.Helpers
         /// Generates the embed for the list message.
         /// </summary>
         private static DiscordEmbed GetMessageEmbed<T>(PageInfo<T> pi, ElementToString<T> elementToString, string title)
-            => GenericEmbeds.Custom(message: ElementListToString(pi, elementToString), title: title)
+            => GenericEmbeds.Info(message: ElementListToString(pi, elementToString), title: title)
                 .WithFooter($"Page {pi.CurrentPage} of {pi.TotalPagesCount} \x2022 {pi.TotalElementsCount} elements");
 
         /// <summary>

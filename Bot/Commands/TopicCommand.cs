@@ -134,7 +134,7 @@ namespace OpenQotd.Bot.Commands
             {
                 Question question = questions[_random.Next(questions.Length)];
 
-                embed = GenericEmbeds.Custom(
+                embed = GenericEmbeds.Info(
                     title: question.Text!,
                     message: $"*Submitted by: <@!{question.SubmittedByUserId}>*")
                     .WithFooter($"Question ID: {question.GuildDependentId}");
@@ -144,7 +144,7 @@ namespace OpenQotd.Bot.Commands
                 int presetId = _random.Next(Presets.Values.Length);
                 string preset = Presets.Values[presetId];
 
-                embed = GenericEmbeds.Custom(
+                embed = GenericEmbeds.Info(
                     title: preset,
                     message: $"*Preset Question*"
                     )

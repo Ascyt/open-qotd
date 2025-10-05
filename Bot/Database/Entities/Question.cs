@@ -2,6 +2,7 @@
 using DSharpPlus.Commands;
 using Microsoft.EntityFrameworkCore;
 using System.ComponentModel.DataAnnotations;
+using DSharpPlus.Entities;
 
 namespace OpenQotd.Bot.Database.Entities
 {
@@ -80,6 +81,24 @@ namespace OpenQotd.Bot.Database.Entities
         public ulong SubmittedByUserId { get; set; }
 
         /// <summary>
+        /// Notes associated with the question, visible to users using a button when the question is sent as QOTD.
+        /// </summary>
+        public string? Notes { get; set; }
+
+        /// <summary>
+        /// The URL of a thumbnail image associated with the question. Will be fetched when the question is sent as QOTD.
+        /// </summary>
+        /// <remarks>
+        /// Only image URLs from Discord or Imgur are allowed.
+        /// </remarks>
+        public string? ThumbnailImageUrl { get; set; }
+
+        /// <summary>
+        /// Additional information for staff, visible only to users with the <see cref="Config.AdminRoleId"/> or access to the suggestions channel when reviewing suggestions.
+        /// </summary>
+        public string? SuggesterAdminOnlyInfo { get; set; }
+
+        /// <summary>
         /// The timestamp when the question was initially submitted or manually added.
         /// </summary>
         public DateTime Timestamp { get; set; }
@@ -117,15 +136,15 @@ namespace OpenQotd.Bot.Database.Entities
         /// </summary>
         public static string GetEmoji(QuestionType type)
         {
-			return type switch
-			{
-				QuestionType.Suggested => ":red_square:",
-				QuestionType.Accepted => ":large_blue_diamond:",
-				QuestionType.Sent => ":green_circle:",
-				QuestionType.Stashed => ":heavy_multiplication_x:",
-				_ => ":black_large_square:",
-			};
-		}
+            return type switch
+            {
+                QuestionType.Suggested => ":red_square:",
+                QuestionType.Accepted => ":large_blue_diamond:",
+                QuestionType.Sent => ":green_circle:",
+                QuestionType.Stashed => ":heavy_multiplication_x:",
+                _ => ":black_large_square:",
+            };
+        }
         /// <summary>
         /// Converts a QuestionType to a styled string with an emoji and markdown formatting.
         /// </summary>
@@ -135,15 +154,15 @@ namespace OpenQotd.Bot.Database.Entities
         }
 
         public override string ToString()
-            => ToString(longType: false);
+            => ToString(longVersion: false);
 
-        /// <param name="longType">If true, the type gets written out; otherwise, only an emoji is used.</param>
-        public string ToString(bool longType)
+        /// <param name="longVersion">If true, the type and full question gets written out; otherwise, the question is shortened to a single line and only an emoji is used.</param>
+        public string ToString(bool longVersion)
         {
-		    return longType ? 
-                $"\"**{Text}**\" (Type: {TypeToStyledString(Type)}); by: <@{SubmittedByUserId}>; ID: `{GuildDependentId}`)" : 
-                $"{GetEmoji(Type)} \"**{Text}**\" (by: <@{SubmittedByUserId}>; ID: `{GuildDependentId}`)";
-		}
+            return longVersion ?
+                $"\"{GeneralHelpers.Italicize(Text!)}\" (Type: {TypeToStyledString(Type)}); by: <@{SubmittedByUserId}>; ID: `{GuildDependentId}`)" :
+                $"{GetEmoji(Type)} \"*{GeneralHelpers.TrimIfNecessary(Text!, 64)}*\" (by: <@{SubmittedByUserId}>; ID: `{GuildDependentId}`)";
+        }
         /// <summary>
         /// Generates the next available GuildDependentId for a new question in the specified config.
         /// </summary>
@@ -171,35 +190,61 @@ namespace OpenQotd.Bot.Database.Entities
         /// and does not contain any line-breaks. If the text is invalid and a <see cref="CommandContext"/> is provided,
         /// an appropriate error message is sent to the context.
         /// </remarks>
-        public static async Task<bool> CheckTextValidity(string text, CommandContext? context, Config config, int? lineNumber=null)
+        public static async Task<bool> CheckQuestionValidity(Question question, CommandContext? context, Config config, int? lineNumber = null)
         {
             string lineNumberString = lineNumber is null ? "" : $" (line {lineNumber})";
 
-            if (string.IsNullOrWhiteSpace(text))
+            if (string.IsNullOrWhiteSpace(question.Text))
             {
                 if (context is not null)
                     await context.RespondAsync(
-                        GenericEmbeds.Error(title: "Empty Question", message: $"Your question{lineNumberString} must not be empty."));
+                        GenericEmbeds.Error(title: "Empty Question", message: $"Your question contents{lineNumberString} must not be empty."));
                 return false;
             }
 
-            if (text.Length > Program.AppSettings.QuestionTextMaxLength)
-            {
-                if (context is not null)
-                    await context.RespondAsync(
-                        GenericEmbeds.Error(title: "Maximum Length Exceeded", message: $"Your question{lineNumberString} is {text.Length} characters in length, however it must not exceed **{Program.AppSettings.QuestionTextMaxLength}** characters."));
+            if (!await CheckTextLengthValidity(question.Text, Program.AppSettings.QuestionTextMaxLength, "Contents", context, lineNumberString))
                 return false;
+
+            if (question.Notes is not null && !await CheckTextLengthValidity(question.Notes, Program.AppSettings.QuestionNotesMaxLength, "Notes", context, lineNumberString))
+                return false;
+
+            if (question.ThumbnailImageUrl is not null && !await CheckTextLengthValidity(question.ThumbnailImageUrl, Program.AppSettings.QuestionThumbnailImageUrlMaxLength, "Thumbnail Image URL", context, lineNumberString))
+                return false;
+
+            if (question.ThumbnailImageUrl is not null && !IsUrlValid(question.ThumbnailImageUrl))
+            {
+                //if (context is not null)
+                //    await context.RespondAsync(
+                //        GenericEmbeds.Error(title: "Invalid URL", message: $"The Thumbnail Image URL of your question{lineNumberString} is not a valid URL. Please provide a valid URL starting with http:// or https://."));
+
+                question.ThumbnailImageUrl = "https://open-qotd.ascyt.com/assets/images/bot/invalid-image-url-fallback.png"; // Fallback image if the URL is invalid
             }
 
-            if (text.Contains('\n'))
-            {
-                if (context is not null)
-                    await context.RespondAsync(
-                        GenericEmbeds.Error(title: "Line-breaks are forbidden", message: $"Your question{lineNumberString} must not contain any line-breaks and must all be written in one line."));
+            if (question.SuggesterAdminOnlyInfo is not null && !await CheckTextLengthValidity(question.SuggesterAdminOnlyInfo, Program.AppSettings.QuestionSuggesterAdminInfoMaxLength, "Staff Notes", context, lineNumberString))
                 return false;
-            }
 
             return true;
+        }
+
+        private static async Task<bool> CheckTextLengthValidity(string text, int maxLength, string propertyName, CommandContext? context, string lineNumberString = "")
+        {
+            if (text.Length > maxLength)
+            {
+                if (context is not null)
+                    await context.RespondAsync(
+                        GenericEmbeds.Error(title: "Maximum Length Exceeded", message: $"The property **{propertyName}** of your question{lineNumberString} is {text.Length} characters in length, however it must not exceed **{maxLength}** characters."));
+                return false;
+            }
+            return true;
+        }
+
+        private static bool IsUrlValid(string url)
+        {
+            if (Uri.TryCreate(url, UriKind.Absolute, out Uri? uriResult))
+            {
+                return (uriResult.Scheme == Uri.UriSchemeHttp || uriResult.Scheme == Uri.UriSchemeHttps);
+            }
+            return false;
         }
     }
 }

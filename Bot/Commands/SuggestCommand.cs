@@ -8,16 +8,16 @@ using DSharpPlus.Exceptions;
 using System.ComponentModel;
 using OpenQotd.Bot.Helpers.Profiles;
 using DSharpPlus.Commands.Processors.SlashCommands.ArgumentModifiers;
+using OpenQotd.Bot.EventHandlers.Suggestions;
 
 namespace OpenQotd.Bot.Commands
 {
     public class SuggestCommand
     {
         [Command("suggest")]
-        [Description("Suggest a Question Of The Day to be added.")]
+        [Description("Suggest a Question Of The Day to be added. Opens up a modal to enter the question and details.")]
         public static async Task SuggestAsync(CommandContext context,
-            [Description("Which OpenQOTD profile your question should be suggested to.")][SlashAutoCompleteProvider<SuggestableProfilesAutoCompleteProvider>] int For,
-            [Description("Your suggestion.")] string suggestion)
+            [Description("Which OpenQOTD profile your question should be suggested to.")][SlashAutoCompleteProvider<SuggestableProfilesAutoCompleteProvider>] int For)
         {
             int profileId = For;
 
@@ -35,153 +35,21 @@ namespace OpenQotd.Bot.Commands
                 return;
             }
 
-            (bool, DiscordEmbed) result = await SuggestNoContextAsync(suggestion, config, context.Guild!, context.Channel, context.User);
+            DiscordInteractionResponseBuilder modal = CreateSuggestionEventHandlers.GetQotdModal(config, context.Guild!.Name);
 
-            if (context is SlashCommandContext && result.Item1) // Is slash command and not errored
-            {
-                SlashCommandContext? slashCommandcontext = context as SlashCommandContext;
-
-                await slashCommandcontext!.RespondAsync(result.Item2, ephemeral: true);
-            }
-            else
-            {
-                await context.RespondAsync(result.Item2);
-            }
-        }
-
-        /// <returns>(whether or not successful, response message)</returns>
-        public static async Task<(bool, DiscordEmbed)> SuggestNoContextAsync(string question, Config config, DiscordGuild guild, DiscordChannel discordChannel, DiscordUser user)
-        {
-            if (!await Question.CheckTextValidity(question, null, config))
-                return (false, GenericEmbeds.Error("Text validity check failed"));
-
-            Question newQuestion;
-            using (AppDbContext dbContext = new())
-            {
-                newQuestion = new Question()
-                {
-                    ConfigId = config.Id,
-                    GuildId = guild.Id,
-                    GuildDependentId = await Question.GetNextGuildDependentId(config),
-                    Type = QuestionType.Suggested,
-                    Text = question,
-                    SubmittedByUserId = user.Id,
-                    Timestamp = DateTime.UtcNow
-                };
-                await dbContext.Questions.AddAsync(newQuestion);
-                await dbContext.SaveChangesAsync();
-            }
-
-            (bool, DiscordEmbedBuilder) result = (true, GenericEmbeds.Success($"{config.QotdShorthandText} Suggested!",
-                    $"Your **{config.QotdTitleText}** suggestion:\n" +
-                    $"\"**{newQuestion.Text}**\"\n" +
-                    $"\n" +
-                    $"Has successfully been suggested!\n" +
-                    $"You will be notified when it gets accepted or denied."));
-
-
-            await Logging.LogUserAction(discordChannel, user, config, 
-                title:$"Suggested {config.QotdShorthandText}", 
-                message:$"\"**{newQuestion.Text}**\"\nID: `{newQuestion.GuildDependentId}`");
-
-            if (config.SuggestionsChannelId is null)
-            {
-                if (config.SuggestionsPingRoleId is not null)
-                {
-                    await discordChannel.SendMessageAsync(GenericEmbeds.Warning("Suggestions ping role is set, but suggestions channel is not.\n\n" +
-                        "*The channel can be set using `/config set suggestions_channel [channel]`, or the ping role can be removed using `/config reset suggestions_ping_role`.*"));
-                }
-                // Qotd suggested but no suggestion channel
-                return result;
-            }
-
-            DiscordRole? pingRole = null;
-            if (config.SuggestionsPingRoleId is not null)
-            {
-                try
-                {
-                    pingRole = await guild.GetRoleAsync(config.SuggestionsPingRoleId.Value);
-                }
-                catch (NotFoundException)
-                {
-                    await discordChannel.SendMessageAsync(
-                        GenericEmbeds.Warning("Suggestions ping role is set, but not found.\n\n" +
-                        "*It can be set using `/config set suggestions_ping_role [channel]`, or unset using `/config reset suggestions_ping_role`.*")
-                        );
-                }
-            }
-
-            DiscordChannel channel;
-            try
-            {
-                channel = await guild.GetChannelAsync(config.SuggestionsChannelId.Value);
-            }
-            catch (NotFoundException)
-            {
-                return (false,
-                    GenericEmbeds.Warning("Suggestions channel is set, but not found.\n\n" +
-                    "*It can be set using `/config set suggestions_channel [channel]`, or unset using `/config reset suggestions_channel`.*")
-                    );
-            }
-
-            DiscordMessageBuilder messageBuilder = new();
-
-            AddPingIfAvailable(messageBuilder, pingRole);
-
-            string embedBody = $"\"**{newQuestion.Text}**\"\n" +
-                $"By: {user.Mention} (`{user.Id}`)\n" +
-                $"ID: `{newQuestion.GuildDependentId}`";
-
-            messageBuilder.AddEmbed(GenericEmbeds.Custom($"A new {config.QotdShorthandText} Suggestion is available!", embedBody,
-                color: "#f0b132"));
-
-            messageBuilder.AddActionRowComponent(
-                new DiscordButtonComponent(DiscordButtonStyle.Success, $"suggestions-accept/{config.ProfileId}/{newQuestion.GuildDependentId}", "Accept"),
-                new DiscordButtonComponent(DiscordButtonStyle.Danger, $"suggestions-deny/{config.ProfileId}/{newQuestion.GuildDependentId}", "Deny")
-            );
-
-            DiscordMessage message = await channel.SendMessageAsync(
-                    messageBuilder
-                );
-
-            await message.PinAsync();
-
-            using (AppDbContext dbContext = new())
-            {
-                Question? updateQuestion = await dbContext.Questions.FindAsync(newQuestion.Id);
-
-                if (updateQuestion != null)
-                {
-                    updateQuestion.SuggestionMessageId = message.Id;
-
-                    await dbContext.SaveChangesAsync();
-
-                    newQuestion = updateQuestion;
-                }
-            }
-
-            return result;
-        }
-        private static void AddPingIfAvailable(DiscordMessageBuilder messageBuilder, DiscordRole? pingRole)
-        {
-            if (pingRole is not null)
-            {
-                messageBuilder.WithContent(pingRole.Mention);
-                messageBuilder.WithAllowedMention(new RoleMention(pingRole));
-            }
+            await (context as SlashCommandContext)!.RespondWithModalAsync(modal);
         }
 
 
         [Command("qotd")]
-        [Description("Suggest a Question Of The Day to be added. Unlike /suggest, this uses the default profile.")]
-        public static async Task QotdAsync(CommandContext context,
-            [Description("Your suggestion.")] string suggestion)
+        [Description("Suggest a Question Of The Day to be added. Unlike /suggest, this uses the selected/default profile.")]
+        public static async Task QotdAsync(CommandContext context)
         { 
-            Config? defaultConfig = await ProfileHelpers.TryGetDefaultConfigAsync(context);
-            if (defaultConfig is null)
+            Config? config = await ProfileHelpers.TryGetSelectedOrDefaultConfigAsync(context);
+            if (config is null)
                 return;
 
-            await SuggestAsync(context, defaultConfig.ProfileId, suggestion);
+            await SuggestAsync(context, config.ProfileId);
         }
     }
 }

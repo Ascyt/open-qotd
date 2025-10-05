@@ -110,12 +110,12 @@ namespace OpenQotd.Bot.QotdSending
             }
 
             // If no question or preset is available, send the unavailable message if enabled
-            await SendQotdUnavailableMessageIfEnabledAsync(sendQotdData);
+            await SendQotdUnavailableMessageIfEnabledAsync(sendQotdData, question);
         }
         /// <summary>
         /// Tries to send the "no QOTD available" message if enabled in config.
         /// </summary>
-        private static async Task SendQotdUnavailableMessageIfEnabledAsync(SendQotdData d)
+        private static async Task SendQotdUnavailableMessageIfEnabledAsync(SendQotdData d, Question? question)
         {
             if (!d.config.EnableQotdUnavailableMessage)
                 return;
@@ -128,7 +128,7 @@ namespace OpenQotd.Bot.QotdSending
                 GenericEmbeds.Custom(title: $"No {d.QotdShorthand} Available", message: $"There is currently no {d.QotdTitle}" +
                 $"{(d.config.EnableQotdAutomaticPresets ? " or Preset question" : "")} available." +
                 (d.config.EnableSuggestions ? $"\n\n*Suggest some using `{d.SuggestCommand}`!*" : ""), color: "#dc5051"));
-            QotdSenderHelpers.AddSuggestButtonIfEnabled(d.config, messageBuilder);
+            QotdSenderHelpers.AddButtonsIfEnabled(d.config, question, messageBuilder);
 
             await qotdChannel.SendMessageAsync(messageBuilder);
             await SendNoticeIfAvailable(d);
@@ -147,7 +147,7 @@ namespace OpenQotd.Bot.QotdSending
             DiscordMessageBuilder messageBuilder = new();
             messageBuilder.AddEmbed(
                 GenericEmbeds.Custom($"{d.QotdTitle}",
-                $"**{Presets.Values[presetIndex]}**\n" +
+                $"{Presets.Values[presetIndex]}\n" +
                 $"\n" +
                 $"*Preset Question*",
                 color: "#8acfac")
@@ -155,7 +155,7 @@ namespace OpenQotd.Bot.QotdSending
                 );
             await QotdSenderHelpers.AddPingRoleIfEnabledAndExistent(d, messageBuilder);
 
-            QotdSenderHelpers.AddSuggestButtonIfEnabled(d.config, messageBuilder);
+            QotdSenderHelpers.AddButtonsIfEnabled(d.config, null, messageBuilder);
 
             DiscordMessage sentMessage = await qotdChannel.SendMessageAsync(messageBuilder);
 
@@ -187,7 +187,7 @@ namespace OpenQotd.Bot.QotdSending
 
             await QotdSenderHelpers.AddPingRoleIfEnabledAndExistent(d, messageBuilder); 
 
-            QotdSenderHelpers.AddSuggestButtonIfEnabled(d.config, messageBuilder);
+            QotdSenderHelpers.AddButtonsIfEnabled(d.config, question, messageBuilder);
 
             int acceptedQuestionsCount;
             int sentQuestionsCount;
@@ -203,14 +203,16 @@ namespace OpenQotd.Bot.QotdSending
                     + 1;
             }
 
-            messageBuilder.AddEmbed(
+            DiscordEmbedBuilder qotdEmbed =
                 GenericEmbeds.Custom($"{d.QotdTitle} #{sentQuestionsCount}",
-                $"**{question.Text}**\n" +
+                $"{question.Text}\n" +
                 $"\n" +
                 $"*Submitted by <@{question.SubmittedByUserId}>*",
                 color: "#8acfac")
-                .WithFooter($"{acceptedQuestionsCount} question{(acceptedQuestionsCount == 1 ? "" : "s")} left{(d.config.EnableSuggestions ? $", {d.SuggestCommand}" : "")} \x2022 Question ID: {question.GuildDependentId}")
-                );
+                .WithFooter($"{acceptedQuestionsCount} question{(acceptedQuestionsCount == 1 ? "" : "s")} left{(d.config.EnableSuggestions ? $", {d.SuggestCommand}" : "")} \x2022 Question ID: {question.GuildDependentId}");
+            if (question.ThumbnailImageUrl is not null)
+                qotdEmbed.WithThumbnail(question.ThumbnailImageUrl);
+            messageBuilder.AddEmbed(qotdEmbed);
 
             DiscordChannel qotdChannel = await d.GetQotdChannelAsync();
 
