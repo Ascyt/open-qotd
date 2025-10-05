@@ -106,14 +106,20 @@ namespace OpenQotd.Bot.QotdSending
             return index;
         }
 
-        public static void AddSuggestButtonIfEnabled(Config config, DiscordMessageBuilder messageBuilder)
+        public static void AddButtonsIfEnabled(Config config, Question? question, DiscordMessageBuilder messageBuilder)
         {
-            if (!config.EnableSuggestions)
-                return;
+            List<DiscordButtonComponent> buttons = [];
 
-            DiscordButtonComponent suggestButton = new(DiscordButtonStyle.Secondary, $"suggest-qotd/{config.ProfileId}", $"Suggest a new {config.QotdShorthandText}");
+            if (question is not null && question.Notes is not null)
+                buttons.Add(new(DiscordButtonStyle.Primary, $"show-qotd-notes/{config.ProfileId}/{question.GuildDependentId}", "Show More"));
 
-            messageBuilder.AddActionRowComponent(suggestButton);
+            if (config.EnableSuggestions)
+                buttons.Add(new(DiscordButtonStyle.Secondary, $"suggest-qotd/{config.ProfileId}", $"Suggest a new {config.QotdShorthandText}"));
+                
+            if (config.EnableQotdShowInfoButton)
+                buttons.Add(new(DiscordButtonStyle.Secondary, $"show-general-info/{config.ProfileId}", "🛈"));
+
+            messageBuilder.AddActionRowComponent(buttons);
         }
 
         public static async Task PinMessageIfEnabled(SendQotdData d, DiscordMessage sentMessage)

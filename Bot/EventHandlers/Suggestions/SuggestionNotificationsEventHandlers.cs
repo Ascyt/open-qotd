@@ -25,23 +25,11 @@ namespace OpenQotd.Bot.EventHandlers.Suggestions
             }
             if (question is null)
             {
-                await RespondWithError(args, $"Question with ID `{questionGuildDepedentId}` for profile \"{config.ProfileName}\" not found.");
+                await EventHandlers.RespondWithError(args, $"Question with ID `{questionGuildDepedentId}` for profile \"{config.ProfileName}\" not found.");
                 return null;
             }
 
             return question;
-        }
-
-        public static async Task RespondWithError(InteractionCreatedEventArgs args, string error)
-        {
-            DiscordMessageBuilder builder = new();
-            builder.AddEmbed(
-                GenericEmbeds.Error(error)
-                );
-
-            await args.Interaction.CreateResponseAsync(
-                DiscordInteractionResponseType.ChannelMessageWithSource,
-                new DiscordInteractionResponseBuilder(builder).AsEphemeral());
         }
 
         public static async Task SuggestionsAcceptButtonClicked(ComponentInteractionCreatedEventArgs args, int profileId, int questionGuildDepedentId)
@@ -71,7 +59,7 @@ namespace OpenQotd.Bot.EventHandlers.Suggestions
             }
             if (question is null)
             {
-                await RespondWithError(args, $"Question with ID `{questionGuildDependentId}` for profile \"{config.ProfileName}\" not found.");
+                await EventHandlers.RespondWithError(args, $"Question with ID `{questionGuildDependentId}` for profile \"{config.ProfileName}\" not found.");
                 return;
             }
 

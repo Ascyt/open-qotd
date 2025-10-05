@@ -20,7 +20,7 @@ namespace OpenQotd.Bot.EventHandlers
 
             if (idArgs.Length == 0)
             {
-                await SuggestionNotificationsEventHandlers.RespondWithError(args, "Interaction ID is empty");
+                await RespondWithError(args, "Interaction ID is empty");
                 return;
             }
 
@@ -45,6 +45,12 @@ namespace OpenQotd.Bot.EventHandlers
                     await CreateSuggestionEventHandlers.SuggestQotdButtonClicked(client, args, int.Parse(idArgs[1]));
                     return;
 
+                case "show-qotd-notes":
+                    if (!await HasExactlyNArguments(args, idArgs, 2))
+                        return;
+                    await QotdInfoButtonsEventHandlers.ShowQotdNotesButtonClicked(client, args, int.Parse(idArgs[1]), int.Parse(idArgs[2]));
+                    return;
+
                 case "forward":
                 case "backward":
                 case "first":
@@ -56,7 +62,7 @@ namespace OpenQotd.Bot.EventHandlers
                     return;
             }
 
-            await SuggestionNotificationsEventHandlers.RespondWithError(args, $"Unknown event: `{args.Id}`");
+            await RespondWithError(args, $"Unknown event: `{args.Id}`");
         }
 
         public static async Task ModalSubmittedEvent(DiscordClient client, ModalSubmittedEventArgs args)
@@ -65,7 +71,7 @@ namespace OpenQotd.Bot.EventHandlers
 
             if (idArgs.Length == 0)
             {
-                await SuggestionNotificationsEventHandlers.RespondWithError(args, "Interaction ID is empty");
+                await RespondWithError(args, "Interaction ID is empty");
                 return;
             }
 
@@ -85,7 +91,7 @@ namespace OpenQotd.Bot.EventHandlers
                     return;
             }
 
-            await SuggestionNotificationsEventHandlers.RespondWithError(args, $"Unknown event: `{args.Interaction.Data.CustomId}`");
+            await RespondWithError(args, $"Unknown event: `{args.Interaction.Data.CustomId}`");
         }
 
         private static async Task<bool> HasExactlyNArguments(InteractionCreatedEventArgs args, string[] idArgs, int n)
@@ -93,8 +99,17 @@ namespace OpenQotd.Bot.EventHandlers
             if (idArgs.Length - 1 == n)
                 return true;
 
-            await SuggestionNotificationsEventHandlers.RespondWithError(args, $"Component ID for `{idArgs[0]}` must have exactly {n} arguments (provided is {idArgs.Length}).");
+            await RespondWithError(args, $"Component ID for `{idArgs[0]}` must have exactly {n} arguments (provided is {idArgs.Length}).");
             return false;
+        }
+
+        public static async Task RespondWithError(InteractionCreatedEventArgs args, string message, string? title=null)
+        {
+            DiscordEmbed errorEmbed = GenericEmbeds.Error(title: title ?? "Error", message: message);
+
+            await args.Interaction.CreateResponseAsync(DiscordInteractionResponseType.ChannelMessageWithSource, new DiscordInteractionResponseBuilder()
+                .AddEmbed(errorEmbed)
+                .AsEphemeral());
         }
     }
 }

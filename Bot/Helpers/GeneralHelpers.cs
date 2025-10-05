@@ -66,12 +66,19 @@ namespace OpenQotd.Bot.Helpers
         }
 
         /// <summary>
-        /// Trim text if it exceeds maxLength, adding an ellipsis if so.
+        /// Trim text if it exceeds maxLength or upon the first new-line character, adding an ellipsis if so.
         /// </summary>
         public static string TrimIfNecessary(string text, int maxLength)
         {
+            text = text.Trim();
+
+            int newLinePosition = text.IndexOf('\n');
+            if (newLinePosition != -1 && newLinePosition < maxLength)
+                return text[..newLinePosition] + "…";
+
             if (text.Length <= maxLength)
                 return text;
+
             return text[..(maxLength - 1)] + "…";
         }
 

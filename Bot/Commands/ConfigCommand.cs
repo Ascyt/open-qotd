@@ -32,6 +32,7 @@ namespace OpenQotd.Bot.Commands
             [Description("Whether to automatically create a thread for every QOTD that gets sent (false by default).")] bool EnableQotdCreateThread = false,
             [Description("Whether to send a random preset when there is no Accepted QOTD available (true by default).")] bool EnableQotdAutomaticPresets = true,
             [Description("Whether to send a \"not available\" message when there is no QOTD available (true by default).")] bool EnableQotdUnvailableMessage = true,
+            [Description("Whether to include a button for general info about OpenQOTD under sent QOTDs (true by default).")] bool EnableQotdShowInfoButton = true,
             [Description("Whether to allow users with the BasicRole to suggest QOTDs (true by default).")] bool EnableSuggestions = true,
             [Description("The channel new QOTD suggestions get announced in.")] DiscordChannel? SuggestionsChannel = null,
             [Description("The role that will get pinged when a new QOTD is suggested.")] DiscordRole? SuggestionsPingRole = null,
@@ -78,6 +79,7 @@ namespace OpenQotd.Bot.Commands
                 EnableQotdCreateThread = EnableQotdCreateThread,
                 EnableQotdAutomaticPresets = EnableQotdAutomaticPresets,
                 EnableQotdUnavailableMessage = EnableQotdUnvailableMessage,
+                EnableQotdShowInfoButton = EnableQotdShowInfoButton,
                 QotdTimeHourUtc = QotdTimeHourUtc,
                 QotdTimeMinuteUtc = QotdTimeMinuteUtc,
                 EnableSuggestions = EnableSuggestions,
@@ -149,6 +151,7 @@ namespace OpenQotd.Bot.Commands
             [Description("Whether to automatically create a thread for every QOTD that gets sent (false by default).")] bool? EnableQotdCreateThread = null,
             [Description("Whether to send a random preset when there is no Accepted QOTD available (true by default).")] bool? EnableQotdAutomaticPresets = null,
             [Description("Whether to send a \"not available\" message when there is no QOTD available (true by default).")] bool? EnableQotdUnavailableMessage = null,
+            [Description("Whether to include a button for general info about OpenQOTD under sent QOTDs (true by default).")] bool? EnableQotdShowInfoButton = null,
             [Description("Whether to allow users with the BasicRole to suggest QOTDs (true by default).")] bool? EnableSuggestions = null,
             [Description("The channel new QOTD suggestions get announced in.")] DiscordChannel? SuggestionsChannel = null,
             [Description("The role that will get pinged when a new QOTD is suggested.")] DiscordRole? SuggestionsPingRole = null,
@@ -218,6 +221,8 @@ namespace OpenQotd.Bot.Commands
                     config.EnableQotdAutomaticPresets = EnableQotdAutomaticPresets.Value;
                 if (EnableQotdUnavailableMessage is not null)
                     config.EnableQotdUnavailableMessage = EnableQotdUnavailableMessage.Value;
+                if (EnableQotdShowInfoButton is not null)
+                    config.EnableQotdShowInfoButton = EnableQotdShowInfoButton.Value;
                 if (QotdTimeHourUtc is not null)
                     config.QotdTimeHourUtc = QotdTimeHourUtc.Value;
                 if (QotdTimeMinuteUtc is not null)

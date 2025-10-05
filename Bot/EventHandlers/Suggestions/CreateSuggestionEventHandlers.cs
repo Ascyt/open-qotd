@@ -21,11 +21,7 @@ namespace OpenQotd.Bot.EventHandlers.Suggestions
 
             if (!config.EnableSuggestions)
             {
-                DiscordEmbed errorEmbed = GenericEmbeds.Error($"Suggestions are not enabled for this profile ({config.ProfileName}).");
-
-                await args.Interaction.CreateResponseAsync(DiscordInteractionResponseType.ChannelMessageWithSource, new DiscordInteractionResponseBuilder()
-                    .AddEmbed(errorEmbed)
-                    .AsEphemeral());
+                await EventHandlers.RespondWithError(args, $"Suggestions are not enabled for this profile ({config.ProfileName}).");
                 return;
             }
 

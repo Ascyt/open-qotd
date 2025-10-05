@@ -46,7 +46,7 @@ namespace OpenQotd.Bot.Helpers
         }
 
         private static string GetEmbedBody(Question question)
-            => $"\"**{question.Text}**\"\n" +
+            => $"\"{GeneralHelpers.Italicize(question.Text!)}\"\n" +
                 $"By: <@!{question.SubmittedByUserId}> (`{question.SubmittedByUserId}`)\n" +
                 $"ID: `{question.GuildDependentId}`";
 

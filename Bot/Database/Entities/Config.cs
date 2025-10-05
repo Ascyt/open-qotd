@@ -185,6 +185,7 @@ namespace OpenQotd.Bot.Database.Entities
                 $"- enable_qotd_create_thread: **{EnableQotdCreateThread}**\n" +
                 $"- enable_qotd_automatic_presets: **{EnableQotdAutomaticPresets}**\n" +
                 $"- enable_qotd_unavailable_message: **{EnableQotdUnavailableMessage}**\n" +
+                $"- enable_qotd_show_info_button: **{EnableQotdShowInfoButton}**\n" +
                 $"- qotd_time_hour_utc: **{QotdTimeHourUtc}**\n" +
                 $"- qotd_time_minute_utc: **{QotdTimeMinuteUtc}**\n" +
                 $"- enable_suggestions: **{EnableSuggestions}**\n" +

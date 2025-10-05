@@ -153,14 +153,14 @@ namespace OpenQotd.Bot.Database.Entities
         }
 
         public override string ToString()
-            => ToString(longType: false);
+            => ToString(longVersion: false);
 
-        /// <param name="longType">If true, the type gets written out; otherwise, only an emoji is used.</param>
-        public string ToString(bool longType)
+        /// <param name="longVersion">If true, the type and full question gets written out; otherwise, the question is shortened to a single line and only an emoji is used.</param>
+        public string ToString(bool longVersion)
         {
-            return longType ?
-                $"\"**{Text}**\" (Type: {TypeToStyledString(Type)}); by: <@{SubmittedByUserId}>; ID: `{GuildDependentId}`)" :
-                $"{GetEmoji(Type)} \"**{Text}**\" (by: <@{SubmittedByUserId}>; ID: `{GuildDependentId}`)";
+            return longVersion ?
+                $"\"{GeneralHelpers.Italicize(Text!)}\" (Type: {TypeToStyledString(Type)}); by: <@{SubmittedByUserId}>; ID: `{GuildDependentId}`)" :
+                $"{GetEmoji(Type)} \"*{GeneralHelpers.TrimIfNecessary(Text!, 64)}*\" (by: <@{SubmittedByUserId}>; ID: `{GuildDependentId}`)";
         }
         /// <summary>
         /// Generates the next available GuildDependentId for a new question in the specified config.

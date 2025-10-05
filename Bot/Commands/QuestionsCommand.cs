@@ -101,7 +101,7 @@ namespace OpenQotd.Bot.Commands
                 await dbContext.SaveChangesAsync();
             }
 
-            string body = newQuestion.ToString(longType: true);
+            string body = newQuestion.ToString(longVersion: true);
 
 			await context.RespondAsync(
                 GenericEmbeds.Success("Added Question", body)
@@ -400,7 +400,7 @@ namespace OpenQotd.Bot.Commands
         }
 
         [Command("list")]
-        [Description("List all questions of a certain type.")]
+        [Description("List all questions.")]
         public static async Task ListQuestionsAsync(CommandContext context,
             [Description("The type of questions to show.")] QuestionType? type = null,
             [Description("The page of the listing (default 1).")] int page = 1)

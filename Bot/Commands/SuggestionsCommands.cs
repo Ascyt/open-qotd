@@ -163,7 +163,7 @@ namespace OpenQotd.Bot.Commands
                     {
                         userSendMessage.AddEmbed(GenericEmbeds.Custom($"{context.Guild!.Name}: {config.QotdShorthandText} Suggestion Accepted",
                                 $"Your {config.QotdShorthandText} Suggestion:\n" +
-                                $"\"**{pair.Value[0].Text}**\"\n\n" +
+                                $"\"{GeneralHelpers.Italicize(pair.Value[0].Text!)}\"\n\n" +
                                 $"Has been :white_check_mark: **ACCEPTED** :white_check_mark:!\n" +
                                 $"It is now qualified to appear as **{config.QotdTitleText}** in {context.Guild!.Name}!",
                                 color: "#20ff20"
@@ -182,7 +182,7 @@ namespace OpenQotd.Bot.Commands
                                 break;
                             }
 
-                            sb.AppendLine($"> - \"**{question.Text}**\"");
+                            sb.AppendLine($"> - \"*{GeneralHelpers.TrimIfNecessary(question.Text!, 64)}*\"");
                             index++;
                         }
 
@@ -272,14 +272,14 @@ namespace OpenQotd.Bot.Commands
                     {
                         userSendMessage.AddEmbed(GenericEmbeds.Custom($"{context.Guild!.Name}: {config.QotdShorthandText} Suggestion Denied",
                                 $"Your {config.QotdShorthandText} Suggestion:\n" +
-                                $"\"**{pair.Value[0].Text}**\"\n\n" +
+                                $"\"{GeneralHelpers.Italicize(pair.Value[0].Text!)}\"\n\n" +
                                 $"Has been :x: **DENIED** :x:.",
                                 color: "#ff2020"
                             ).WithFooter($"Server ID: {context.Guild!.Id}"));
                     }
                     else
                     {
-                        StringBuilder sb = new StringBuilder($"{pair.Value.Count} of your {config.QotdTitleText} Suggestions:\n");
+                        StringBuilder sb = new($"{pair.Value.Count} of your {config.QotdTitleText} Suggestions:\n");
 
                         int index = 0;
                         foreach (Question question in pair.Value)
@@ -290,7 +290,7 @@ namespace OpenQotd.Bot.Commands
                                 break;
                             }
 
-                            sb.AppendLine($"> - \"**{question.Text}**\"");
+                            sb.AppendLine($"> - \"*{GeneralHelpers.TrimIfNecessary(question.Text!, 64)}*\"");
                             index++;
                         }
 
