@@ -2,6 +2,7 @@
 using DSharpPlus.Commands;
 using Microsoft.EntityFrameworkCore;
 using System.ComponentModel.DataAnnotations;
+using DSharpPlus.Entities;
 
 namespace OpenQotd.Bot.Database.Entities
 {
@@ -210,10 +211,10 @@ namespace OpenQotd.Bot.Database.Entities
             if (question.ThumbnailImageUrl is not null && !await CheckTextLengthValidity(question.ThumbnailImageUrl, Program.AppSettings.QuestionThumbnailImageUrlMaxLength, "Thumbnail Image URL", context, lineNumberString))
                 return false;
 
-            if (question.ThumbnailImageUrl is not null && !await IsValidImageUrl(question.ThumbnailImageUrl!, context, lineNumberString))
-                return false;
+            //if (question.ThumbnailImageUrl is not null && !await IsValidImageUrl(question.ThumbnailImageUrl!, context, lineNumberString))
+            //    return false;
 
-            if (question.SuggesterAdminOnlyInfo is not null && !await CheckTextLengthValidity(question.SuggesterAdminOnlyInfo, 2000, "Staff Notes", context, lineNumberString))
+            if (question.SuggesterAdminOnlyInfo is not null && !await CheckTextLengthValidity(question.SuggesterAdminOnlyInfo, Program.AppSettings.QuestionSuggesterAdminInfoMaxLength, "Staff Notes", context, lineNumberString))
                 return false;
 
             return true;
@@ -230,7 +231,7 @@ namespace OpenQotd.Bot.Database.Entities
             }
             return true;
         }
-
+        
         private static async Task<bool> IsValidImageUrl(string url, CommandContext? context, string lineNumberString) 
         {
             if (!Uri.TryCreate(url, UriKind.Absolute, out Uri? uriResult))

@@ -42,14 +42,14 @@ namespace OpenQotd.Bot.Commands
 
 
         [Command("qotd")]
-        [Description("Suggest a Question Of The Day to be added. Unlike /suggest, this uses the default profile.")]
+        [Description("Suggest a Question Of The Day to be added. Unlike /suggest, this uses the selected/default profile.")]
         public static async Task QotdAsync(CommandContext context)
         { 
-            Config? defaultConfig = await ProfileHelpers.TryGetDefaultConfigAsync(context);
-            if (defaultConfig is null)
+            Config? config = await ProfileHelpers.TryGetSelectedOrDefaultConfigAsync(context);
+            if (config is null)
                 return;
 
-            await SuggestAsync(context, defaultConfig.ProfileId);
+            await SuggestAsync(context, config.ProfileId);
         }
     }
 }

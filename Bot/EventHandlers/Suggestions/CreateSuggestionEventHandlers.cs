@@ -185,18 +185,20 @@ namespace OpenQotd.Bot.EventHandlers.Suggestions
 
             string embedBody = $"**Contents:**\n" +
                 $"\"{GeneralHelpers.Italicize(newQuestion.Text!)}\"\n" +
-                $"\n" + (
-                newQuestion.Notes is not null ? 
-                    "**Additional Information:**\n" +
-                    $"\"{GeneralHelpers.Italicize(newQuestion.Notes)}\"\n" +
-                    $"\n" 
-                    : string.Empty
-                ) +
+                $"\n" +
                 $"By: {user.Mention} (`{user.Id}`)\n" +
                 $"ID: `{newQuestion.GuildDependentId}`";
 
             messageBuilder.AddEmbed(GenericEmbeds.Custom(title: $"A new {config.QotdShorthandText} Suggestion is available!", message: embedBody,
                 color: "#f0b132"));
+
+            if (newQuestion.Notes is not null)
+            {
+                messageBuilder.AddEmbed(
+                    GenericEmbeds.Info(title: "Additional Information", message: GeneralHelpers.Italicize(newQuestion.Notes))
+                    .WithFooter("Written by the suggester, visible to everyone.")
+                    );
+            }
 
             if (newQuestion.SuggesterAdminOnlyInfo is not null)
             {
