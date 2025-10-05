@@ -75,37 +75,52 @@ namespace OpenQotd.Bot.Commands
 
         [Command("help")]
         [Description("Print general information about OpenQOTD")]
-        public static async Task HelpAsync(CommandContext context)
+        public static async Task HelpAsync(CommandContext context,
+            [Description("Which viewable OpenQOTD profile to view general information of.")][SlashAutoCompleteProvider<ViewableProfilesAutoCompleteProvider>] int? For=null)
         {
-            Config? config = await ProfileHelpers.TryGetDefaultConfigAsync(context);
+            Config? config = For is null ? await ProfileHelpers.TryGetDefaultConfigAsync(context) : await ProfileHelpers.TryGetConfigAsync(context, For.Value);
             if (config is null || !await CommandRequirements.UserIsBasic(context, config))
                 return;
 
-            string userRole = "Basic User";
+            string userRole = $"Basic {config.QotdShorthandText} User";
             if (context.Member!.Permissions.HasPermission(DiscordPermission.Administrator))
-                userRole = "Full Administrator (incl. Config)";
+                userRole = "Full Server Administrator (incl. `/config` and `/presets`)";
             else if (await CommandRequirements.UserIsAdmin(context, config, responseOnError:false))
-                userRole = "QOTD Administrator (excl. Config)";
+                userRole = $"{config.QotdShorthandText} Administrator (excl. `/config` and `/presets`)";
 
             string configValuesDescription = config == null ?
                 $"**:warning: Config not initialized**" :
-                $"- User role: **{userRole}**\n" +
-                $"- QOTD channel: <#{config.QotdChannelId}>\n" +
-                $"- QOTD time: {DSharpPlus.Formatter.Timestamp(DateTime.Today + new TimeSpan(config.QotdTimeHourUtc, config.QotdTimeMinuteUtc, 0), DSharpPlus.TimestampFormat.ShortTime)}\n" +
+                $"- Is default profile: {config.IsDefaultProfile}\n" +
+                $"- {config.QotdShorthandText} Title: *{config.QotdTitleText}*\n" + 
+                $"- {config.QotdShorthandText} channel: <#{config.QotdChannelId}>\n" +
+                $"- {config.QotdShorthandText} time: {DSharpPlus.Formatter.Timestamp(DateTime.Today + new TimeSpan(config.QotdTimeHourUtc, config.QotdTimeMinuteUtc, 0), DSharpPlus.TimestampFormat.ShortTime)}\n" +
+                $"- Your role: **{userRole}**\n" +
                 $"- Suggestions enabled: **{config.EnableSuggestions}**";
 
-            DiscordEmbed responseEmbed = GenericEmbeds.Info(title: $"OpenQOTD v{Program.AppSettings.Version} - Help", message:
-                $"*OpenQOTD is an open-source Question Of The Day Discord bot with a strong focus on a random sending of QOTDs, custom questions, suggestions, presets and more.*\n" +
+            DiscordEmbed responseEmbed = GenericEmbeds.Info(title: $"OpenQOTD v{Program.AppSettings.Version}", message:
+                $"# About\n" +
+                $"*OpenQOTD is a free and open-source bot that allows user-suggested, staff-added, or preset messages to be sent at regular intervals. " +
+                $"It was originally meant to only be a \"Question Of The Day\"-bot, however it has evolved to allow for much more than that, with many more features planned.\n" +
+                $"\n" +
+                $"If you enjoy this bot, please consider [adding it to a server](<https://open-qotd.ascyt.com/add>) or joining the [Community & Support Server](<https://open-qotd.ascyt.com/community>). " +
+                $"You can find the documentation and a little bit of extra info about the bot [here](<https://open-qotd.ascyt.com/>).\n" +
+                $"\n" +
+                $"I'm a young hobbyist developer, and, aside for the occasional donation, have not made a cent on this mostly solo project. " +
+                $"If you enjoy this bot and would like to help out, please consider supporting me with a small [Donation](<https://ascyt.com/donate>) for the countless hours I've spent working on it, I would appreciate it a ton :)*\n" +
+                $"\n" +
                 $"# Basic Commands\n" +
-                $"- `/qotd` or `/suggest`: Suggest a QOTD to the current server if suggestions are enabled.\n" +
-                $"- `/leaderboard` or `/lb`: View a learderboard based on whose questions have been sent the most.\n" +
-                $"- `/topic`: Send a random question to the current channel, to revive a dead chat.\n" +
-                $"- `/sentquestions`: View all questions that have been sent.\n" +
+                $"- `/qotd` or `/suggest`: Suggest a {config!.QotdShorthandText} to the current server if suggestions are enabled.\n" +
+                $"- `/leaderboard` or `/lb`: View a learderboard ranked on the amount of questions sent.\n" +
+                $"- `/topic`: Send a random already sent {config.QotdShorthandText} to the current channel, to revive a dead chat.\n" +
+                $"- `/sentquestions`: View all {config.QotdShorthandText}'s that have been sent.\n" +
                 $"- `/feedback`: Submit feedback, suggestions or bug reports to the developers of OpenQOTD.\n" +
-                $"# Server & User values\n" +
+                $"\n" +
+                $"# Config & User Values\n" +
                 $"{configValuesDescription}\n" +
+                $"\n" +
                 $"# Useful Links\n" +
                 $"- :heart: [Donate](https://ascyt.com/donate/)\n" +
+                $"- [Add OpenQOTD to your server!](https://open-qotd.ascyt.com/add)\n" +
                 $"- [Documentation & About](https://open-qotd.ascyt.com/)\n" +
                 $"- [Community & Support Server](https://open-qotd.ascyt.com/community)\n" +
                 $"\n" +
