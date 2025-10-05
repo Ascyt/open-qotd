@@ -24,6 +24,16 @@ namespace OpenQotd.Bot.EventHandlers
                 return;
             }
 
+            bool editMessage = false;
+            if (idArgs[0].StartsWith("edit_"))
+            {
+                editMessage = true;
+                idArgs[0] = idArgs[0][5..];
+            }
+
+            if (idArgs[0].StartsWith("prompt-option-"))
+                return;
+
             switch (idArgs[0])
             {
                 case "suggestions-accept":
@@ -42,13 +52,32 @@ namespace OpenQotd.Bot.EventHandlers
                     if (!await HasExactlyNArguments(args, idArgs, 1))
                         return;
 
-                    await CreateSuggestionEventHandlers.SuggestQotdButtonClicked(client, args, int.Parse(idArgs[1]));
+                    await CreateSuggestionEventHandlers.SuggestQotdButtonClicked(args, int.Parse(idArgs[1]));
                     return;
 
                 case "show-qotd-notes":
                     if (!await HasExactlyNArguments(args, idArgs, 2))
                         return;
-                    await QotdInfoButtonsEventHandlers.ShowQotdNotesButtonClicked(client, args, int.Parse(idArgs[1]), int.Parse(idArgs[2]));
+                    await QotdInfoButtonsEventHandlers.ShowQotdNotesButtonClicked(args, int.Parse(idArgs[1]), int.Parse(idArgs[2]));
+                    return;
+
+                case "show-general-info":
+                    if (!await HasExactlyNArguments(args, idArgs, 2))
+                        return;
+                    await QotdInfoButtonsEventHandlers.ShowGeneralInfoButtonClicked(args, int.Parse(idArgs[1]), int.Parse(idArgs[2]));
+                    return;
+
+                case "show-general-info-no-prompt":
+                    if (!await HasExactlyNArguments(args, idArgs, 1))
+                        return;
+                    await QotdInfoButtonsEventHandlers.ShowGeneralInfoNoPromptButtonClicked(args, int.Parse(idArgs[1]), editMessage);
+                    return;
+
+                case "show-qotd-info":
+                    if (!await HasExactlyNArguments(args, idArgs, 2))
+                        return;
+
+                    await QotdInfoButtonsEventHandlers.ShowQotdInfoButtonClicked(args, int.Parse(idArgs[1]), int.Parse(idArgs[2]), editMessage);
                     return;
 
                 case "forward":
@@ -99,7 +128,7 @@ namespace OpenQotd.Bot.EventHandlers
             if (idArgs.Length - 1 == n)
                 return true;
 
-            await RespondWithError(args, $"Component ID for `{idArgs[0]}` must have exactly {n} arguments (provided is {idArgs.Length}).");
+            await RespondWithError(args, $"Component ID for `{idArgs[0]}` must have exactly {n} arguments (provided is {idArgs.Length - 1}).");
             return false;
         }
 

@@ -13,7 +13,7 @@ namespace OpenQotd.Bot.EventHandlers.Suggestions
 {
     public class CreateSuggestionEventHandlers
     {
-        public static async Task SuggestQotdButtonClicked(DiscordClient client, ComponentInteractionCreatedEventArgs args, int profileId)
+        public static async Task SuggestQotdButtonClicked(ComponentInteractionCreatedEventArgs args, int profileId)
         {
             Config? config = await ProfileHelpers.TryGetConfigAsync(args, profileId);
             if (config is null || !await CommandRequirements.UserIsBasic(args, config))

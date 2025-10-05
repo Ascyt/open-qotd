@@ -37,6 +37,11 @@ namespace OpenQotd.Bot.Commands
                 return;
             }
 
+            await context.RespondAsync(GetQuestionsViewResponse(config, question));
+        }
+
+        public static DiscordMessageBuilder GetQuestionsViewResponse(Config config, Question question)
+        {
             DiscordMessageBuilder response = new();
 
             StringBuilder generalInfo = new();
@@ -63,7 +68,7 @@ namespace OpenQotd.Bot.Commands
                     generalInfo.AppendLine($"Sent number: **{question.SentNumber}**");
             }
             response.AddEmbed(GenericEmbeds.Info(title: "General", message: generalInfo.ToString()));
-            
+
             response.AddEmbed(GenericEmbeds.Info(title: "Contents", message: question.Text!).WithFooter($"Written by the submittor. Gets sent as the main {config.QotdShorthandText} body."));
 
             if (!string.IsNullOrWhiteSpace(question.Notes))
@@ -72,7 +77,7 @@ namespace OpenQotd.Bot.Commands
             if (!string.IsNullOrWhiteSpace(question.SuggesterAdminOnlyInfo))
                 response.AddEmbed(GenericEmbeds.Info(title: "Admin-Only Info", message: question.SuggesterAdminOnlyInfo).WithFooter("Written by the submittor. Visible to staff only."));
 
-            await context.RespondAsync(response);
+            return response;
         }
 
         [Command("add")]

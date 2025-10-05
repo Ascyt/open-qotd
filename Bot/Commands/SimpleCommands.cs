@@ -82,22 +82,38 @@ namespace OpenQotd.Bot.Commands
             if (config is null || !await CommandRequirements.UserIsBasic(context, config))
                 return;
 
+            DiscordEmbed responseEmbed = await GetHelpEmbedAsync(config, context.Guild!, context.Member!);
+
+            if (context is SlashCommandContext)
+            {
+                SlashCommandContext slashCommandcontext = (context as SlashCommandContext)!;
+
+                await slashCommandcontext.RespondAsync(responseEmbed, ephemeral: true);
+            }
+            else
+            {
+                await context.RespondAsync(responseEmbed);
+            }
+        }
+
+        public static async Task<DiscordEmbed> GetHelpEmbedAsync(Config config, DiscordGuild guild, DiscordMember member)
+        {
             string userRole = $"Basic {config.QotdShorthandText} User";
-            if (context.Member!.Permissions.HasPermission(DiscordPermission.Administrator))
+            if (member.Permissions.HasPermission(DiscordPermission.Administrator))
                 userRole = "Full Server Administrator (incl. `/config` and `/presets`)";
-            else if (await CommandRequirements.UserIsAdmin(context, config, responseOnError:false))
+            else if ((await CommandRequirements.UserIsAdmin(guild, member, config)).Item1)
                 userRole = $"{config.QotdShorthandText} Administrator (excl. `/config` and `/presets`)";
 
             string configValuesDescription = config == null ?
                 $"**:warning: Config not initialized**" :
                 $"- Is default profile: {config.IsDefaultProfile}\n" +
-                $"- {config.QotdShorthandText} Title: *{config.QotdTitleText}*\n" + 
+                $"- {config.QotdShorthandText} Title: *{config.QotdTitleText}*\n" +
                 $"- {config.QotdShorthandText} channel: <#{config.QotdChannelId}>\n" +
                 $"- {config.QotdShorthandText} time: {DSharpPlus.Formatter.Timestamp(DateTime.Today + new TimeSpan(config.QotdTimeHourUtc, config.QotdTimeMinuteUtc, 0), DSharpPlus.TimestampFormat.ShortTime)}\n" +
                 $"- Your role: **{userRole}**\n" +
                 $"- Suggestions enabled: **{config.EnableSuggestions}**";
 
-            DiscordEmbed responseEmbed = GenericEmbeds.Info(title: $"OpenQOTD v{Program.AppSettings.Version}", message:
+            return GenericEmbeds.Info(title: $"OpenQOTD v{Program.AppSettings.Version}", message:
                 $"# About\n" +
                 $"*OpenQOTD is a free and open-source bot that allows user-suggested, staff-added, or preset messages to be sent at regular intervals. " +
                 $"It was originally meant to only be a \"Question Of The Day\"-bot, however it has evolved to allow for much more than that, with many more features planned.\n" +
@@ -130,17 +146,6 @@ namespace OpenQotd.Bot.Commands
                 $"- [Terms of Service](https://open-qotd.ascyt.com/terms-of-service)\n" +
                 $"- [Privacy Policy](https://open-qotd.ascyt.com/privacy-policy)\n"
                 );
-
-            if (context is SlashCommandContext)
-            {
-                SlashCommandContext slashCommandcontext = (context as SlashCommandContext)!;
-
-                await slashCommandcontext.RespondAsync(responseEmbed, ephemeral: true);
-            }
-            else
-            {
-                await context.RespondAsync(responseEmbed);
-            }
         }
     }
 }
