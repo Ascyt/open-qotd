@@ -211,8 +211,14 @@ namespace OpenQotd.Bot.Database.Entities
             if (question.ThumbnailImageUrl is not null && !await CheckTextLengthValidity(question.ThumbnailImageUrl, Program.AppSettings.QuestionThumbnailImageUrlMaxLength, "Thumbnail Image URL", context, lineNumberString))
                 return false;
 
-            //if (question.ThumbnailImageUrl is not null && !await IsValidImageUrl(question.ThumbnailImageUrl!, context, lineNumberString))
-            //    return false;
+            if (question.ThumbnailImageUrl is not null && !IsUrlValid(question.ThumbnailImageUrl))
+            {
+                //if (context is not null)
+                //    await context.RespondAsync(
+                //        GenericEmbeds.Error(title: "Invalid URL", message: $"The Thumbnail Image URL of your question{lineNumberString} is not a valid URL. Please provide a valid URL starting with http:// or https://."));
+
+                question.ThumbnailImageUrl = "https://open-qotd.ascyt.com/assets/images/bot/invalid-image-url-fallback.png"; // Fallback image if the URL is invalid
+            }
 
             if (question.SuggesterAdminOnlyInfo is not null && !await CheckTextLengthValidity(question.SuggesterAdminOnlyInfo, Program.AppSettings.QuestionSuggesterAdminInfoMaxLength, "Staff Notes", context, lineNumberString))
                 return false;
@@ -231,56 +237,13 @@ namespace OpenQotd.Bot.Database.Entities
             }
             return true;
         }
-        
-        private static async Task<bool> IsValidImageUrl(string url, CommandContext? context, string lineNumberString) 
+
+        private static bool IsUrlValid(string url)
         {
-            if (!Uri.TryCreate(url, UriKind.Absolute, out Uri? uriResult))
+            if (Uri.TryCreate(url, UriKind.Absolute, out Uri? uriResult))
             {
-                if (context is not null)
-                    await context.RespondAsync(
-                        GenericEmbeds.Error(title: "Invalid URL", message: $"The thumbnail image URL of your question{lineNumberString} is not a valid URL."));
-
-                return false;
+                return (uriResult.Scheme == Uri.UriSchemeHttp || uriResult.Scheme == Uri.UriSchemeHttps);
             }
-
-            if (uriResult.Scheme != Uri.UriSchemeHttps)
-            {
-                if (context is not null)
-                    await context.RespondAsync(
-                        GenericEmbeds.Error(title: "HTTPS URL Required", message: $"The thumbnail image URL of your question{lineNumberString} must use HTTPS."));
-                return false;
-            }
-
-            // Check for Discord CDN URLs
-            if (uriResult.Host.EndsWith("discordapp.com") || uriResult.Host.EndsWith("discord.com"))
-            {
-                string[] discordImageExtensions = [".png", ".jpg", ".jpeg", ".gif", ".webp"];
-                if (!discordImageExtensions.Any(ext => uriResult.AbsolutePath.EndsWith(ext, StringComparison.OrdinalIgnoreCase)))
-                {
-                    if (context is not null)
-                        await context.RespondAsync(
-                            GenericEmbeds.Error(title: "Invalid Discord Image URL", message: $"The thumbnail image URL of your question{lineNumberString} is not a valid Discord image URL. Only direct links to images are allowed."));
-                    return false;
-                }
-                return true;
-            }
-            // Check for Imgur URLs
-            if (uriResult.Host.EndsWith("imgur.com") || uriResult.Host.EndsWith("i.imgur.com"))
-            {
-                string[] imgurImageExtensions = [".png", ".jpg", ".jpeg", ".gif", ".webp"];
-                if (!imgurImageExtensions.Any(ext => uriResult.AbsolutePath.EndsWith(ext, StringComparison.OrdinalIgnoreCase)))
-                {
-                    if (context is not null)
-                        await context.RespondAsync(
-                            GenericEmbeds.Error(title: "Invalid Imgur Image URL", message: $"The thumbnail image URL of your question{lineNumberString} is not a valid Imgur image URL. Only direct links to images are allowed."));
-                    return false;
-                }
-                return true;
-            }
-
-            if (context is not null)
-                await context.RespondAsync(
-                    GenericEmbeds.Error(title: "Unsupported Image Host", message: $"The thumbnail image URL of your question{lineNumberString} must be hosted on either Discord or Imgur."));
             return false;
         }
     }

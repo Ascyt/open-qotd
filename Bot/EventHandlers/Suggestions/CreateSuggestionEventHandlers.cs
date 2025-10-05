@@ -41,7 +41,7 @@ namespace OpenQotd.Bot.EventHandlers.Suggestions
                 .AddTextInputComponent(new DiscordTextInputComponent(
                     label: "(optional) Additional Information", customId: "notes", placeholder: $"There will be a button for people to view this info under the sent {config.QotdShorthandText}.", max_length: Program.AppSettings.QuestionNotesMaxLength, required: false, style: DiscordTextInputStyle.Paragraph))
                 .AddTextInputComponent(new DiscordTextInputComponent(
-                    label: "(optional) Thumbnail (Image link)", customId: "thumbnail-url", placeholder: "Only image URLs from Discord or Imgur are allowed.", max_length: Program.AppSettings.QuestionThumbnailImageUrlMaxLength, required: false, style: DiscordTextInputStyle.Short))
+                    label: "(optional) Thumbnail (Image link)", customId: "thumbnail-url", placeholder: "Will be shown alongside the QOTD.", max_length: Program.AppSettings.QuestionThumbnailImageUrlMaxLength, required: false, style: DiscordTextInputStyle.Short))
                 .AddTextInputComponent(new DiscordTextInputComponent(
                     label: "(optional) Staff Info", customId: "suggester-adminonly", placeholder: "This will only be visible to staff for reviewing the suggestion.", max_length: Program.AppSettings.QuestionSuggesterAdminInfoMaxLength, required: false, style: DiscordTextInputStyle.Paragraph));
         }
@@ -135,6 +135,8 @@ namespace OpenQotd.Bot.EventHandlers.Suggestions
                     $"Has successfully been suggested!\n" +
                     $"You will be notified when it gets accepted or denied."));
 
+            if (newQuestion.ThumbnailImageUrl is not null)
+                result.Item2.WithThumbnail(newQuestion.ThumbnailImageUrl);
 
             await Logging.LogUserAction(channel, user, config,
                 title: $"Suggested {config.QotdShorthandText}",
@@ -187,10 +189,18 @@ namespace OpenQotd.Bot.EventHandlers.Suggestions
                 $"\"{GeneralHelpers.Italicize(newQuestion.Text!)}\"\n" +
                 $"\n" +
                 $"By: {user.Mention} (`{user.Id}`)\n" +
-                $"ID: `{newQuestion.GuildDependentId}`";
+                $"ID: `{newQuestion.GuildDependentId}`" +
+                (newQuestion.ThumbnailImageUrl is not null ? $"\nIncludes a thumbnail image (if it's not visible in this message, it means that the fetching for it failed)." : null);
 
-            messageBuilder.AddEmbed(GenericEmbeds.Custom(title: $"A new {config.QotdShorthandText} Suggestion is available!", message: embedBody,
-                color: "#f0b132"));
+            DiscordEmbedBuilder availableEmbed = GenericEmbeds.Custom(title: $"A new {config.QotdShorthandText} Suggestion is available!", message: embedBody,
+                color: "#f0b132");
+
+            if (newQuestion.ThumbnailImageUrl is not null)
+            {
+                availableEmbed.WithThumbnail(newQuestion.ThumbnailImageUrl);
+            }
+
+            messageBuilder.AddEmbed(availableEmbed);
 
             if (newQuestion.Notes is not null)
             {
@@ -203,7 +213,7 @@ namespace OpenQotd.Bot.EventHandlers.Suggestions
             if (newQuestion.SuggesterAdminOnlyInfo is not null)
             {
                 messageBuilder.AddEmbed(
-                    GenericEmbeds.Info(title:"Staff Note", message:GeneralHelpers.Italicize(newQuestion.SuggesterAdminOnlyInfo))
+                    GenericEmbeds.Info(title: "Staff Note", message: GeneralHelpers.Italicize(newQuestion.SuggesterAdminOnlyInfo))
                     .WithFooter("Written by the suggester, only visible to staff.")
                     );
             }

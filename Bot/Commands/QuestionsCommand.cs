@@ -77,6 +77,11 @@ namespace OpenQotd.Bot.Commands
             if (!string.IsNullOrWhiteSpace(question.SuggesterAdminOnlyInfo))
                 response.AddEmbed(GenericEmbeds.Info(title: "Admin-Only Info", message: question.SuggesterAdminOnlyInfo).WithFooter("Written by the submittor. Visible to staff only."));
 
+            if (!string.IsNullOrWhiteSpace(question.ThumbnailImageUrl))
+                response.AddEmbed(GenericEmbeds.Info(title: "Thumbnail Image", message: $"URL: <{question.ThumbnailImageUrl}>")
+                    .WithImageUrl(question.ThumbnailImageUrl)
+                    .WithFooter("Thumbnail image URL, as provided by the submittor. Gets shown as a small image above the main body."));
+
             return response;
         }
 

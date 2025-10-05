@@ -203,14 +203,16 @@ namespace OpenQotd.Bot.QotdSending
                     + 1;
             }
 
-            messageBuilder.AddEmbed(
+            DiscordEmbedBuilder qotdEmbed =
                 GenericEmbeds.Custom($"{d.QotdTitle} #{sentQuestionsCount}",
                 $"{question.Text}\n" +
                 $"\n" +
                 $"*Submitted by <@{question.SubmittedByUserId}>*",
                 color: "#8acfac")
-                .WithFooter($"{acceptedQuestionsCount} question{(acceptedQuestionsCount == 1 ? "" : "s")} left{(d.config.EnableSuggestions ? $", {d.SuggestCommand}" : "")} \x2022 Question ID: {question.GuildDependentId}")
-                );
+                .WithFooter($"{acceptedQuestionsCount} question{(acceptedQuestionsCount == 1 ? "" : "s")} left{(d.config.EnableSuggestions ? $", {d.SuggestCommand}" : "")} \x2022 Question ID: {question.GuildDependentId}");
+            if (question.ThumbnailImageUrl is not null)
+                qotdEmbed.WithThumbnail(question.ThumbnailImageUrl);
+            messageBuilder.AddEmbed(qotdEmbed);
 
             DiscordChannel qotdChannel = await d.GetQotdChannelAsync();
 
