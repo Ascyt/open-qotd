@@ -94,6 +94,12 @@
             Determines whether a message is sent if there are no QOTDs available, which happens if there are no custom questions available and presets are disabled or exhausted.<br />
         </li>
         <li class="mb-2">
+            <code>enable_qotd_show_info_button<span class="default-value">true</span></code>:
+            Determines whether a little "🛈"-button should be added under QOTDs.<br />
+            For non-admins and/or preset questions, it shows the output of <code>/help</code>; for normal questions if pressed by an admin, there is a prompt for whether to show <code>/questions view</code> for this question or <code>/help</code>.<br />
+            This is purely visual and for convenience, it does not alter any data, and the button responses only get shown to the person who pressed the button.
+        </li>
+        <li class="mb-2">
             <code class="required">qotd_time_hour_utc</code> & <code class="required">qotd_time_minute_utc</code>: 
             The hour and minute at which the QOTDs are sent (if <code>enable_automatic_qotd</code> is enabled), in UTC time.<br />
             The hour must be between 0 and 23, and the minute must be between 0 and 59.<br />
