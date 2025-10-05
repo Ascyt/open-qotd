@@ -2,7 +2,6 @@
 using DSharpPlus.Entities;
 using DSharpPlus.Exceptions;
 using OpenQotd.Bot.Database.Entities;
-using static System.Net.Mime.MediaTypeNames;
 
 namespace OpenQotd.Bot.Helpers
 {
