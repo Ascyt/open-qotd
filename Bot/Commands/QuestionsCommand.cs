@@ -1,12 +1,12 @@
-﻿using OpenQotd.Bot.Database;
-using OpenQotd.Bot.Database.Entities;
-using OpenQotd.Bot.Helpers;
-using DSharpPlus.Commands;
+﻿using DSharpPlus.Commands;
 using DSharpPlus.Entities;
 using Microsoft.EntityFrameworkCore;
+using OpenQotd.Bot.Database;
+using OpenQotd.Bot.Database.Entities;
+using OpenQotd.Bot.Helpers;
+using OpenQotd.Bot.Helpers.Profiles;
 using System.ComponentModel;
 using System.Text;
-using OpenQotd.Bot.Helpers.Profiles;
 
 namespace OpenQotd.Bot.Commands
 {
@@ -37,32 +37,42 @@ namespace OpenQotd.Bot.Commands
                 return;
             }
 
-            StringBuilder sb = new();
+            DiscordMessageBuilder response = new();
 
-            sb.AppendLine($"ID: `{question.GuildDependentId}`");
-            sb.AppendLine($"Type: {Question.TypeToStyledString(question.Type)}");
-            sb.AppendLine();
-            sb.AppendLine($"Submitted by: <@{question.SubmittedByUserId}> (`{question.SubmittedByUserId}`)");
-            sb.AppendLine($"Submitted at: {DSharpPlus.Formatter.Timestamp(question.Timestamp, DSharpPlus.TimestampFormat.ShortDateTime)}");
-            if (question.AcceptedByUserId != null || question.AcceptedTimestamp != null)
+            StringBuilder generalInfo = new();
+            generalInfo.AppendLine($"Belongs to profile: **{config.ProfileName}**");
+            generalInfo.AppendLine($"ID: `{question.GuildDependentId}`");
+            generalInfo.AppendLine($"Type: {Question.TypeToStyledString(question.Type)}");
+            generalInfo.AppendLine();
+            generalInfo.AppendLine($"Submitted by: <@{question.SubmittedByUserId}> (`{question.SubmittedByUserId}`)");
+            generalInfo.AppendLine($"Submitted at: {DSharpPlus.Formatter.Timestamp(question.Timestamp, DSharpPlus.TimestampFormat.ShortDateTime)}");
+            if (question.AcceptedByUserId is not null || question.AcceptedTimestamp is not null)
             {
-                sb.AppendLine();
-                if (question.AcceptedByUserId != null)
-                    sb.AppendLine($"Accepted by: <@{question.AcceptedByUserId}> (`{question.AcceptedByUserId}`)");
-                if (question.AcceptedTimestamp != null)
-                    sb.AppendLine($"Accepted at: {DSharpPlus.Formatter.Timestamp(question.AcceptedTimestamp.Value, DSharpPlus.TimestampFormat.ShortDateTime)}");
+                generalInfo.AppendLine();
+                if (question.AcceptedByUserId is not null)
+                    generalInfo.AppendLine($"Accepted by: <@{question.AcceptedByUserId}> (`{question.AcceptedByUserId}`)");
+                if (question.AcceptedTimestamp is not null)
+                    generalInfo.AppendLine($"Accepted at: {DSharpPlus.Formatter.Timestamp(question.AcceptedTimestamp.Value, DSharpPlus.TimestampFormat.ShortDateTime)}");
             }
-            if (question.SentTimestamp != null || question.SentNumber != null)
+            if (question.SentTimestamp is not null || question.SentNumber is not null)
             {
-                sb.AppendLine();
-                if (question.SentTimestamp != null)
-                    sb.AppendLine($"Sent at: {DSharpPlus.Formatter.Timestamp(question.SentTimestamp.Value, DSharpPlus.TimestampFormat.ShortDateTime)}");
-                if (question.SentNumber != null)
-                    sb.AppendLine($"Sent number: **{question.SentNumber}**");
+                generalInfo.AppendLine();
+                if (question.SentTimestamp is not null)
+                    generalInfo.AppendLine($"Sent at: {DSharpPlus.Formatter.Timestamp(question.SentTimestamp.Value, DSharpPlus.TimestampFormat.ShortDateTime)}");
+                if (question.SentNumber is not null)
+                    generalInfo.AppendLine($"Sent number: **{question.SentNumber}**");
             }
+            response.AddEmbed(GenericEmbeds.Info(title: "General", message: generalInfo.ToString()));
+            
+            response.AddEmbed(GenericEmbeds.Info(title: "Contents", message: question.Text!).WithFooter($"Written by the submittor. Gets sent as the main {config.QotdShorthandText} body."));
 
-            await context.RespondAsync(
-                GenericEmbeds.Info(title: question.Text!, message: sb.ToString()));
+            if (!string.IsNullOrWhiteSpace(question.Notes))
+                response.AddEmbed(GenericEmbeds.Info(title: "Additional Notes", message: question.Notes).WithFooter($"Written by the submittor. Gets shown when a button under the {config.QotdShorthandText} is pressed."));
+
+            if (!string.IsNullOrWhiteSpace(question.SuggesterAdminOnlyInfo))
+                response.AddEmbed(GenericEmbeds.Info(title: "Admin-Only Info", message: question.SuggesterAdminOnlyInfo).WithFooter("Written by the submittor. Visible to staff only."));
+
+            await context.RespondAsync(response);
         }
 
         [Command("add")]
