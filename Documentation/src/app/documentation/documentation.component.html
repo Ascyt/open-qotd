@@ -37,7 +37,8 @@
                 <li><code>/topic</code></li>
                 <li><code>/sentquestions</code></li>
             </ul>
-            This is set to everyone by default. That means, if this variable is unset, everyone in your server is able to run these commands.
+            This is set to everyone by default. That means, if this variable is unset, everyone in your server is able to run these commands.<br />
+            Do not try to set this to "&#64;everyone", it will not work. 
         </li>
         <li class="mb-2">
             <code class="required">admin_role</code>: 
@@ -57,6 +58,13 @@
             </p>
         </li>
         <li class="mb-2">
+            <code class="required">qotd_time_hour_utc</code> & <code class="required">qotd_time_minute_utc</code>: 
+            The hour and minute at which the QOTDs are sent (if <code>enable_automatic_qotd</code> is enabled), in UTC time.<br />
+            The hour must be between 0 and 23, and the minute must be between 0 and 59.<br />
+            For example, if you want the QOTD to be sent at 3:47 PM UTC, you would set <code>qotd_time_hour_utc</code> to 15 and <code>qotd_time_minute_utc</code> to 47.<br />
+            You can use <a href="https://dateful.com/convert/utc" target="_blank">this tool</a> to convert your local time to UTC, and keep in mind that it might change due to daylight saving time.
+        </li>
+        <li class="mb-2">
             <code class="required">qotd_channel</code>: 
             This is the channel that QOTDs are sent to, which includes the daily QOTD and the QOTDs that are triggered manually using <code>/trigger</code>.
         </li>
@@ -64,6 +72,12 @@
             <code>qotd_ping_role</code>: 
             This is the role that gets pinged when a QOTD is sent manually or using <code>/trigger</code>, even if it is a preset or there is no QOTD available.<br />
             If this variable is unset, no role is pinged.
+        </li>
+        <li class="mb-2">
+            <code>qotd_title<span class="default-value">Question Of The Day</span></code>:
+            The title that is displayed in QOTD messages.<br />
+            You can set this to display a different text, such as "Quote Of The Day" or "Topic Of The Day", allowing you to use the bot for whichever non-question purposes you want.<br />
+            This works great in combination with <strong>Profiles</strong>, to allow you to set up multiple instances of the bot, each with a different purpose. 
         </li>
         <li class="mb-2">
             <code>enable_automatic_qotd<span class="default-value">true</span></code>: 
@@ -84,15 +98,19 @@
             See <b>Presets</b> for more information.
         </li>
         <li class="mb-2">
+            <code>enable_qotd_last_available_warn<span class="default-value">true</span></code>: 
+            Determines whether a "Warning: Last QOTD" embed should be appended to a sent QOTD if it is the last available custom QOTD,
+            advising users to make a suggestion if suggestions are enabled.
+        </li>
+        <li class="mb-2">
             <code>enable_qotd_unavailable_message<span class="default-value">true</span></code>:
             Determines whether a message is sent if there are no QOTDs available, which happens if there are no custom questions available and presets are disabled or exhausted.<br />
         </li>
         <li class="mb-2">
-            <code class="required">qotd_time_hour_utc</code> & <code class="required">qotd_time_minute_utc</code>: 
-            The hour and minute at which the QOTDs are sent (if <code>enable_automatic_qotd</code> is enabled), in UTC time.<br />
-            The hour must be between 0 and 23, and the minute must be between 0 and 59.<br />
-            For example, if you want the QOTD to be sent at 3:47 PM UTC, you would set <code>qotd_time_hour_utc</code> to 15 and <code>qotd_time_minute_utc</code> to 47.<br />
-            You can use <a href="https://dateful.com/convert/utc" target="_blank">this tool</a> to convert your local time to UTC, and keep in mind that it might change due to daylight saving time.
+            <code>enable_qotd_show_info_button<span class="default-value">true</span></code>:
+            Determines whether a little "🛈"-button should be added under QOTDs.<br />
+            For non-admins and/or preset questions, it shows the output of <code>/help</code>; for normal questions if pressed by an admin, there is a prompt for whether to show <code>/questions view</code> for this question or <code>/help</code>.<br />
+            This is purely visual and for convenience, it does not alter any data, and the button responses only get shown to the person who pressed the button.
         </li>
         <li class="mb-2">
             <code>enable_suggestions<span class="default-value">true</span></code>:
@@ -124,6 +142,11 @@
             </ul>
         </li>
         <li class="mb-2">
+            <code>enable_deleted_to_stash<span class="default-value">true</span></code>: 
+            If enabled, when a suggestion gets denied or a question gets manually deleted, instead of being permanently deleted, its type will get set to <span class="question-type stashed">Stashed</span> unless it already is <span class="question-type stashed">Stashed</span>. <br />
+            Stashed questions can be cleared and thus be permanently deleted using <code>/questions clearstash</code>.
+        </li>
+        <li class="mb-2">
             <code>logs_channel</code>:
             The channel where logs are sent to, which includes changes being made to the config, questions or suggestions. <br />
             
@@ -143,21 +166,22 @@
         They can be added by staff members or suggested by users (if suggestions are enabled). 
         Presets work a little differently, to learn more about them see <b>Presets</b>.
     </p>
+    <p>
+        Each question's body text is limited to <b>256 characters</b>. As an anti-spam measure, the total amount of questions is limited to <b>65536</b>. If a larger amount is needed, feel free to let me know personally and we'll figure something out.
+    </p>
     <h4>Types</h4>
     <p>
-        Each question has one of three types, <b>Suggested</b>, <b>Accepted</b> or <b>Sent</b>:
+        Each question has one of four types, <span class="question-type suggested">Suggested</span>, <span class="question-type accepted">Accepted</span>, <span class="question-type sent">Sent</span> or <span class="question-type stashed">Stashed</span>:
     </p>    
     <ul>
-        <li><b>Suggested</b> questions are questions that have been suggested by users, and have to be accepted or denied by staff members to be sendable.
-        In listings, they are denoted using a <b>red square</b> (🟥)</li>
-        <li><b>Accepted</b> questions are questions that have been accepted or added by staff members, and are sendable.
-        In listings, they are denoted using a <b>blue diamond</b> (🔷)</li>
-        <li><b>Sent</b> questions are questions that have been sent already, and are not sendable again.
-        In listings, they are denoted using a <b>green circle</b> (🟢)</li>
+        <li><span class="question-type suggested">Suggested</span> questions are questions that have been suggested by users, and have to be accepted or denied by staff members to be sendable.</li>
+        <li><span class="question-type accepted">Accepted</span> questions are questions that have been accepted or added by staff members, and are sendable.</li>
+        <li><span class="question-type sent">Sent</span> questions are questions that have been sent already, and are not sendable again.</li>
+        <li><span class="question-type stashed">Stashed</span> questions are questions that have either been deleted (if <code>enable_deleted_to_stash</code> is enabled) or manually set to Stashed.</li>
     </ul>
     <p>
-        As you can see, the only questions that are sendable are <b>Accepted</b> questions, and they are prioritized over Presets if they are available.<br />
-        If a QOTD is triggered either daily automatically or using <code>/trigger</code>, a random <b>Accepted</b> question is sent, and that question is marked as <b>Sent</b>.
+        As you can see, the only questions that are sendable are <span class="question-type accepted">Accepted</span> questions, and they are prioritized over Presets if they are available.<br />
+        If a QOTD is triggered either daily automatically or using <code>/trigger</code>, a random <span class="question-type accepted">Accepted</span> question is sent, and that question is marked as <span class="question-type sent">Sent</span>.
     </p>
     <h4>Commands</h4>
     <p>
@@ -169,7 +193,7 @@
             <code>/questions view [question_id]</code>: View all available information about a question, including its type, content, author, the date it was added, the person who accepted it, and more. 
         </li>
         <li class="mb-2">
-            <code>/questions list [type] &lt;page<span class="default-value">1</span>&gt;</code>: List all question of a certain type, which can be <code>Suggested</code>, <code>Accepted</code> or <code>Sent</code>.
+            <code>/questions list &lt;type<span class="default-value">All</span>&gt; &lt;page<span class="default-value">1</span>&gt;</code>: List all question of a certain type, which can be <span class="question-type suggested">Suggested</span>, <span class="question-type accepted">Accepted</span> or <span class="question-type sent">Sent</span>.
         </li>
         <li class="mb-2">
             <code>/questions search [query] &lt;page<span class="default-value">1</span>&gt;</code>: 
@@ -177,26 +201,34 @@
         </li>
         <li class="mb-2">
             <code>/questions add [question] [type]</code>: 
-            Add a question to the bot with a certain type, which can be <code>Suggested</code>, <code>Accepted</code> or <code>Sent</code>.
+            Add a question to the bot with a certain type, which can be <span class="question-type suggested">Suggested</span>, <span class="question-type accepted">Accepted</span> or <span class="question-type sent">Sent</span>.
         </li>
         <li class="mb-2">
             <code>/questions addbulk [questions_file] [type]</code>:
-            Add multiple questions from a file to the bot with a certain type, which can be <code>Suggested</code>, <code>Accepted</code> or <code>Sent</code>.<br />
+            Add multiple questions from a file to the bot with a certain type, which can be <span class="question-type suggested">Suggested</span>, <span class="question-type accepted">Accepted</span> or <span class="question-type sent">Sent</span>.<br />
             The file must be a <code>.txt</code> file with each question on a new line. They are added in the order they are in the file, and as if added line-by-line using <code>/questions add</code>.
         </li>
         <li class="mb-2">
             <code>/questions changetype [question_id] [type]</code>: 
-            Change the type of a question to <code>Suggested</code>, <code>Accepted</code> or <code>Sent</code>.
-            Note that setting a question from <code>Suggest</code> to <code>Accepted</code> works, but it is recommended to use <code>/suggestions accept</code> instead.
+            Change the type of a question to <span class="question-type suggested">Suggested</span>, <span class="question-type accepted">Accepted</span> or <span class="question-type sent">Sent</span>.
+            Note that setting a question from <code>Suggest</code> to <span class="question-type accepted">Accepted</span> works, but it is recommended to use <code>/suggestions accept</code> instead.
         </li>
         <li class="mb-2">
             <code>/questions changetypebulk [from_type] [to_type]</code>:
-            Change the type of all questions of a certain type to another. For example, you can change all <code>Sent</code> questions to <code>Accepted</code>.
-            Unlike <code>/suggestions acceptall</code>, running this command with <code>Suggested</code>→<code>Accepted</code> will not notify the suggesters.
+            Change the type of all questions of a certain type to another. For example, you can change all <span class="question-type sent">Sent</span> questions to <span class="question-type accepted">Accepted</span>.
+            Unlike <code>/suggestions acceptall</code>, running this command with <span class="question-type suggested">Suggested</span>→<span class="question-type accepted">Accepted</span> will not notify the suggesters.
         </li>
         <li class="mb-2">
             <code>/questions remove [question_id]</code>: 
-            Remove a question from the bot. This is irreversible, and the question is removed from all listings.
+            Remove a question from. This will set the question type to <span class="question-type stashed">Stashed</span> if <code>enable_deleted_to_stash</code> is true and it's not already <span class="question-type stashed">Stashed</span>, otherwise it will permanently delete it.
+        </li>
+        <li class="mb-2">
+            <code>/questions removebulk [type]</code>: 
+            Remove all questions of a certain type. If that type is <span class="question-type stashed">Stashed</span> or <code>enable_deleted_to_stash</code> is false, it will permanently delete all questions; otherwise, it will set the type to <span class="question-type stashed">Stashed</span>.
+        </li>
+        <li class="mb-2">
+            <code>/questions clearstash</code>: 
+            Permanently delete all questions of type <span class="question-type stashed">Stashed</span>.
         </li>
     </ul>
 </section>
@@ -205,7 +237,7 @@
     <h3 class="mb-2">Suggestions</h3>
     <p>
         If suggestions are enabled, users can suggest questions using <code>/suggest</code> or <code>/qotd</code>.<br />
-        These suggestions (=questions with type <code>Suggested</code>) have to be accepted or denied by staff members in order to be sendable, and they are sent to the <code>suggestions_channel</code> with buttons to accept or deny them.<br />
+        These suggestions (=questions with type <span class="question-type suggested">Suggested</span>) have to be accepted or denied by staff members in order to be sendable, and they are sent to the <code>suggestions_channel</code> with buttons to accept or deny them.<br />
         Note that anyone can accept or deny suggestions using the buttons of the messages, so make sure to have your <code>suggestions_channel</code> set to a channel that is only viewable by people you trust!<br />
     </p>
     <h4>Commands</h4>
@@ -216,15 +248,15 @@
     <ul>
         <li class="mb-2">
             <code>/suggestions accept [suggestion_id]</code>: 
-            Accepts a suggestion. This changes the type of the question to <code>Accepted</code> and notifies the suggester in private messages.
+            Accepts a suggestion. This changes the type of the question to <span class="question-type accepted">Accepted</span> and notifies the suggester in private messages.
         </li>
         <li class="mb-2">
             <code>/suggestions deny [suggestion_id] [reason]</code>: 
-            Denies a suggestion with a reason. This permanently removes the suggestion from the bot and notifies the suggester with the denial reason in private messages.<br />
+            Denies a suggestion with a reason. This sets the question type to <span class="question-type stashed">Stashed</span> (or permanently deletes it if <code>enable_deleted_to_stash</code> is true) and notifies the suggester with the denial reason in private messages.<br />
         </li>
         <li class="mb-2">
             <code>/suggestions acceptall</code>: 
-            Accepts all suggestions. This changes the type of all suggestions to <code>Accepted</code> and notifies the suggesters in private messages.
+            Accepts all suggestions. This changes the type of all suggestions to <span class="question-type accepted">Accepted</span> and notifies the suggesters in private messages.
         </li>
         <li class="mb-2">
             <code>/suggestions denyall</code>: 
@@ -279,13 +311,13 @@
         </li>
         <li class="mb-2">
             <code>/leaderboard &lt;page<span class="default-value">1</span>&gt;</code>: 
-            View the leaderboard of the server, which shows the top users by the amount of <code>Sent</code> questions they have added
+            View the leaderboard of the server, which shows the top users by the amount of <span class="question-type sent">Sent</span> questions they have added
             (questions that have been accepted and sent as QOTD).<br />
             This is the same as <code>/lb</code>.
         </li>
         <li class="mb-2">
             <code>/topic &lt;include_presets<span class="default-value">true</span>&gt;</code>:
-            Send a random question of type <code>Sent</code> to the current channel. <br />
+            Send a random question of type <span class="question-type sent">Sent</span> to the current channel. <br />
             This can be used to revive a dead chat and find an interesting topic to talk about.<br />
             Using a button below the message, the person who ran the command can reroll the question as many times as they want.<br />
             This command is purely visual, and does not alter the questions in any way, and the same topic can be sent multiple times. 
@@ -297,7 +329,7 @@
         </li>
         <li class="mb-2">
             <code>/suggest [question]</code>: 
-            Suggest a question to be added to the server, which will create a <code>Suggested</code> question that has to be accepted or denied by staff members to be sendable.<br />
+            Suggest a question to be added to the server, which will create a <span class="question-type suggested">Suggested</span> question that has to be accepted or denied by staff members to be sendable.<br />
             This is the same as <code>/qotd</code>.
         </li>
         <li class="mb-2">
@@ -315,5 +347,5 @@
 
 <p>
     &gt; OpenQOTD is looking for contributors! If you want to help out with making the bot or this website better, you can take a look at the <a href="/source" target="_blank">source code</a> on GitHub or <a href="https://ascyt.com/contact">send me a message</a>!<br />
-    &gt;&gt; Have any questions, suggestions, or want to report a bug? Please let us know in our <a href="community" target="_blank">community server</a>!
+    &gt; Have any questions, suggestions, or want to report a bug? Please let us know in our <a href="community" target="_blank">community server</a>!
 </p>

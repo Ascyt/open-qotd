@@ -1,13 +1,17 @@
 .vs
 bin
 obj
-appsettings.json
 *.db
 *.db-shm
 *.db-wal
 *.db-*
 
-Migrations
+Migrations/
 
 notices.json
 feedback.txt
+
+.env
+pgdata/
+
+appsettings.json
