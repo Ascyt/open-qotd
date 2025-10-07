@@ -48,6 +48,9 @@ namespace OpenQotd.Bot.Commands
             QotdTimeMinuteUtc = Math.Clamp(QotdTimeMinuteUtc, 0, 59);
             QotdTimeHourUtc = Math.Clamp(QotdTimeHourUtc, 0, 23);
 
+            if (QotdTimeDayCondition is not null && !await IsValidDayCondition(context, QotdTimeDayCondition))
+                return;
+
             if (ProfileName is not null && !await IsProfileNameValid(context, ProfileName))
                 return;
             if (QotdTitle is not null && !await IsQotdTitleValid(context, QotdTitle))
@@ -177,6 +180,9 @@ namespace OpenQotd.Bot.Commands
                 QotdTimeMinuteUtc = Math.Clamp(QotdTimeMinuteUtc.Value, 0, 59);
             if (QotdTimeHourUtc is not null)
                 QotdTimeHourUtc = Math.Clamp(QotdTimeHourUtc.Value, 0, 23);
+
+            if (QotdTimeDayCondition is not null && !await IsValidDayCondition(context, QotdTimeDayCondition))
+                return;
 
             if (ProfileName is not null && !await IsProfileNameValid(context, ProfileName))
                 return;
@@ -391,6 +397,85 @@ namespace OpenQotd.Bot.Commands
             }
 
             return true;
+        }
+
+        private static async Task<bool> IsValidDayCondition(CommandContext context, string dayCondition)
+        {
+            if (dayCondition.Length > 64)
+            {
+                await context.RespondAsync(
+                    GenericEmbeds.Error($"The provided day condition must not exceed 64 characters in length (provided length is {dayCondition.Length}).")
+                    );
+                return false;
+            }
+
+            if (!IsValidDayConditionFormat(dayCondition))
+            {
+                await context.RespondAsync(
+                    GenericEmbeds.Error($"The provided day condition (`{dayCondition}`) is invalid. Please refer to the documentation for valid formats.")
+                    );
+                return false;
+            }
+            return true;
+        }
+
+        private static bool IsValidDayConditionFormat(string dayCondition)
+        {
+            if (dayCondition.Length < 3)
+                return false;
+
+            if (!dayCondition.StartsWith('#'))
+                return false;
+            
+            switch (dayCondition[2])
+            {
+                case 'D': // Every 'n' days
+                    if (dayCondition.Length < 4 || !int.TryParse(dayCondition[3..], out int n) || n < 1 || n > 31)
+                        return false;
+                    return true;
+                case 'w': // Days of the week, starting with Monday=1
+                    if (dayCondition.Length < 4)
+                        return false;
+
+                    string[] parts = dayCondition[3..].Split(',');
+                    foreach (string part in parts)
+                    {
+                        if (!int.TryParse(part, out int day) || day < 1 || day > 7)
+                            return false;
+                    }
+
+                    return true;
+                case 'W': // Every nth week on the mth day of the week
+                    if (dayCondition.Length < 5)
+                        return false;
+                    string[] parts1 = dayCondition[3..].Split(';');
+
+                    if (parts1.Length != 2)
+                        return false;
+
+                    string weekIndexPart = parts1[0];
+                    if (!int.TryParse(weekIndexPart, out int weekIndex) || weekIndex < 1)
+                        return false;
+
+                    string dayOfWeekPart = parts1[1];
+                    if (!int.TryParse(dayOfWeekPart, out int dayOfWeek) || dayOfWeek < 1 || dayOfWeek > 7)
+                        return false;
+                    return true;
+                case 'm': // Days of the month
+                    if (dayCondition.Length < 4)
+                        return false;
+
+                    string[] parts2 = dayCondition[3..].Split(',');
+                    foreach (string part in parts2)
+                    {
+                        if (!int.TryParse(part, out int day) || day < 1 || day > 31)
+                            return false;
+                    }
+                    return true;
+
+                default:
+                    return false;
+            }
         }
     }
 }
