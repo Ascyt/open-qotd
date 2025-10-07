@@ -87,6 +87,11 @@ namespace OpenQotd.Bot.Database.Entities
         public bool EnableQotdAutomaticPresets { get; set; } = true;
 
         /// <summary>
+        /// If true, send a warning message to the QOTD channel if the sent question was the last available question.
+        /// </summary>
+        public bool EnableQotdLastAvailableWarn { get; set; } = true;
+
+        /// <summary>
         /// If true, send a message to the QOTD channel if no question is available when a QOTD is to be sent.
         /// </summary>
         public bool EnableQotdUnavailableMessage { get; set; } = true;
@@ -184,6 +189,7 @@ namespace OpenQotd.Bot.Database.Entities
                 $"- enable_qotd_pin_message: **{EnableQotdPinMessage}**\n" +
                 $"- enable_qotd_create_thread: **{EnableQotdCreateThread}**\n" +
                 $"- enable_qotd_automatic_presets: **{EnableQotdAutomaticPresets}**\n" +
+                $"- enable_qotd_last_available_warn: **{EnableQotdLastAvailableWarn}**\n" +
                 $"- enable_qotd_unavailable_message: **{EnableQotdUnavailableMessage}**\n" +
                 $"- enable_qotd_show_info_button: **{EnableQotdShowInfoButton}**\n" +
                 $"- qotd_time_hour_utc: **{QotdTimeHourUtc}**\n" +

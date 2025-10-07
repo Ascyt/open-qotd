@@ -31,6 +31,7 @@ namespace OpenQotd.Bot.Commands
             [Description("Whether to pin the most recent QOTD to the channel or not (true by default).")] bool EnableQotdPinMessage = true,
             [Description("Whether to automatically create a thread for every QOTD that gets sent (false by default).")] bool EnableQotdCreateThread = false,
             [Description("Whether to send a random preset when there is no Accepted QOTD available (true by default).")] bool EnableQotdAutomaticPresets = true,
+            [Description("Whether to send a warning embed when the sent QOTD is the last available (true by default).")] bool EnableQotdLastAvailableWarn    = true,
             [Description("Whether to send a \"not available\" message when there is no QOTD available (true by default).")] bool EnableQotdUnvailableMessage = true,
             [Description("Whether to include a button for general info about OpenQOTD under sent QOTDs (true by default).")] bool EnableQotdShowInfoButton = true,
             [Description("Whether to allow users with the BasicRole to suggest QOTDs (true by default).")] bool EnableSuggestions = true,
@@ -78,6 +79,7 @@ namespace OpenQotd.Bot.Commands
                 EnableQotdPinMessage = EnableQotdPinMessage,
                 EnableQotdCreateThread = EnableQotdCreateThread,
                 EnableQotdAutomaticPresets = EnableQotdAutomaticPresets,
+                EnableQotdLastAvailableWarn = EnableQotdLastAvailableWarn,
                 EnableQotdUnavailableMessage = EnableQotdUnvailableMessage,
                 EnableQotdShowInfoButton = EnableQotdShowInfoButton,
                 QotdTimeHourUtc = QotdTimeHourUtc,
@@ -150,6 +152,7 @@ namespace OpenQotd.Bot.Commands
             [Description("Whether to pin the most recent QOTD to the channel or not (true by default).")] bool? EnableQotdPinMessage = null,
             [Description("Whether to automatically create a thread for every QOTD that gets sent (false by default).")] bool? EnableQotdCreateThread = null,
             [Description("Whether to send a random preset when there is no Accepted QOTD available (true by default).")] bool? EnableQotdAutomaticPresets = null,
+            [Description("Whether to send a warning embed when the sent QOTD is the last available (true by default).")] bool? EnableQotdLastAvailableWarn = null,
             [Description("Whether to send a \"not available\" message when there is no QOTD available (true by default).")] bool? EnableQotdUnavailableMessage = null,
             [Description("Whether to include a button for general info about OpenQOTD under sent QOTDs (true by default).")] bool? EnableQotdShowInfoButton = null,
             [Description("Whether to allow users with the BasicRole to suggest QOTDs (true by default).")] bool? EnableSuggestions = null,
@@ -219,6 +222,8 @@ namespace OpenQotd.Bot.Commands
                     config.EnableQotdCreateThread = EnableQotdCreateThread.Value;
                 if (EnableQotdAutomaticPresets is not null)
                     config.EnableQotdAutomaticPresets = EnableQotdAutomaticPresets.Value;
+                if (EnableQotdLastAvailableWarn is not null)
+                    config.EnableQotdLastAvailableWarn = EnableQotdLastAvailableWarn.Value;
                 if (EnableQotdUnavailableMessage is not null)
                     config.EnableQotdUnavailableMessage = EnableQotdUnavailableMessage.Value;
                 if (EnableQotdShowInfoButton is not null)
