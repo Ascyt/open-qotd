@@ -22,6 +22,7 @@ namespace OpenQotd.Bot.Commands
             [Description("The channel the QOTD should get sent in.")] DiscordChannel QotdChannel,
             [Description("The UTC hour of the day the QOTDs should get sent (0-23).")] int QotdTimeHourUtc,
             [Description("The UTC minute of the day the QOTDs should get sent (0-59).")] int QotdTimeMinuteUtc,
+            [Description("Specifies on which days the QOTDs should get sent (sends daily if unset).")] string? QotdTimeDayCondition = null,
             [Description("The display name of the profile this config belongs to (default \"QOTD\")")] string? ProfileName = null,
             [Description("The role a user needs to have to execute any basic commands (allows anyone by default).")] DiscordRole? BasicRole = null,
             [Description("The role that will get pinged when a new QOTD is sent.")] DiscordRole? QotdPingRole = null,
@@ -84,6 +85,7 @@ namespace OpenQotd.Bot.Commands
                 EnableQotdShowInfoButton = EnableQotdShowInfoButton,
                 QotdTimeHourUtc = QotdTimeHourUtc,
                 QotdTimeMinuteUtc = QotdTimeMinuteUtc,
+                QotdTimeDayCondition = QotdTimeDayCondition,
                 EnableSuggestions = EnableSuggestions,
                 SuggestionsChannelId = SuggestionsChannel?.Id,
                 SuggestionsPingRoleId = SuggestionsPingRole?.Id,
@@ -145,6 +147,7 @@ namespace OpenQotd.Bot.Commands
             [Description("The channel the QOTD should get sent in.")] DiscordChannel? QotdChannel = null,
             [Description("The UTC hour of the day the QOTDs should get sent (0-23).")] int? QotdTimeHourUtc = null,
             [Description("The UTC minute of the day the QOTDs should get sent (0-59).")] int? QotdTimeMinuteUtc = null,
+            [Description("Specifies on which days the QOTDs should get sent (sends daily if unset).")] string? QotdTimeDayCondition = null,
             [Description("The role that will get pinged when a new QOTD is sent.")] DiscordRole? QotdPingRole = null,
             [Description("The title that is displayed in QOTD messages. (defaults to \"Question Of The Day\") if unset)")] string? QotdTitle = null,
             [Description("The shorthand that is sometimes displayed in place of the title. (defaults to \"QOTD\") if unset)")] string? QotdShorthand = null,
@@ -232,6 +235,8 @@ namespace OpenQotd.Bot.Commands
                     config.QotdTimeHourUtc = QotdTimeHourUtc.Value;
                 if (QotdTimeMinuteUtc is not null)
                     config.QotdTimeMinuteUtc = QotdTimeMinuteUtc.Value;
+                if (QotdTimeDayCondition is not null)
+                    config.QotdTimeDayCondition = QotdTimeDayCondition;
                 if (QotdPingRole is not null)
                     config.QotdPingRoleId = QotdPingRole.Id; 
                 if (EnableSuggestions is not null)
@@ -268,6 +273,7 @@ namespace OpenQotd.Bot.Commands
         [Description("Reset optional config values to be unset")]
         public static async Task ResetAsync(CommandContext context,
             [Description("The role a user needs to have to execute any basic commands (allows anyone by default).")] SingleOption? BasicRole = null,
+            [Description("Specifies on which days the QOTDs should get sent (sends daily if unset).")] SingleOption? QotdTimeDayCondition = null,
             [Description("The title that is displayed in QOTD messages. (defaults to \"Question Of The Day\") if unset)")] SingleOption? QotdTitle = null,
             [Description("The role that will get pinged when a new QOTD is sent.")] SingleOption? QotdPingRole = null,
             [Description("The channel new QOTD suggestions get announced in.")] SingleOption? SuggestionsChannel = null,
@@ -293,6 +299,8 @@ namespace OpenQotd.Bot.Commands
 
                 if (BasicRole is not null)
                     config.BasicRoleId = null;
+                if (QotdTimeDayCondition is not null)
+                    config.QotdTimeDayCondition = null;
                 if (QotdTitle is not null)  
                     config.QotdTitle = null;
                 if (QotdPingRole is not null)
