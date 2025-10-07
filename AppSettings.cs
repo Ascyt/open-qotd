@@ -30,6 +30,11 @@
         public int QotdSendingFetchLoopDelayMs { get; set; } = 100;
 
         /// <summary>
+        /// The minimum delay between switching the bot's activity (status message).
+        /// </summary>
+        public int ActivitySwitchLoopDelayMs { get; set; } = 60 * 1000;
+
+        /// <summary>
         /// The maximum amount of parallel threads to be used for sending QOTDs.
         /// </summary>
         public int QotdSendingMaxDegreeOfParallelism { get; set; } = 10;

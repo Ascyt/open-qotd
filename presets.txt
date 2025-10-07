@@ -27,7 +27,7 @@ What makes you nostalgic?
 You meet a genie that tells you he can answer you one question about anything. What do you ask him?
 What are your favorite and your least favorite words of the English language?
 What is in your bucket list?
-What is your favorite song?
+What is your favorite song or album?
 If you could have any one fictional item be real, what would it be?
 If you were forced to move out of your hometown, which country would you move to?
 What animal best describes you?
@@ -44,7 +44,7 @@ What is the most unique thing about you?
 In intense situations, do you think logically or emotionally?
 If you could be transported into any year irreversably, be it in the past, the future or stay in the present - what would you do?
 What is the best thing?
-What is an interesting fun fact you learned this week?e any instruments you're considering learning?
+What is an interesting fun fact you learned this week?
 Do you do any sports? If yes, what is it?
 What is the story behind your username?
 For aesthetic reasons or comfortability, what is your favorite piece of clothing?
@@ -74,7 +74,7 @@ If you had the ability to revive any three people who are not alive anymore, who
 What is your favorite time of the day?
 If it was possible to delete any human emotion, what emotions would you delete permanently?
 What do you look for the most in a potential lover and/or best friend?
-You are able to sell years of your lifetime for $15,000 each. How many years would you sell, if any?
+Would you ever sell a year of your life for money?
 What was your favorite song when you were a child?
 Which of the 5 love languages is more prevalent in you?
 If you were forced to live in any period in history, when would you live and why?
@@ -141,7 +141,7 @@ Do you like your school/job?
 There are two scenarios in the universe: Either we are all alone or we are not the only ones. What do you think is scarier?
 What is something you would do if you had more time?
 What is something that is generally universally agreed upon that you dislike?
-Have you ever won a giveaway? If yes, what did you win?
+Have you ever won a contest or giveaway? If yes, what did you win?
 Do you pay for any online subscriptions? If yes, which?
 What was the best purchase you've ever made?
 What operating system do you use on your phone and desktop computer/laptop?
@@ -157,3 +157,20 @@ How do you feel about AI?
 If you were a villian, what would your "evil plan" be?
 What is the most meaningful gift you've ever received?
 Tell us something you think nobody here knows about you!
+What is your biggest regret?
+What is something you love learning about?
+Can you play any instruments?
+When did you join this server, and what made you join it?
+What is your favorite travel destination?
+What was the best vacation of your life?
+Would you say you have changed as a person significantly over the past few years?
+What is the weather at your current location like?
+Tell us about an inspirational or thought-provoking quote!
+Do you enjoy drawing? 
+What do you consider a form of art that most people may not?
+What is your favorite piece of art?
+Have you ever written a piece of literature?
+What is your preferred method of learning something?
+What is something you could talk about for hours on end?
+How are you doing right now?
+How would you describe your personality?

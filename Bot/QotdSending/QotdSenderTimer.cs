@@ -74,14 +74,14 @@ namespace OpenQotd.Bot.QotdSending
         /// <remarks>
         /// Another check will not occur unless all QOTDs of the previous one have been sent.
         /// </remarks>
-        public static async Task FetchLoopAsync()
+        public static async Task FetchLoopAsync(CancellationToken ct)
         {
             Console.WriteLine("Started fetch loop.");
             while (true)
             {
                 try
                 {
-                    await Task.Delay(Program.AppSettings.QotdSendingFetchLoopDelayMs);
+                    await Task.Delay(Program.AppSettings.QotdSendingFetchLoopDelayMs, ct);
                     //await Console.Out.WriteLineAsync($"[{DateTime.UtcNow:O}] Check time");
                     await SendQotdsAsync();
                 }

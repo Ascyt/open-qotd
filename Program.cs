@@ -10,6 +10,7 @@ using OpenQotd.Bot.EventHandlers;
 using OpenQotd.Bot.Commands;
 using OpenQotd.Bot.UserCommands;
 using Microsoft.Extensions.Configuration;
+using OpenQotd.Bot.ActivitySwitcher;
 
 namespace OpenQotd
 {
@@ -129,12 +130,15 @@ namespace OpenQotd
 
             Console.WriteLine("Connecting client...");
             // Now we connect and log in.
-            await client.ConnectAsync(status, DiscordUserStatus.Online);
+            await client.ConnectAsync();
 
             Console.WriteLine("Client started.");
 
-            // Run the CheckTimeLoop in a separate task
-            _ = Task.Run(() => QotdSenderTimer.FetchLoopAsync());
+            CancellationTokenSource cts = new();
+
+            // Start the background loops for sending QOTDs and switching activities.
+            _ = Task.Run(() => QotdSenderTimer.FetchLoopAsync(cts.Token));
+            _ = Task.Run(() => ActivitySwitcherTimer.ActivitySwitchLoopAsync(cts.Token));
 
             // And now we wait infinitely so that our bot actually stays connected.
             await Task.Delay(-1);
