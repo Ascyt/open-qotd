@@ -241,8 +241,8 @@ namespace OpenQotd.Bot.QotdSending
                 await dbContext.SaveChangesAsync();
             }
 
-            // Warn if this was the last question available
-            if (acceptedQuestionsCount == 0)
+            // Warn if this was the last question available and the config allows it
+            if (acceptedQuestionsCount == 0 && d.config.EnableQotdLastAvailableWarn)
             {
                 DiscordMessageBuilder lastQuestionWarning = new();
 
@@ -254,13 +254,12 @@ namespace OpenQotd.Bot.QotdSending
                 int presetsLeft = Presets.Values.Length - presetsSent;
 
                 // TODO: Enable once #65 is added
-                //lastQuestionWarning.AddEmbed(
-                //    GenericEmbeds.Warning(title: $"Warning: Last {d.QotdShorthand}", message:
-                //    "There is no more Accepted QOTD of this server left." +
-                //    (presetsLeft > 0 && d.config.EnableQotdAutomaticPresets ? $"\nIf none are added, one of **{presetsLeft} Presets** will start to be used instead." : "") +
-                //    (d.config.EnableSuggestions ? $"\n\n*More can be suggested using `/qotd`!*" : "")));
-                //
-                //await qotdChannel.SendMessageAsync(lastQuestionWarning);
+                lastQuestionWarning.AddEmbed(
+                    GenericEmbeds.Warning(title: $"Warning: Last {d.QotdShorthand}", message:
+                    $"There is no more Accepted {d.QotdTitle} of this server left." +
+                    (presetsLeft > 0 && d.config.EnableQotdAutomaticPresets ? $"\nIf none are added, one of **{presetsLeft} Presets** will start to be used instead." : "") +
+                    (d.config.EnableSuggestions ? $"\n\n*More can be suggested using `{d.SuggestCommand}`!*" : "")));
+                await qotdChannel.SendMessageAsync(lastQuestionWarning);
             }
 
             await SendNoticeIfAvailable(d);
