@@ -37,7 +37,8 @@
                 <li><code>/topic</code></li>
                 <li><code>/sentquestions</code></li>
             </ul>
-            This is set to everyone by default. That means, if this variable is unset, everyone in your server is able to run these commands.
+            This is set to everyone by default. That means, if this variable is unset, everyone in your server is able to run these commands.<br />
+            Do not try to set this to "&#64;everyone", it will not work. 
         </li>
         <li class="mb-2">
             <code class="required">admin_role</code>: 
@@ -55,6 +56,13 @@
                 so make sure to have your <code>suggestions_channel</code> set to a channel that is only viewable by people you trust!<br />
                 It's recommended to set it to a staff-only channel, and it can also be within a thread, to make it easier for organization purposes.
             </p>
+        </li>
+        <li class="mb-2">
+            <code class="required">qotd_time_hour_utc</code> & <code class="required">qotd_time_minute_utc</code>: 
+            The hour and minute at which the QOTDs are sent (if <code>enable_automatic_qotd</code> is enabled), in UTC time.<br />
+            The hour must be between 0 and 23, and the minute must be between 0 and 59.<br />
+            For example, if you want the QOTD to be sent at 3:47 PM UTC, you would set <code>qotd_time_hour_utc</code> to 15 and <code>qotd_time_minute_utc</code> to 47.<br />
+            You can use <a href="https://dateful.com/convert/utc" target="_blank">this tool</a> to convert your local time to UTC, and keep in mind that it might change due to daylight saving time.
         </li>
         <li class="mb-2">
             <code class="required">qotd_channel</code>: 
@@ -90,6 +98,11 @@
             See <b>Presets</b> for more information.
         </li>
         <li class="mb-2">
+            <code>enable_qotd_last_available_warn<span class="default-value">true</span></code>: 
+            Determines whether a "Warning: Last QOTD" embed should be appended to a sent QOTD if it is the last available custom QOTD,
+            advising users to make a suggestion if suggestions are enabled.
+        </li>
+        <li class="mb-2">
             <code>enable_qotd_unavailable_message<span class="default-value">true</span></code>:
             Determines whether a message is sent if there are no QOTDs available, which happens if there are no custom questions available and presets are disabled or exhausted.<br />
         </li>
@@ -98,13 +111,6 @@
             Determines whether a little "🛈"-button should be added under QOTDs.<br />
             For non-admins and/or preset questions, it shows the output of <code>/help</code>; for normal questions if pressed by an admin, there is a prompt for whether to show <code>/questions view</code> for this question or <code>/help</code>.<br />
             This is purely visual and for convenience, it does not alter any data, and the button responses only get shown to the person who pressed the button.
-        </li>
-        <li class="mb-2">
-            <code class="required">qotd_time_hour_utc</code> & <code class="required">qotd_time_minute_utc</code>: 
-            The hour and minute at which the QOTDs are sent (if <code>enable_automatic_qotd</code> is enabled), in UTC time.<br />
-            The hour must be between 0 and 23, and the minute must be between 0 and 59.<br />
-            For example, if you want the QOTD to be sent at 3:47 PM UTC, you would set <code>qotd_time_hour_utc</code> to 15 and <code>qotd_time_minute_utc</code> to 47.<br />
-            You can use <a href="https://dateful.com/convert/utc" target="_blank">this tool</a> to convert your local time to UTC, and keep in mind that it might change due to daylight saving time.
         </li>
         <li class="mb-2">
             <code>enable_suggestions<span class="default-value">true</span></code>:
