@@ -22,7 +22,7 @@ namespace OpenQotd.Bot.ActivitySwitcher
                 }
                 catch (Exception ex)
                 {
-                    Console.WriteLine($"Error in FetchLoopAsync:\n{ex.Message}");
+                    Console.WriteLine($"Error in ActivitySwitchLoopAsync:\n{ex.Message}");
                 }
             }
         }
