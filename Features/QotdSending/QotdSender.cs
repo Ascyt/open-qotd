@@ -232,6 +232,26 @@ namespace CustomQotd.Features.QotdSending
 
             DiscordMessage qotdMessage = await qotdChannel.SendMessageAsync(qotdMessageBuilder);
 
+            using (var dbContext = new AppDbContext())
+            {
+                Config? foundConfig = await dbContext.Configs.Where(c => c.GuildId == guildId).FirstOrDefaultAsync();
+                if (foundConfig != null)
+                {
+                    foundConfig.LastQotdMessageId = qotdMessage.Id;
+                }
+
+                Question? foundQuestion = await dbContext.Questions.Where(q => q.Id == question.Id).FirstOrDefaultAsync();
+
+                if (foundQuestion != null)
+                {
+                    foundQuestion.Type = QuestionType.Sent;
+                    foundQuestion.SentNumber = sentQuestionsCount + 1;
+                    foundQuestion.SentTimestamp = DateTime.UtcNow;
+                }
+
+                await dbContext.SaveChangesAsync();
+            }
+
             if (acceptedQuestionsCount == 0)
             {
                 DiscordMessageBuilder lastQuestionWarning = new();
@@ -255,26 +275,6 @@ namespace CustomQotd.Features.QotdSending
 
             await PinMessageIfEnabled(config, qotdChannel, qotdMessage);
             await CreateThreadIfEnabled(config, qotdChannel, qotdMessage, sentQuestionsCount);
-
-            using (var dbContext = new AppDbContext())
-            {
-                Config? foundConfig = await dbContext.Configs.Where(c => c.GuildId == guildId).FirstOrDefaultAsync();
-                if (foundConfig != null)
-                {
-                    foundConfig.LastQotdMessageId = qotdMessage.Id;
-                }
-
-                Question? foundQuestion = await dbContext.Questions.Where(q => q.Id == question.Id).FirstOrDefaultAsync();
-
-                if (foundQuestion != null)
-                {
-                    foundQuestion.Type = QuestionType.Sent;
-                    foundQuestion.SentNumber = sentQuestionsCount + 1;
-                    foundQuestion.SentTimestamp = DateTime.UtcNow;
-                }
-
-                await dbContext.SaveChangesAsync();
-            }
 
             return true;
         }

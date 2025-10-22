@@ -18,7 +18,7 @@ namespace CustomQotd
 {
     class Program
     {
-        public const string VERSION = "1.0.3";
+        public const string VERSION = "1.0.4";
 
         public static DiscordClient Client { get; private set; }
 
