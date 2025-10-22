@@ -89,12 +89,14 @@ namespace OpenQotd.Bot.Commands
                 QotdTimeHourUtc = QotdTimeHourUtc,
                 QotdTimeMinuteUtc = QotdTimeMinuteUtc,
                 QotdTimeDayCondition = QotdTimeDayCondition,
+                QotdTimeDayConditionLastChangedTimestamp = QotdTimeDayCondition is null ? null : DateTime.UtcNow,
                 EnableSuggestions = EnableSuggestions,
                 SuggestionsChannelId = SuggestionsChannel?.Id,
                 SuggestionsPingRoleId = SuggestionsPingRole?.Id,
                 NoticesLevel = NoticesLevel,
                 EnableDeletedToStash = EnableDeletedToStash,
-                LogsChannelId = LogsChannel?.Id
+                LogsChannelId = LogsChannel?.Id,
+                InitializedTimestamp = DateTime.UtcNow
             };
             bool reInitialized = false;
 
@@ -242,7 +244,10 @@ namespace OpenQotd.Bot.Commands
                 if (QotdTimeMinuteUtc is not null)
                     config.QotdTimeMinuteUtc = QotdTimeMinuteUtc.Value;
                 if (QotdTimeDayCondition is not null)
+                {
                     config.QotdTimeDayCondition = QotdTimeDayCondition;
+                    config.QotdTimeDayConditionLastChangedTimestamp = DateTime.UtcNow;
+                }
                 if (QotdPingRole is not null)
                     config.QotdPingRoleId = QotdPingRole.Id; 
                 if (EnableSuggestions is not null)
@@ -306,7 +311,10 @@ namespace OpenQotd.Bot.Commands
                 if (BasicRole is not null)
                     config.BasicRoleId = null;
                 if (QotdTimeDayCondition is not null)
+                {
                     config.QotdTimeDayCondition = null;
+                    config.QotdTimeDayConditionLastChangedTimestamp = null;
+                }
                 if (QotdTitle is not null)  
                     config.QotdTitle = null;
                 if (QotdPingRole is not null)

@@ -168,12 +168,27 @@ namespace OpenQotd.Bot.Database.Entities
         /// </remarks>
         public bool EnableDeletedToStash { get; set; } = true;
 
-        // Internal variables (not viewable and not set using /config)
+        // 
+        // -------------------------------- Internal variables (not viewable and not set using /config) --------------------------------
+        //
+
+        /// <summary>
+        /// The timestamp when this config/profile was initialized. 
+        /// </summary>
+        public DateTime InitializedTimestamp { get; set; }
 
         /// <summary>
         /// When the last QOTD was sent. Used to prevent multiple QOTDs being sent in a single day.
         /// </summary>
         public DateTime? LastSentTimestamp { get; set; }
+
+        /// <summary>
+        /// The timestamp when <see cref="QotdTimeDayCondition"/> was last set or changed. 
+        /// </summary>
+        /// <remarks>
+        /// Used to calculate whether the condition is met for the "every n days/weeks/..."-condition.
+        /// </remarks>
+        public DateTime? QotdTimeDayConditionLastChangedTimestamp { get; set; }
 
         /// <summary>
         /// The ID of the last QOTD message sent. 
