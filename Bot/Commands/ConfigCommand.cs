@@ -6,6 +6,7 @@ using OpenQotd.Bot.Database;
 using OpenQotd.Bot.Database.Entities;
 using OpenQotd.Bot.Helpers;
 using OpenQotd.Bot.Helpers.Profiles;
+using OpenQotd.Bot.QotdSending;
 using System.ComponentModel;
 using System.Threading.Tasks;
 using static OpenQotd.Bot.Logging;
@@ -116,6 +117,8 @@ namespace OpenQotd.Bot.Commands
                 await dbContext.SaveChangesAsync();
             }
             string configString = config.ToString();
+
+            QotdSenderTimer.ConfigIdsToRecache.Add(config.Id);
 
             await context.RespondAsync(
                     GenericEmbeds.Success($"Successfully {(reInitialized ? "re-" : "")}initialized config", configString, profileName:config.ProfileName)
@@ -266,6 +269,8 @@ namespace OpenQotd.Bot.Commands
                 await dbContext.SaveChangesAsync();   
             }
 
+            QotdSenderTimer.ConfigIdsToRecache.Add(config.Id);
+
             string configString = config.ToString();
 
             await context.RespondAsync(
@@ -328,6 +333,8 @@ namespace OpenQotd.Bot.Commands
 
                 await dbContext.SaveChangesAsync();
             }
+
+            QotdSenderTimer.ConfigIdsToRecache.Add(config.Id);
 
             string configString = config.ToString();
 

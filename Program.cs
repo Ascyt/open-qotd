@@ -132,6 +132,9 @@ namespace OpenQotd
 
             Console.WriteLine("Client started.");
 
+            Console.WriteLine("Creating send information cache...");
+            await QotdSenderTimer.LoadAllAsync();
+
             CancellationTokenSource cts = new();
 
             // Start the background loops for sending QOTDs and switching activities.

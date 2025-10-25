@@ -10,6 +10,7 @@ using OpenQotd.Bot.Database;
 using OpenQotd.Bot.Database.Entities;
 using OpenQotd.Bot.Helpers;
 using OpenQotd.Bot.Helpers.Profiles;
+using OpenQotd.Bot.QotdSending;
 using System.ComponentModel;
 
 namespace OpenQotd.Bot.Commands
@@ -323,6 +324,8 @@ namespace OpenQotd.Bot.Commands
                 dbContext.Configs.Remove(config);
                 await dbContext.SaveChangesAsync();
             }
+
+            QotdSenderTimer.ConfigIdsToRemoveFromCache.Add(config.Id);
 
             await sentMessage.ModifyAsync(new DiscordMessageBuilder()
                 .AddEmbed(GenericEmbeds.Success("Profile Deleted", $"The **{config.ProfileName}** profile has been successfully deleted.")));

@@ -24,11 +24,11 @@ namespace OpenQotd.Bot.QotdSending
         /// <remarks>
         /// PriorityQueue does not support removing arbitrary items, so instead we mark them as invalid when we want to remove them.
         /// </remarks>
-        private static readonly PriorityQueue<CachedConfig, DateTime> _cache = new();
+        private static PriorityQueue<CachedConfig, DateTime> _cache = new();
         /// <summary>
         /// Valid cached items by config ID.
         /// </summary>
-        private static readonly Dictionary<int, CachedConfig> _cachedItems = [];
+        private static Dictionary<int, CachedConfig> _cachedItems = [];
 
         /// <summary>
         /// Items to recache before the next cycle.
@@ -80,12 +80,19 @@ namespace OpenQotd.Bot.QotdSending
 
             try
             {
+                _cachedItems = new Dictionary<int, CachedConfig>(GetAllConfigsWithSendingEnabled()
+                    .Select(c => new CachedConfig
+                    {
+                        ConfigId = c.ConfigId,
+                        NextSendTime = QotdSenderTimeCalculations.GetNextSendTime(c.LastSentTimestamp, c.Hour, c.Minute, c.DayCondition, c.DayConditionLastChanged)
+                    })
+                    .Select(c => new KeyValuePair<int, CachedConfig>(c.ConfigId, c)));
+
                 _cache.Clear();
-                _cachedItems.Clear();
-
-                HashSet<ConfigToSendElement> configsToSend = GetAllConfigsWithSendingEnabled();
-
-
+                foreach (CachedConfig cached in _cachedItems.Values)
+                {
+                    _cache.Enqueue(cached, cached.NextSendTime);
+                }
             }
             finally
             {
@@ -251,20 +258,21 @@ namespace OpenQotd.Bot.QotdSending
             };
             await Parallel.ForEachAsync(configs, options, async (config, ct) =>
             {
-                await SendNextQotdIgnoreExceptions(config, latestAvailableNotice);
+                await SendNextQotdIgnoreExceptionsRecacheIfNecessary(config, latestAvailableNotice);
             });
 
             await Console.Out.WriteLineAsync($"[{DateTime.UtcNow:O}] Sent {configs.Length}");
         }
 
         /// <summary>
-        /// Send the next QOTD for the guild and catch and ignore/print all exceptions.
+        /// Send the next QOTD for the guild and catch, ignore/print all exceptions and add it back to cache if necessary.
         /// </summary>
-        private static async Task SendNextQotdIgnoreExceptions(Config config, Notices.Notice? latestAvailableNotice)
+        private static async Task SendNextQotdIgnoreExceptionsRecacheIfNecessary(Config config, Notices.Notice? latestAvailableNotice)
         {
+            bool shouldRecache = true;
             try
             {
-                await QotdSender.FetchGuildAndSendNextQotdAsync(config, latestAvailableNotice);
+                shouldRecache = await QotdSender.FetchGuildAndSendNextQotdAsync(config, latestAvailableNotice);
             }
             catch (QotdChannelNotFoundException)
             {
@@ -274,6 +282,13 @@ namespace OpenQotd.Bot.QotdSending
             {
                 Console.WriteLine($"Error sending QOTD for config {config.Id} (guild {config.GuildId}): {ex.Message}");
                 Console.WriteLine(ex.StackTrace);
+            }
+            finally
+            {
+                if (shouldRecache)
+                {
+                    ConfigIdsToRecache.Add(config.Id);
+                }
             }
         }
 

@@ -15,8 +15,9 @@ namespace OpenQotd.Bot.QotdSending
         /// <summary>
         /// Fetches the guild by ID and tries to send the next QOTD.
         /// </summary>
+        /// <returns>Whether or not the guild was found.</returns>
         /// <exception cref="QotdSendException"></exception>
-        public static async Task FetchGuildAndSendNextQotdAsync(Config config, Notices.Notice? latestAvailableNotice)
+        public static async Task<bool> FetchGuildAndSendNextQotdAsync(Config config, Notices.Notice? latestAvailableNotice)
         {
             DiscordGuild guild;
             try
@@ -38,10 +39,11 @@ namespace OpenQotd.Bot.QotdSending
 
                 //await dbContext.SaveChangesAsync();
                 //Console.WriteLine($"Removed dead config with ID {foundConfig.Id} (guild {foundConfig.GuildIdx})");
-                return;
+                return false;
             }
 
             await SendNextQotdAsync(guild, config, latestAvailableNotice);
+            return true;
         }
 
         /// <summary>
