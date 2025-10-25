@@ -5,6 +5,7 @@ using DSharpPlus.Entities;
 using OpenQotd.Bot.Database.Entities;
 using OpenQotd.Bot.Helpers;
 using OpenQotd.Bot.Helpers.Profiles;
+using OpenQotd.Bot.QotdSending;
 using System.ComponentModel;
 
 namespace OpenQotd.Bot.Commands
@@ -78,7 +79,7 @@ namespace OpenQotd.Bot.Commands
         public static async Task HelpAsync(CommandContext context,
             [Description("Which viewable OpenQOTD profile to view general information of.")][SlashAutoCompleteProvider<ViewableProfilesAutoCompleteProvider>] int? For=null)
         {
-            Config? config = For is null ? await ProfileHelpers.TryGetDefaultConfigAsync(context) : await ProfileHelpers.TryGetConfigAsync(context, For.Value);
+            Config? config = For is null ? await ProfileHelpers.TryGetSelectedOrDefaultConfigAsync(context) : await ProfileHelpers.TryGetConfigAsync(context, For.Value);
             if (config is null || !await CommandRequirements.UserIsBasic(context, config))
                 return;
 
@@ -100,18 +101,22 @@ namespace OpenQotd.Bot.Commands
         {
             string userRole = $"Basic {config.QotdShorthandText} User";
             if (member.Permissions.HasPermission(DiscordPermission.Administrator))
-                userRole = "Full Server Administrator (incl. `/config` and `/presets`)";
+                userRole = "Full Server Administrator (incl. `/config` and `/profiles`)";
             else if ((await CommandRequirements.UserIsAdmin(guild, member, config)).Item1)
-                userRole = $"{config.QotdShorthandText} Administrator (excl. `/config` and `/presets`)";
+                userRole = $"{config.QotdShorthandText} Administrator (excl. `/config` and `/profiles`)";
+
+            DateTime? nextQotdTime = await QotdSenderTimer.GetConfigNextSendTime(config.Id);
 
             string configValuesDescription = config == null ?
                 $"**:warning: Config not initialized**" :
                 $"- Is default profile: {config.IsDefaultProfile}\n" +
-                $"- {config.QotdShorthandText} Title: *{config.QotdTitleText}*\n" +
+                $"- {config.QotdShorthandText} title: *{config.QotdTitleText}*\n" +
                 $"- {config.QotdShorthandText} channel: <#{config.QotdChannelId}>\n" +
                 $"- {config.QotdShorthandText} time: {DSharpPlus.Formatter.Timestamp(DateTime.Today + new TimeSpan(config.QotdTimeHourUtc, config.QotdTimeMinuteUtc, 0), DSharpPlus.TimestampFormat.ShortTime)}\n" +
-                $"- Your role: **{userRole}**\n" +
-                $"- Suggestions enabled: **{config.EnableSuggestions}**";
+                $"- {config.QotdShorthandText} day condition: {(string.IsNullOrWhiteSpace(config.QotdTimeDayCondition) ? "*daily*" : $"`{config.QotdTimeDayCondition}`")}\n" +
+                $"- Next {config.QotdShorthandText} will be sent at: {(nextQotdTime is null ? "*disabled*" : DSharpPlus.Formatter.Timestamp(nextQotdTime.Value, DSharpPlus.TimestampFormat.LongDateTime))}\n" +
+                $"- Suggestions enabled: **{config.EnableSuggestions}**\n" +
+                $"- Your role: **{userRole}**";
 
             return GenericEmbeds.Info(title: $"OpenQOTD v{Program.AppSettings.Version}", message:
                 $"# About\n" +

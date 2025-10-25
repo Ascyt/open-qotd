@@ -1,4 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using OpenQotd.Bot.QotdSending;
 using System.ComponentModel.DataAnnotations;
 
 namespace OpenQotd.Bot.Database.Entities
@@ -218,13 +219,13 @@ namespace OpenQotd.Bot.Database.Entities
                 $"- enable_qotd_show_info_button: **{EnableQotdShowInfoButton}**\n" +
                 $"- qotd_time_hour_utc: **{QotdTimeHourUtc}**\n" +
                 $"- qotd_time_minute_utc: **{QotdTimeMinuteUtc}**\n" +
-                $"- qotd_time_day_condition: **{(QotdTimeDayCondition is null ? "*daily*" : $"`{QotdTimeDayCondition}`")}**" +
+                $"- qotd_time_day_condition: {(QotdTimeDayCondition is null ? "*daily*" : $"`{QotdTimeDayCondition}`")}\n" +
                 $"- enable_suggestions: **{EnableSuggestions}**\n" +
                 $"- suggestions_channel: {FormatChannel(SuggestionsChannelId)}\n" +
                 $"- suggestions_ping_role: {FormatRole(SuggestionsPingRoleId)}\n" +
                 $"- notices_level: **{NoticesLevel}**\n" +
                 $"- enable_deleted_questions_to_stash: **{EnableDeletedToStash}**\n" +
-                $"- logs_channel: {FormatChannel(LogsChannelId)}";
+                $"- logs_channel: {FormatChannel(LogsChannelId)}\n";
         }
 
         private static string FormatRole(ulong? roleId)

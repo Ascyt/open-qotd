@@ -214,7 +214,7 @@ namespace OpenQotd.Bot.QotdSending
             if (dayCondition.Length < 3)
                 return Invalid();
 
-            if (!dayCondition.StartsWith('#')) 
+            if (!dayCondition.StartsWith('%')) 
                 return Invalid();
 
             switch (dayCondition[1])

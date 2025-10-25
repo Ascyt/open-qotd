@@ -43,17 +43,11 @@ namespace OpenQotd.Bot.QotdSending
         /// Used to lock operations that directly modify <see cref="_cache"/> or <see cref="_cachedItems"/>, as those are not thread-safe.
         /// </summary>
         private static readonly SemaphoreSlim _cacheLock = new(1, 1);
-        
-        public struct ConfigNextSendInfo
-        {
-            public required int ConfigId;
-            public required DateTime NextSendTime;
-        }
 
         /// <summary>
         /// If the given config exists and is enabled for automatic QOTD sending, returns its next send time. Otherwise, returns null.
         /// </summary>
-        public static async Task<ConfigNextSendInfo?> GetConfigNextSendInfo(int configId)
+        public static async Task<DateTime?> GetConfigNextSendTime(int configId)
         {
             if (!_cachedItems.TryGetValue(configId, out CachedConfig? cachedConfig)) 
             {
@@ -64,11 +58,7 @@ namespace OpenQotd.Bot.QotdSending
                     return null; // Not found even after recache
             }
 
-            return new ConfigNextSendInfo
-            {
-                ConfigId = cachedConfig.ConfigId,
-                NextSendTime = cachedConfig.NextSendTime
-            };
+            return cachedConfig.NextSendTime;
         }
 
         /// <summary>

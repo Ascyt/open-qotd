@@ -436,23 +436,23 @@ namespace OpenQotd.Bot.Commands
 
         private static bool IsValidDayConditionFormat(string dayCondition)
         {
-            if (dayCondition.Length < 3)
+            if (dayCondition.Length < 2)
                 return false;
 
-            if (!dayCondition.StartsWith('#'))
+            if (!dayCondition.StartsWith('%'))
                 return false;
             
-            switch (dayCondition[2])
+            switch (dayCondition[1])
             {
                 case 'D': // Every 'n' days
-                    if (dayCondition.Length < 4 || !int.TryParse(dayCondition[3..], out int n) || n < 1 || n > 31)
+                    if (dayCondition.Length < 3 || !int.TryParse(dayCondition[2..], out int n) || n < 1 || n > 31)
                         return false;
                     return true;
                 case 'w': // Days of the week, starting with Monday=1
-                    if (dayCondition.Length < 4)
+                    if (dayCondition.Length < 3)
                         return false;
 
-                    string[] parts = dayCondition[3..].Split(',');
+                    string[] parts = dayCondition[2..].Split(',');
                     foreach (string part in parts)
                     {
                         if (!int.TryParse(part, out int day) || day < 1 || day > 7)
@@ -463,7 +463,7 @@ namespace OpenQotd.Bot.Commands
                 case 'W': // Every nth week on the mth day of the week
                     if (dayCondition.Length < 5)
                         return false;
-                    string[] parts1 = dayCondition[3..].Split(';');
+                    string[] parts1 = dayCondition[2..].Split(';');
 
                     if (parts1.Length != 2)
                         return false;
@@ -477,10 +477,10 @@ namespace OpenQotd.Bot.Commands
                         return false;
                     return true;
                 case 'm': // Days of the month
-                    if (dayCondition.Length < 4)
+                    if (dayCondition.Length < 3)
                         return false;
 
-                    string[] parts2 = dayCondition[3..].Split(',');
+                    string[] parts2 = dayCondition[2..].Split(',');
                     foreach (string part in parts2)
                     {
                         if (!int.TryParse(part, out int day) || day < 1 || day > 31)
