@@ -120,9 +120,13 @@ namespace OpenQotd.Bot.Commands
 
             QotdSenderTimer.ConfigIdsToRecache.Add(config.Id);
 
-            await context.RespondAsync(
-                    GenericEmbeds.Success($"Successfully {(reInitialized ? "re-" : "")}initialized config", configString, profileName:config.ProfileName)
-                );
+            DiscordMessageBuilder builder = new();
+            builder.AddEmbed(
+                    GenericEmbeds.Success($"Successfully {(reInitialized ? "re-" : "")}initialized config", configString, profileName: config.ProfileName)
+                    );
+            AddInfoButton(builder, config.ProfileId);
+
+            await context.RespondAsync(builder);
 
             // Can cause issues
             // await LogUserAction(context, "Initialize config", configString);
@@ -141,9 +145,11 @@ namespace OpenQotd.Bot.Commands
 
             string configString = config.ToString();
 
-            await context.RespondAsync(
-                    GenericEmbeds.Info(title:$"Config values", message:$"{configString}")
-                );
+            DiscordMessageBuilder builder = new();
+            builder.AddEmbed(GenericEmbeds.Info(title: $"Config values", message: $"{configString}"));
+            AddInfoButton(builder, config.ProfileId);
+
+            await context.RespondAsync(builder);
         }
 
         [Command("set")]
@@ -273,9 +279,11 @@ namespace OpenQotd.Bot.Commands
 
             string configString = config.ToString();
 
-            await context.RespondAsync(
-                    GenericEmbeds.Success("Successfully set config values", $"{configString}")
-                );
+            DiscordMessageBuilder builder = new();
+            builder.AddEmbed(GenericEmbeds.Success("Successfully set config values", $"{configString}"));
+            AddInfoButton(builder, config.ProfileId);
+
+            await context.RespondAsync(builder);
 
             await LogUserAction(context, config, "Set config values", message: configString);
         }
@@ -338,11 +346,24 @@ namespace OpenQotd.Bot.Commands
 
             string configString = config.ToString();
 
-            await context.RespondAsync(
-                    GenericEmbeds.Success("Successfully set config values", $"{configString}")
-                );
+            DiscordMessageBuilder builder = new();
+            builder.AddEmbed(GenericEmbeds.Success("Successfully set config values", $"{configString}"));
+            AddInfoButton(builder, config.ProfileId);
+
+            await context.RespondAsync(builder);
 
             await LogUserAction(context, config, "Set config values", message: configString);
+        }
+
+        private static void AddInfoButton(DiscordMessageBuilder builder, int profileId)
+        {
+            builder.AddActionRowComponent(
+                new DiscordButtonComponent(
+                    DiscordButtonStyle.Secondary,
+                    $"show-general-info-no-prompt/{profileId}",
+                    "🛈"
+                    )
+                );
         }
 
         /// <summary>
