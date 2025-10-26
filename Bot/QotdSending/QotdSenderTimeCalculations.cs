@@ -22,7 +22,7 @@ namespace OpenQotd.QotdSending
             );
         }
 
-        internal static DateTime GetNextSendTime(
+        public static DateTime GetNextSendTime(
             DateTime nowUtc,
             DateTime? lastSentTimestamp,
             int qotdTimeHourUtc,
