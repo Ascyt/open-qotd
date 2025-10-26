@@ -22,7 +22,7 @@ namespace OpenQotd
         public static async Task Main(string[] args)
         {
             Console.WriteLine($"OpenQOTD - Questions Of The Day done right");
-            Console.WriteLine();
+            Console.WriteLine("");
 
             Console.WriteLine("Loading environment variables...");
             DotNetEnv.Env.Load(Path.Combine("..", ".env"));
