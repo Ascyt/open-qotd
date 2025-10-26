@@ -4,14 +4,14 @@ using DSharpPlus.EventArgs;
 using DSharpPlus.Interactivity;
 using DSharpPlus.Interactivity.Extensions;
 using Microsoft.EntityFrameworkCore;
-using OpenQotd.Bot.Commands;
-using OpenQotd.Bot.Database;
-using OpenQotd.Bot.Database.Entities;
-using OpenQotd.Bot.Helpers;
-using OpenQotd.Bot.Helpers.Profiles;
+using OpenQotd.Commands;
+using OpenQotd.Database;
+using OpenQotd.Database.Entities;
+using OpenQotd.Helpers;
+using OpenQotd.Helpers.Profiles;
 using Sprache;
 
-namespace OpenQotd.Bot.EventHandlers
+namespace OpenQotd.EventHandlers
 {
     /// <summary>
     /// Includes event handlers for show-qotd-notes and show-general-info.

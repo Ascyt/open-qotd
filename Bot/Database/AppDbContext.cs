@@ -1,9 +1,9 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
-using OpenQotd.Bot.Database.Entities;
+using OpenQotd.Database.Entities;
 using System.Text;
 
-namespace OpenQotd.Bot.Database
+namespace OpenQotd.Database
 {
     public class AppDbContext : DbContext
     {

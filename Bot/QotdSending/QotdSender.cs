@@ -1,11 +1,11 @@
-﻿using OpenQotd.Bot.Database;
-using OpenQotd.Bot.Database.Entities;
-using OpenQotd.Bot.Helpers;
+﻿using OpenQotd.Database;
+using OpenQotd.Database.Entities;
+using OpenQotd.Helpers;
 using DSharpPlus.Entities;
 using DSharpPlus.Exceptions;
 using Microsoft.EntityFrameworkCore;
 
-namespace OpenQotd.Bot.QotdSending
+namespace OpenQotd.QotdSending
 {
     /// <summary>
     /// Sends QOTD messages to guilds based on their configuration and available questions.
@@ -15,8 +15,9 @@ namespace OpenQotd.Bot.QotdSending
         /// <summary>
         /// Fetches the guild by ID and tries to send the next QOTD.
         /// </summary>
+        /// <returns>Whether or not the guild was found.</returns>
         /// <exception cref="QotdSendException"></exception>
-        public static async Task FetchGuildAndSendNextQotdAsync(Config config, Notices.Notice? latestAvailableNotice)
+        public static async Task<bool> FetchGuildAndSendNextQotdAsync(Config config, Notices.Notice? latestAvailableNotice)
         {
             DiscordGuild guild;
             try
@@ -38,10 +39,11 @@ namespace OpenQotd.Bot.QotdSending
 
                 //await dbContext.SaveChangesAsync();
                 //Console.WriteLine($"Removed dead config with ID {foundConfig.Id} (guild {foundConfig.GuildIdx})");
-                return;
+                return false;
             }
 
             await SendNextQotdAsync(guild, config, latestAvailableNotice);
+            return true;
         }
 
         /// <summary>

@@ -3,14 +3,14 @@ using DSharpPlus.Entities;
 using DSharpPlus.EventArgs;
 using DSharpPlus.Exceptions;
 using Microsoft.EntityFrameworkCore;
-using OpenQotd.Bot.Commands;
-using OpenQotd.Bot.Database;
-using OpenQotd.Bot.Database.Entities;
-using OpenQotd.Bot.EventHandlers.Suggestions;
-using OpenQotd.Bot.Helpers;
-using OpenQotd.Bot.Helpers.Profiles;
+using OpenQotd.Commands;
+using OpenQotd.Database;
+using OpenQotd.Database.Entities;
+using OpenQotd.EventHandlers.Suggestions;
+using OpenQotd.Helpers;
+using OpenQotd.Helpers.Profiles;
 
-namespace OpenQotd.Bot.EventHandlers
+namespace OpenQotd.EventHandlers
 {
     public class EventHandlers
     {

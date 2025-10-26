@@ -1,13 +1,13 @@
-﻿using OpenQotd.Bot.Database;
-using OpenQotd.Bot.Database.Entities;
-using OpenQotd.Bot.Helpers;
+﻿using OpenQotd.Database;
+using OpenQotd.Database.Entities;
+using OpenQotd.Helpers;
 using DSharpPlus.Commands;
 using DSharpPlus.Entities;
 using DSharpPlus.EventArgs;
 using DSharpPlus.Exceptions;
-using OpenQotd.Bot.Helpers.Profiles;
+using OpenQotd.Helpers.Profiles;
 
-namespace OpenQotd.Bot
+namespace OpenQotd
 {
     public static class CommandRequirements
     {

@@ -6,7 +6,7 @@ using DSharpPlus.Interactivity;
 using DSharpPlus.EventArgs;
 using DSharpPlus.Commands.Processors.SlashCommands;
 
-namespace OpenQotd.Bot.Helpers
+namespace OpenQotd.Helpers
 {
     internal struct PageInfo<T>
     {

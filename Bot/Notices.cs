@@ -1,7 +1,7 @@
 ﻿using System.Text.Json;
 using System.Text.Json.Serialization;
 
-namespace OpenQotd.Bot
+namespace OpenQotd
 {
     /// <summary>
     /// Notices are messages that are written by developers and added under sent QOTDs as embeds.

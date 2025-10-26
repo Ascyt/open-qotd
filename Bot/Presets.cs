@@ -1,6 +1,6 @@
-﻿using OpenQotd.Bot.Database.Entities;
+﻿using OpenQotd.Database.Entities;
 
-namespace OpenQotd.Bot
+namespace OpenQotd
 {
     /// <summary>
     /// Presets are predefined questions that can be sent as QOTDs. 

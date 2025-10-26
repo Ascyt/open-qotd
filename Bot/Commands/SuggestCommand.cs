@@ -1,16 +1,16 @@
-﻿using OpenQotd.Bot.Database;
-using OpenQotd.Bot.Database.Entities;
-using OpenQotd.Bot.Helpers;
+﻿using OpenQotd.Database;
+using OpenQotd.Database.Entities;
+using OpenQotd.Helpers;
 using DSharpPlus.Commands;
 using DSharpPlus.Commands.Processors.SlashCommands;
 using DSharpPlus.Entities;
 using DSharpPlus.Exceptions;
 using System.ComponentModel;
-using OpenQotd.Bot.Helpers.Profiles;
+using OpenQotd.Helpers.Profiles;
 using DSharpPlus.Commands.Processors.SlashCommands.ArgumentModifiers;
-using OpenQotd.Bot.EventHandlers.Suggestions;
+using OpenQotd.EventHandlers.Suggestions;
 
-namespace OpenQotd.Bot.Commands
+namespace OpenQotd.Commands
 {
     public class SuggestCommand
     {

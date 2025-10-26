@@ -1,4 +1,4 @@
-﻿namespace OpenQotd.Bot.Exceptions
+﻿namespace OpenQotd.Exceptions
 {
     /// <summary>
     /// General exception for errors that occur during the QOTD sending process.

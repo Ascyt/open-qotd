@@ -1,12 +1,12 @@
-﻿using OpenQotd.Bot.Database;
-using OpenQotd.Bot.Database.Entities;
-using OpenQotd.Bot.Helpers;
+﻿using OpenQotd.Database;
+using OpenQotd.Database.Entities;
+using OpenQotd.Helpers;
 using DSharpPlus.Commands;
 using Microsoft.EntityFrameworkCore;
 using System.ComponentModel;
-using OpenQotd.Bot.Helpers.Profiles;
+using OpenQotd.Helpers.Profiles;
 
-namespace OpenQotd.Bot.Commands
+namespace OpenQotd.Commands
 {
     [Command("presets")]
     public class PresetsCommand

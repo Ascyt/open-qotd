@@ -1,7 +1,8 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using OpenQotd.QotdSending;
 using System.ComponentModel.DataAnnotations;
 
-namespace OpenQotd.Bot.Database.Entities
+namespace OpenQotd.Database.Entities
 {
     public class Config
     {
@@ -112,6 +113,15 @@ namespace OpenQotd.Bot.Database.Entities
         public int QotdTimeMinuteUtc { get; set; }
 
         /// <summary>
+        /// Optional condition for sending the QOTD on specific days only, eg. every two weeks. 
+        /// </summary>
+        /// <remarks>
+        /// If null or empty, the QOTD is sent every day.
+        /// </remarks>
+        [MaxLength(16)]
+        public string? QotdTimeDayCondition { get; set; } = null;
+
+        /// <summary>
         /// The title of the QOTD message. If null the default is used which is "Question Of The Day"
         /// </summary>
         public string? QotdTitle { get; set; } = null;
@@ -159,12 +169,27 @@ namespace OpenQotd.Bot.Database.Entities
         /// </remarks>
         public bool EnableDeletedToStash { get; set; } = true;
 
-        // Internal variables (not viewable and not set using /config)
+        // 
+        // -------------------------------- Internal variables (not viewable and not set using /config) --------------------------------
+        //
+
+        /// <summary>
+        /// The timestamp when this config/profile was initialized. 
+        /// </summary>
+        public DateTime InitializedTimestamp { get; set; }
 
         /// <summary>
         /// When the last QOTD was sent. Used to prevent multiple QOTDs being sent in a single day.
         /// </summary>
         public DateTime? LastSentTimestamp { get; set; }
+
+        /// <summary>
+        /// The timestamp when <see cref="QotdTimeDayCondition"/> was last set or changed. 
+        /// </summary>
+        /// <remarks>
+        /// Used to calculate whether the condition is met for the "every n days/weeks/..."-condition.
+        /// </remarks>
+        public DateTime? QotdTimeDayConditionLastChangedTimestamp { get; set; }
 
         /// <summary>
         /// The ID of the last QOTD message sent. 
@@ -173,7 +198,7 @@ namespace OpenQotd.Bot.Database.Entities
         /// Used for unpinning the old message if <see cref="EnableQotdPinMessage"/> is true.
         /// </remarks>
         public ulong? LastQotdMessageId { get; set; }
-        
+
         public override string ToString()
         {
             return
@@ -194,6 +219,7 @@ namespace OpenQotd.Bot.Database.Entities
                 $"- enable_qotd_show_info_button: **{EnableQotdShowInfoButton}**\n" +
                 $"- qotd_time_hour_utc: **{QotdTimeHourUtc}**\n" +
                 $"- qotd_time_minute_utc: **{QotdTimeMinuteUtc}**\n" +
+                $"- qotd_time_day_condition: {(QotdTimeDayCondition is null ? "*daily*" : $"`{QotdTimeDayCondition}`")}\n" +
                 $"- enable_suggestions: **{EnableSuggestions}**\n" +
                 $"- suggestions_channel: {FormatChannel(SuggestionsChannelId)}\n" +
                 $"- suggestions_ping_role: {FormatRole(SuggestionsPingRoleId)}\n" +

@@ -3,10 +3,10 @@ using DSharpPlus.Commands.Processors.SlashCommands;
 using DSharpPlus.Entities;
 using DSharpPlus.EventArgs;
 using DSharpPlus.Exceptions;
-using OpenQotd.Bot.Database;
-using OpenQotd.Bot.Database.Entities;
+using OpenQotd.Database;
+using OpenQotd.Database.Entities;
 
-namespace OpenQotd.Bot.Helpers
+namespace OpenQotd.Helpers
 {
     public class SuggestionsAcceptDenyHelpers
     {

@@ -3,11 +3,11 @@ using DSharpPlus.Commands.Processors.SlashCommands;
 using DSharpPlus.Entities;
 using DSharpPlus.EventArgs;
 using Microsoft.EntityFrameworkCore;
-using OpenQotd.Bot.Database;
-using OpenQotd.Bot.Database.Entities;
-using OpenQotd.Bot.Exceptions;
+using OpenQotd.Database;
+using OpenQotd.Database.Entities;
+using OpenQotd.Exceptions;
 
-namespace OpenQotd.Bot.Helpers.Profiles
+namespace OpenQotd.Helpers.Profiles
 {
     internal static class ProfileHelpers
     {

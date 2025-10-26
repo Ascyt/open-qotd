@@ -2,15 +2,16 @@
 using DSharpPlus.Entities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion.Internal;
-using OpenQotd.Bot.Database;
-using OpenQotd.Bot.Database.Entities;
-using OpenQotd.Bot.Helpers;
-using OpenQotd.Bot.Helpers.Profiles;
+using OpenQotd.Database;
+using OpenQotd.Database.Entities;
+using OpenQotd.Helpers;
+using OpenQotd.Helpers.Profiles;
+using OpenQotd.QotdSending;
 using System.ComponentModel;
 using System.Threading.Tasks;
-using static OpenQotd.Bot.Logging;
+using static OpenQotd.Logging;
 
-namespace OpenQotd.Bot.Commands
+namespace OpenQotd.Commands
 {
     [Command("config")]
     public class ConfigCommand
@@ -22,6 +23,7 @@ namespace OpenQotd.Bot.Commands
             [Description("The channel the QOTD should get sent in.")] DiscordChannel QotdChannel,
             [Description("The UTC hour of the day the QOTDs should get sent (0-23).")] int QotdTimeHourUtc,
             [Description("The UTC minute of the day the QOTDs should get sent (0-59).")] int QotdTimeMinuteUtc,
+            [Description("Specifies on which days the QOTDs should get sent (sends daily if unset).")] string? QotdTimeDayCondition = null,
             [Description("The display name of the profile this config belongs to (default \"QOTD\")")] string? ProfileName = null,
             [Description("The role a user needs to have to execute any basic commands (allows anyone by default).")] DiscordRole? BasicRole = null,
             [Description("The role that will get pinged when a new QOTD is sent.")] DiscordRole? QotdPingRole = null,
@@ -46,6 +48,9 @@ namespace OpenQotd.Bot.Commands
 
             QotdTimeMinuteUtc = Math.Clamp(QotdTimeMinuteUtc, 0, 59);
             QotdTimeHourUtc = Math.Clamp(QotdTimeHourUtc, 0, 23);
+
+            if (QotdTimeDayCondition is not null && !await IsValidDayCondition(context, QotdTimeDayCondition))
+                return;
 
             if (ProfileName is not null && !await IsProfileNameValid(context, ProfileName))
                 return;
@@ -84,12 +89,15 @@ namespace OpenQotd.Bot.Commands
                 EnableQotdShowInfoButton = EnableQotdShowInfoButton,
                 QotdTimeHourUtc = QotdTimeHourUtc,
                 QotdTimeMinuteUtc = QotdTimeMinuteUtc,
+                QotdTimeDayCondition = QotdTimeDayCondition,
+                QotdTimeDayConditionLastChangedTimestamp = QotdTimeDayCondition is null ? null : DateTime.UtcNow,
                 EnableSuggestions = EnableSuggestions,
                 SuggestionsChannelId = SuggestionsChannel?.Id,
                 SuggestionsPingRoleId = SuggestionsPingRole?.Id,
                 NoticesLevel = NoticesLevel,
                 EnableDeletedToStash = EnableDeletedToStash,
-                LogsChannelId = LogsChannel?.Id
+                LogsChannelId = LogsChannel?.Id,
+                InitializedTimestamp = DateTime.UtcNow
             };
             bool reInitialized = false;
 
@@ -110,9 +118,15 @@ namespace OpenQotd.Bot.Commands
             }
             string configString = config.ToString();
 
-            await context.RespondAsync(
-                    GenericEmbeds.Success($"Successfully {(reInitialized ? "re-" : "")}initialized config", configString, profileName:config.ProfileName)
-                );
+            QotdSenderTimer.ConfigIdsToRecache.Add(config.Id);
+
+            DiscordMessageBuilder builder = new();
+            builder.AddEmbed(
+                    GenericEmbeds.Success($"Successfully {(reInitialized ? "re-" : "")}initialized config", configString, profileName: config.ProfileName)
+                    );
+            AddInfoButton(builder, config.ProfileId);
+
+            await context.RespondAsync(builder);
 
             // Can cause issues
             // await LogUserAction(context, "Initialize config", configString);
@@ -131,9 +145,11 @@ namespace OpenQotd.Bot.Commands
 
             string configString = config.ToString();
 
-            await context.RespondAsync(
-                    GenericEmbeds.Info(title:$"Config values", message:$"{configString}")
-                );
+            DiscordMessageBuilder builder = new();
+            builder.AddEmbed(GenericEmbeds.Info(title: $"Config values", message: $"{configString}"));
+            AddInfoButton(builder, config.ProfileId);
+
+            await context.RespondAsync(builder);
         }
 
         [Command("set")]
@@ -145,6 +161,7 @@ namespace OpenQotd.Bot.Commands
             [Description("The channel the QOTD should get sent in.")] DiscordChannel? QotdChannel = null,
             [Description("The UTC hour of the day the QOTDs should get sent (0-23).")] int? QotdTimeHourUtc = null,
             [Description("The UTC minute of the day the QOTDs should get sent (0-59).")] int? QotdTimeMinuteUtc = null,
+            [Description("Specifies on which days the QOTDs should get sent (sends daily if unset).")] string? QotdTimeDayCondition = null,
             [Description("The role that will get pinged when a new QOTD is sent.")] DiscordRole? QotdPingRole = null,
             [Description("The title that is displayed in QOTD messages. (defaults to \"Question Of The Day\") if unset)")] string? QotdTitle = null,
             [Description("The shorthand that is sometimes displayed in place of the title. (defaults to \"QOTD\") if unset)")] string? QotdShorthand = null,
@@ -174,6 +191,9 @@ namespace OpenQotd.Bot.Commands
                 QotdTimeMinuteUtc = Math.Clamp(QotdTimeMinuteUtc.Value, 0, 59);
             if (QotdTimeHourUtc is not null)
                 QotdTimeHourUtc = Math.Clamp(QotdTimeHourUtc.Value, 0, 23);
+
+            if (QotdTimeDayCondition is not null && !await IsValidDayCondition(context, QotdTimeDayCondition))
+                return;
 
             if (ProfileName is not null && !await IsProfileNameValid(context, ProfileName))
                 return;
@@ -232,6 +252,11 @@ namespace OpenQotd.Bot.Commands
                     config.QotdTimeHourUtc = QotdTimeHourUtc.Value;
                 if (QotdTimeMinuteUtc is not null)
                     config.QotdTimeMinuteUtc = QotdTimeMinuteUtc.Value;
+                if (QotdTimeDayCondition is not null)
+                {
+                    config.QotdTimeDayCondition = QotdTimeDayCondition;
+                    config.QotdTimeDayConditionLastChangedTimestamp = DateTime.UtcNow;
+                }
                 if (QotdPingRole is not null)
                     config.QotdPingRoleId = QotdPingRole.Id; 
                 if (EnableSuggestions is not null)
@@ -250,11 +275,15 @@ namespace OpenQotd.Bot.Commands
                 await dbContext.SaveChangesAsync();   
             }
 
+            QotdSenderTimer.ConfigIdsToRecache.Add(config.Id);
+
             string configString = config.ToString();
 
-            await context.RespondAsync(
-                    GenericEmbeds.Success("Successfully set config values", $"{configString}")
-                );
+            DiscordMessageBuilder builder = new();
+            builder.AddEmbed(GenericEmbeds.Success("Successfully set config values", $"{configString}"));
+            AddInfoButton(builder, config.ProfileId);
+
+            await context.RespondAsync(builder);
 
             await LogUserAction(context, config, "Set config values", message: configString);
         }
@@ -268,6 +297,7 @@ namespace OpenQotd.Bot.Commands
         [Description("Reset optional config values to be unset")]
         public static async Task ResetAsync(CommandContext context,
             [Description("The role a user needs to have to execute any basic commands (allows anyone by default).")] SingleOption? BasicRole = null,
+            [Description("Specifies on which days the QOTDs should get sent (sends daily if unset).")] SingleOption? QotdTimeDayCondition = null,
             [Description("The title that is displayed in QOTD messages. (defaults to \"Question Of The Day\") if unset)")] SingleOption? QotdTitle = null,
             [Description("The role that will get pinged when a new QOTD is sent.")] SingleOption? QotdPingRole = null,
             [Description("The channel new QOTD suggestions get announced in.")] SingleOption? SuggestionsChannel = null,
@@ -293,6 +323,11 @@ namespace OpenQotd.Bot.Commands
 
                 if (BasicRole is not null)
                     config.BasicRoleId = null;
+                if (QotdTimeDayCondition is not null)
+                {
+                    config.QotdTimeDayCondition = null;
+                    config.QotdTimeDayConditionLastChangedTimestamp = null;
+                }
                 if (QotdTitle is not null)  
                     config.QotdTitle = null;
                 if (QotdPingRole is not null)
@@ -307,13 +342,28 @@ namespace OpenQotd.Bot.Commands
                 await dbContext.SaveChangesAsync();
             }
 
+            QotdSenderTimer.ConfigIdsToRecache.Add(config.Id);
+
             string configString = config.ToString();
 
-            await context.RespondAsync(
-                    GenericEmbeds.Success("Successfully set config values", $"{configString}")
-                );
+            DiscordMessageBuilder builder = new();
+            builder.AddEmbed(GenericEmbeds.Success("Successfully set config values", $"{configString}"));
+            AddInfoButton(builder, config.ProfileId);
+
+            await context.RespondAsync(builder);
 
             await LogUserAction(context, config, "Set config values", message: configString);
+        }
+
+        private static void AddInfoButton(DiscordMessageBuilder builder, int profileId)
+        {
+            builder.AddActionRowComponent(
+                new DiscordButtonComponent(
+                    DiscordButtonStyle.Secondary,
+                    $"show-general-info-no-prompt/{profileId}",
+                    "🛈"
+                    )
+                );
         }
 
         /// <summary>
@@ -383,6 +433,85 @@ namespace OpenQotd.Bot.Commands
             }
 
             return true;
+        }
+
+        private static async Task<bool> IsValidDayCondition(CommandContext context, string dayCondition)
+        {
+            if (dayCondition.Length > 64)
+            {
+                await context.RespondAsync(
+                    GenericEmbeds.Error($"The provided day condition must not exceed 64 characters in length (provided length is {dayCondition.Length}).")
+                    );
+                return false;
+            }
+
+            if (!IsValidDayConditionFormat(dayCondition))
+            {
+                await context.RespondAsync(
+                    GenericEmbeds.Error($"The provided day condition (`{dayCondition}`) is invalid. Please refer to the documentation for valid formats.")
+                    );
+                return false;
+            }
+            return true;
+        }
+
+        private static bool IsValidDayConditionFormat(string dayCondition)
+        {
+            if (dayCondition.Length < 2)
+                return false;
+
+            if (!dayCondition.StartsWith('%'))
+                return false;
+            
+            switch (dayCondition[1])
+            {
+                case 'D': // Every 'n' days
+                    if (dayCondition.Length < 3 || !int.TryParse(dayCondition[2..], out int n) || n < 1 || n > 31)
+                        return false;
+                    return true;
+                case 'w': // Days of the week, starting with Monday=1
+                    if (dayCondition.Length < 3)
+                        return false;
+
+                    string[] parts = dayCondition[2..].Split(',');
+                    foreach (string part in parts)
+                    {
+                        if (!int.TryParse(part, out int day) || day < 1 || day > 7)
+                            return false;
+                    }
+
+                    return true;
+                case 'W': // Every nth week on the mth day of the week
+                    if (dayCondition.Length < 5)
+                        return false;
+                    string[] parts1 = dayCondition[2..].Split(';');
+
+                    if (parts1.Length != 2)
+                        return false;
+
+                    string weekIndexPart = parts1[0];
+                    if (!int.TryParse(weekIndexPart, out int weekIndex) || weekIndex < 1)
+                        return false;
+
+                    string dayOfWeekPart = parts1[1];
+                    if (!int.TryParse(dayOfWeekPart, out int dayOfWeek) || dayOfWeek < 1 || dayOfWeek > 7)
+                        return false;
+                    return true;
+                case 'm': // Days of the month
+                    if (dayCondition.Length < 3)
+                        return false;
+
+                    string[] parts2 = dayCondition[2..].Split(',');
+                    foreach (string part in parts2)
+                    {
+                        if (!int.TryParse(part, out int day) || day < 1 || day > 31)
+                            return false;
+                    }
+                    return true;
+
+                default:
+                    return false;
+            }
         }
     }
 }
