@@ -10,7 +10,6 @@ RUN dotnet publish ./OpenQotd.csproj -o out
 
 # Build runtime image
 FROM mcr.microsoft.com/dotnet/aspnet:9.0
-#COPY .env /App/
 WORKDIR /App/Bot
 COPY --from=build /App/Bot/out .
 ENTRYPOINT ["dotnet", "OpenQotd.dll"]
