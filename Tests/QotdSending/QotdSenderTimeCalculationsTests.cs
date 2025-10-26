@@ -1,5 +1,4 @@
 using OpenQotd.QotdSending;
-using System.Reflection;
 
 namespace Tests.QotdSending
 {

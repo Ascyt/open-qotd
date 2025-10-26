@@ -7,7 +7,7 @@ using System.Collections.Concurrent;
 namespace OpenQotd.QotdSending
 {
     /// <summary>
-    /// Periodic timer that checks which for configs need to be sent a QOTD and sends them.
+    /// Periodic timer that checks which configs need to be sent a QOTD and sends them.
     /// </summary>
     public class QotdSenderTimer
     {
@@ -146,7 +146,7 @@ namespace OpenQotd.QotdSending
             // Recache
             while (ConfigIdsToRecache.TryTake(out int configId))
             {
-                InvalideCachedItemIfExists(configId);
+                InvalidateCachedItemIfExists(configId);
 
                 configIdsToRecache.Add(configId);
             }
@@ -154,7 +154,7 @@ namespace OpenQotd.QotdSending
             // Remove from cache
             while (ConfigIdsToRemoveFromCache.TryTake(out int configId))
             {
-                InvalideCachedItemIfExists(configId);
+                InvalidateCachedItemIfExists(configId);
             }
 
             List<ConfigToSendElement> configsList = await dbContext.Configs
@@ -175,7 +175,7 @@ namespace OpenQotd.QotdSending
                 RecacheElement(config);
             }
 
-            static void InvalideCachedItemIfExists(int configId)
+            static void InvalidateCachedItemIfExists(int configId)
             {
                 if (_cachedItems.TryRemove(configId, out CachedConfig? cachedConfig))
                 {
