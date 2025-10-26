@@ -30,4 +30,10 @@
 		    <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
 	    </None>
     </ItemGroup>
+
+    <ItemGroup>
+        <Content Include="presets.txt">
+            <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+        </Content>
+    </ItemGroup>
 </Project>
