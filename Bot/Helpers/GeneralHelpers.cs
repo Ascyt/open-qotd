@@ -1,9 +1,9 @@
 ﻿using DSharpPlus.Commands;
 using DSharpPlus.Entities;
 using DSharpPlus.Exceptions;
-using OpenQotd.Bot.Database.Entities;
+using OpenQotd.Database.Entities;
 
-namespace OpenQotd.Bot.Helpers
+namespace OpenQotd.Helpers
 {
     internal static class GeneralHelpers
     {

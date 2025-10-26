@@ -2,15 +2,15 @@
 using DSharpPlus.Entities;
 using DSharpPlus.Commands;
 using DSharpPlus.Commands.Processors.SlashCommands;
-using OpenQotd.Bot;
+using OpenQotd;
 using DSharpPlus.Interactivity.Extensions;
 using DSharpPlus.Interactivity;
-using OpenQotd.Bot.QotdSending;
-using OpenQotd.Bot.EventHandlers;
-using OpenQotd.Bot.Commands;
-using OpenQotd.Bot.UserCommands;
+using OpenQotd.QotdSending;
+using OpenQotd.EventHandlers;
+using OpenQotd.Commands;
+using OpenQotd.UserCommands;
 using Microsoft.Extensions.Configuration;
-using OpenQotd.Bot.ActivitySwitcher;
+using OpenQotd.ActivitySwitcher;
 
 namespace OpenQotd
 {
@@ -120,8 +120,8 @@ namespace OpenQotd
             });
 
             builder.ConfigureEventHandlers(b => b
-                .HandleComponentInteractionCreated(EventHandlers.ComponentInteractionCreated)
-                .HandleModalSubmitted(EventHandlers.ModalSubmittedEvent));
+                .HandleComponentInteractionCreated(EventHandlers.EventHandlers.ComponentInteractionCreated)
+                .HandleModalSubmitted(EventHandlers.EventHandlers.ModalSubmittedEvent));
 
             DiscordClient client = builder.Build();
             Client = client;

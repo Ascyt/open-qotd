@@ -1,6 +1,6 @@
 ﻿using DSharpPlus.Entities;
 
-namespace OpenQotd.Bot.ActivitySwitcher
+namespace OpenQotd.ActivitySwitcher
 {
     /// <summary>
     /// Periodic timer that updates the bot's activity to a random preset.

@@ -1,10 +1,10 @@
-﻿using OpenQotd.Bot.Helpers;
+﻿using OpenQotd.Helpers;
 using DSharpPlus.Commands;
 using Microsoft.EntityFrameworkCore;
 using System.ComponentModel.DataAnnotations;
 using DSharpPlus.Entities;
 
-namespace OpenQotd.Bot.Database.Entities
+namespace OpenQotd.Database.Entities
 {
     /// <summary>
     /// The type of a question.

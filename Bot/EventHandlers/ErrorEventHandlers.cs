@@ -1,9 +1,9 @@
 ﻿using DSharpPlus.Commands;
 using DSharpPlus.Commands.EventArgs;
 using DSharpPlus.Entities;
-using OpenQotd.Bot.Helpers;
+using OpenQotd.Helpers;
 
-namespace OpenQotd.Bot.EventHandlers
+namespace OpenQotd.EventHandlers
 {
     public class ErrorEventHandlers
     {

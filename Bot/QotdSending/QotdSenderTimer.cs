@@ -1,10 +1,10 @@
-﻿using OpenQotd.Bot.Database;
+﻿using OpenQotd.Database;
 using Microsoft.EntityFrameworkCore;
-using OpenQotd.Bot.Exceptions;
-using OpenQotd.Bot.Database.Entities;
+using OpenQotd.Exceptions;
+using OpenQotd.Database.Entities;
 using System.Collections.Concurrent;
 
-namespace OpenQotd.Bot.QotdSending
+namespace OpenQotd.QotdSending
 {
     /// <summary>
     /// Periodic timer that checks which for configs need to be sent a QOTD and sends them.

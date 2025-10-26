@@ -1,7 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore.Metadata.Conventions;
-using OpenQotd.Bot.Database.Entities;
+using OpenQotd.Database.Entities;
 
-namespace OpenQotd.Bot.QotdSending
+namespace OpenQotd.QotdSending
 {
     public class QotdSenderTimeCalculations
     {

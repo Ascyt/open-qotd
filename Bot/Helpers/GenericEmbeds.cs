@@ -1,6 +1,6 @@
 ﻿using DSharpPlus.Entities;
 
-namespace OpenQotd.Bot.Helpers
+namespace OpenQotd.Helpers
 {
     internal static class GenericEmbeds
     {

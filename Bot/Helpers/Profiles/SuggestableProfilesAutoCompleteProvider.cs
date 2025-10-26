@@ -3,10 +3,10 @@ using DSharpPlus.Commands.Processors.SlashCommands;
 using DSharpPlus.Commands.Processors.SlashCommands.ArgumentModifiers;
 using DSharpPlus.Entities;
 using Microsoft.EntityFrameworkCore;
-using OpenQotd.Bot.Database;
-using OpenQotd.Bot.Database.Entities;
+using OpenQotd.Database;
+using OpenQotd.Database.Entities;
 
-namespace OpenQotd.Bot.Helpers.Profiles
+namespace OpenQotd.Helpers.Profiles
 {
     public class SuggestableProfilesAutoCompleteProvider : IAutoCompleteProvider
     {

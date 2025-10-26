@@ -1,12 +1,12 @@
-﻿using OpenQotd.Bot.Database.Entities;
-using OpenQotd.Bot.Database;
+﻿using OpenQotd.Database.Entities;
+using OpenQotd.Database;
 using Microsoft.EntityFrameworkCore;
 using DSharpPlus.Entities;
 using DSharpPlus.Exceptions;
-using OpenQotd.Bot.Helpers;
-using OpenQotd.Bot.Exceptions;
+using OpenQotd.Helpers;
+using OpenQotd.Exceptions;
 
-namespace OpenQotd.Bot.QotdSending
+namespace OpenQotd.QotdSending
 {
     /// <summary>
     /// Data required to send a QOTD to a guild.

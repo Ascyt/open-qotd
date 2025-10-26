@@ -1,8 +1,8 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using OpenQotd.Bot.QotdSending;
+using OpenQotd.QotdSending;
 using System.ComponentModel.DataAnnotations;
 
-namespace OpenQotd.Bot.Database.Entities
+namespace OpenQotd.Database.Entities
 {
     public class Config
     {

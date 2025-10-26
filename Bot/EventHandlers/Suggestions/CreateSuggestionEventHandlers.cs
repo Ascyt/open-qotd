@@ -3,13 +3,13 @@ using DSharpPlus.Entities;
 using DSharpPlus.EventArgs;
 using DSharpPlus.Exceptions;
 using Microsoft.EntityFrameworkCore;
-using OpenQotd.Bot.Commands;
-using OpenQotd.Bot.Database;
-using OpenQotd.Bot.Database.Entities;
-using OpenQotd.Bot.Helpers;
-using OpenQotd.Bot.Helpers.Profiles;
+using OpenQotd.Commands;
+using OpenQotd.Database;
+using OpenQotd.Database.Entities;
+using OpenQotd.Helpers;
+using OpenQotd.Helpers.Profiles;
 
-namespace OpenQotd.Bot.EventHandlers.Suggestions
+namespace OpenQotd.EventHandlers.Suggestions
 {
     public class CreateSuggestionEventHandlers
     {

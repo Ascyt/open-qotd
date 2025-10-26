@@ -1,4 +1,4 @@
-﻿namespace OpenQotd.Bot.Database.Entities
+﻿namespace OpenQotd.Database.Entities
 {
     public class ProfileSelection
     {

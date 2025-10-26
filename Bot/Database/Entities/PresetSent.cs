@@ -1,4 +1,4 @@
-﻿namespace OpenQotd.Bot.Database.Entities
+﻿namespace OpenQotd.Database.Entities
 {
     /// <summary>
     /// Represents a record of a preset question that has been sent to a guild.

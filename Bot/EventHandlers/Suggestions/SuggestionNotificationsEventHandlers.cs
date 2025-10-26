@@ -1,14 +1,14 @@
-﻿using OpenQotd.Bot.Commands;
-using OpenQotd.Bot.Database;
-using OpenQotd.Bot.Database.Entities;
-using OpenQotd.Bot.Helpers;
+﻿using OpenQotd.Commands;
+using OpenQotd.Database;
+using OpenQotd.Database.Entities;
+using OpenQotd.Helpers;
 using DSharpPlus;
 using DSharpPlus.Entities;
 using DSharpPlus.EventArgs;
 using Microsoft.EntityFrameworkCore;
-using OpenQotd.Bot.Helpers.Profiles;
+using OpenQotd.Helpers.Profiles;
 
-namespace OpenQotd.Bot.EventHandlers.Suggestions
+namespace OpenQotd.EventHandlers.Suggestions
 {
     public static class SuggestionNotificationsEventHandlers
     {

@@ -6,14 +6,14 @@ using DSharpPlus.EventArgs;
 using DSharpPlus.Interactivity;
 using DSharpPlus.Interactivity.Extensions;
 using Microsoft.EntityFrameworkCore;
-using OpenQotd.Bot.Database;
-using OpenQotd.Bot.Database.Entities;
-using OpenQotd.Bot.Helpers;
-using OpenQotd.Bot.Helpers.Profiles;
-using OpenQotd.Bot.QotdSending;
+using OpenQotd.Database;
+using OpenQotd.Database.Entities;
+using OpenQotd.Helpers;
+using OpenQotd.Helpers.Profiles;
+using OpenQotd.QotdSending;
 using System.ComponentModel;
 
-namespace OpenQotd.Bot.Commands
+namespace OpenQotd.Commands
 {
     [Command("profiles")]
     public class ProfilesCommand

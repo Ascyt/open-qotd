@@ -1,13 +1,13 @@
 ﻿using DSharpPlus.Commands;
 using DSharpPlus.Commands.Processors.SlashCommands.ArgumentModifiers;
 using Microsoft.EntityFrameworkCore;
-using OpenQotd.Bot.Database;
-using OpenQotd.Bot.Database.Entities;
-using OpenQotd.Bot.Helpers;
-using OpenQotd.Bot.Helpers.Profiles;
+using OpenQotd.Database;
+using OpenQotd.Database.Entities;
+using OpenQotd.Helpers;
+using OpenQotd.Helpers.Profiles;
 using System.ComponentModel;
 
-namespace OpenQotd.Bot.Commands
+namespace OpenQotd.Commands
 {
     public class LeaderboardCommand
     {

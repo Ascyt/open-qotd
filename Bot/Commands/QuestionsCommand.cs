@@ -1,14 +1,14 @@
 ﻿using DSharpPlus.Commands;
 using DSharpPlus.Entities;
 using Microsoft.EntityFrameworkCore;
-using OpenQotd.Bot.Database;
-using OpenQotd.Bot.Database.Entities;
-using OpenQotd.Bot.Helpers;
-using OpenQotd.Bot.Helpers.Profiles;
+using OpenQotd.Database;
+using OpenQotd.Database.Entities;
+using OpenQotd.Helpers;
+using OpenQotd.Helpers.Profiles;
 using System.ComponentModel;
 using System.Text;
 
-namespace OpenQotd.Bot.Commands
+namespace OpenQotd.Commands
 {
     [Command("questions")]
     public class QuestionsCommand

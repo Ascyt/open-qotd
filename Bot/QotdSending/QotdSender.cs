@@ -1,11 +1,11 @@
-﻿using OpenQotd.Bot.Database;
-using OpenQotd.Bot.Database.Entities;
-using OpenQotd.Bot.Helpers;
+﻿using OpenQotd.Database;
+using OpenQotd.Database.Entities;
+using OpenQotd.Helpers;
 using DSharpPlus.Entities;
 using DSharpPlus.Exceptions;
 using Microsoft.EntityFrameworkCore;
 
-namespace OpenQotd.Bot.QotdSending
+namespace OpenQotd.QotdSending
 {
     /// <summary>
     /// Sends QOTD messages to guilds based on their configuration and available questions.

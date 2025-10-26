@@ -2,16 +2,16 @@
 using DSharpPlus.Entities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion.Internal;
-using OpenQotd.Bot.Database;
-using OpenQotd.Bot.Database.Entities;
-using OpenQotd.Bot.Helpers;
-using OpenQotd.Bot.Helpers.Profiles;
-using OpenQotd.Bot.QotdSending;
+using OpenQotd.Database;
+using OpenQotd.Database.Entities;
+using OpenQotd.Helpers;
+using OpenQotd.Helpers.Profiles;
+using OpenQotd.QotdSending;
 using System.ComponentModel;
 using System.Threading.Tasks;
-using static OpenQotd.Bot.Logging;
+using static OpenQotd.Logging;
 
-namespace OpenQotd.Bot.Commands
+namespace OpenQotd.Commands
 {
     [Command("config")]
     public class ConfigCommand
