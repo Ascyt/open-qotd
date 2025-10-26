@@ -225,7 +225,7 @@ namespace OpenQotd.Database.Entities
                 $"- suggestions_ping_role: {FormatRole(SuggestionsPingRoleId)}\n" +
                 $"- notices_level: **{NoticesLevel}**\n" +
                 $"- enable_deleted_questions_to_stash: **{EnableDeletedToStash}**\n" +
-                $"- logs_channel: {FormatChannel(LogsChannelId)}\n";
+                $"- logs_channel: {FormatChannel(LogsChannelId)}";
         }
 
         private static string FormatRole(ulong? roleId)
