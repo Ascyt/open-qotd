@@ -82,7 +82,7 @@ namespace OpenQotd.QotdSending
         }
 
         /// <summary>
-        /// (Re-)loads all configs from the database and populates <see cref="_configIdsToSendQotdToday"/> and <see cref="_ignoredConfigIdsToday"/>.
+        /// (Re-)loads all configs from the database and populates <see cref="_cache"/> and <see cref="_cachedItems"/>.
         /// </summary>
         public static async Task LoadAllAsync()
         {
