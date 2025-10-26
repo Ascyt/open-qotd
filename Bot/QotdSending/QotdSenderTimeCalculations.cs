@@ -1,4 +1,3 @@
-﻿using Microsoft.EntityFrameworkCore.Metadata.Conventions;
 using OpenQotd.Database.Entities;
 
 namespace OpenQotd.QotdSending
