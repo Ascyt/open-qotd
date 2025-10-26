@@ -28,7 +28,7 @@ namespace OpenQotd.QotdSending
         /// <summary>
         /// Valid cached items by config ID.
         /// </summary>
-        private static Dictionary<int, CachedConfig> _cachedItems = [];
+        private static ConcurrentDictionary<int, CachedConfig> _cachedItems = [];
 
         /// <summary>
         /// Items to recache before the next cycle.
@@ -40,9 +40,9 @@ namespace OpenQotd.QotdSending
         public static readonly ConcurrentBag<int> ConfigIdsToRemoveFromCache = [];
 
         /// <summary>
-        /// Used to lock operations that directly modify <see cref="_cache"/> or <see cref="_cachedItems"/>, as those are not thread-safe.
+        /// Used to lock operations that directly modify <see cref="_cache"/>, as it is not thread-safe.
         /// </summary>
-        private static readonly SemaphoreSlim _cacheLock = new(1, 1);
+        private static readonly Lock _cacheLock = new();
 
         /// <summary>
         /// If the given config exists and is enabled for automatic QOTD sending, returns its next send time. Otherwise, returns null.
@@ -51,9 +51,29 @@ namespace OpenQotd.QotdSending
         {
             if (!_cachedItems.TryGetValue(configId, out CachedConfig? cachedConfig)) 
             {
+                ConfigToSendElement? config;
+                using (AppDbContext dbContext = new())
+                {
+                    config = await dbContext.Configs
+                        .Where(c => c.Id == configId && c.EnableAutomaticQotd)
+                        .Select(c => new ConfigToSendElement
+                        {
+                            Id = c.Id,
+                            LastSent = c.LastSentTimestamp,
+                            Hour = c.QotdTimeHourUtc,
+                            Minute = c.QotdTimeMinuteUtc,
+                            DayCondition = c.QotdTimeDayCondition,
+                            DayConditionLastChanged = c.QotdTimeDayConditionLastChangedTimestamp
+                        })
+                        .FirstOrDefaultAsync();
+
+                    if (config is null)
+                        return null; // Not found or not enabled
+                }
+
                 // Not found in cache, try to recache
-                ConfigIdsToRecache.Add(configId);
-                await RecacheOrRemoveRequiredElements();
+                RecacheElement(config.Value);
+
                 if (!_cachedItems.TryGetValue(configId, out cachedConfig))
                     return null; // Not found even after recache
             }
@@ -66,15 +86,15 @@ namespace OpenQotd.QotdSending
         /// </summary>
         public static async Task LoadAllAsync()
         {
-            await _cacheLock.WaitAsync();
+            HashSet<ConfigToSendElement> configs = await GetAllConfigsWithSendingEnabled();
 
-            try
-            {
-                _cachedItems = new Dictionary<int, CachedConfig>(GetAllConfigsWithSendingEnabled()
+            lock (_cacheLock) 
+            { 
+                _cachedItems = new ConcurrentDictionary<int, CachedConfig>(configs
                     .Select(c => new CachedConfig
                     {
-                        ConfigId = c.ConfigId,
-                        NextSendTime = QotdSenderTimeCalculations.GetNextSendTime(c.LastSentTimestamp, c.Hour, c.Minute, c.DayCondition, c.DayConditionLastChanged)
+                        ConfigId = c.Id,
+                        NextSendTime = QotdSenderTimeCalculations.GetNextSendTime(c.LastSent, c.Hour, c.Minute, c.DayCondition, c.DayConditionLastChanged)
                     })
                     .Select(c => new KeyValuePair<int, CachedConfig>(c.ConfigId, c)));
 
@@ -84,34 +104,31 @@ namespace OpenQotd.QotdSending
                     _cache.Enqueue(cached, cached.NextSendTime);
                 }
             }
-            finally
-            {
-                _cacheLock.Release();
-            }
         }
 
         private struct ConfigToSendElement
         {
-            public required int ConfigId;
-            public required DateTime? LastSentTimestamp;
+            public required int Id;
+            public required DateTime? LastSent;
             public required int Hour;
             public required int Minute;
             public required string? DayCondition;
             public required DateTime? DayConditionLastChanged;
         }
-        private static HashSet<ConfigToSendElement> GetAllConfigsWithSendingEnabled()
+        private static async Task<HashSet<ConfigToSendElement>> GetAllConfigsWithSendingEnabled()
         {
             using AppDbContext dbContext = new();
 
-            return [.. dbContext.Configs
+            return await dbContext.Configs
                     .Where(c => c.EnableAutomaticQotd)
                     .Select(c => new ConfigToSendElement { 
-                        ConfigId = c.Id, 
-                        LastSentTimestamp = c.LastSentTimestamp,
+                        Id = c.Id, 
+                        LastSent = c.LastSentTimestamp,
                         Hour = c.QotdTimeHourUtc, 
                         Minute = c.QotdTimeMinuteUtc, 
                         DayCondition = c.QotdTimeDayCondition, 
-                        DayConditionLastChanged = c.QotdTimeDayConditionLastChangedTimestamp } )];
+                        DayConditionLastChanged = c.QotdTimeDayConditionLastChangedTimestamp } )
+                    .ToHashSetAsync();
         }
 
         /// <summary>
@@ -122,56 +139,59 @@ namespace OpenQotd.QotdSending
             if (ConfigIdsToRecache.IsEmpty && ConfigIdsToRemoveFromCache.IsEmpty)
                 return; // Nothing to do
 
-            await _cacheLock.WaitAsync();
+            HashSet<int> configIdsToRecache = [];
 
-            try
+            using AppDbContext dbContext = new();
+
+            // Recache
+            while (ConfigIdsToRecache.TryTake(out int configId))
             {
-                using AppDbContext dbContext = new();
+                InvalideCachedItemIfExists(configId);
 
-                // Recache
-                while (ConfigIdsToRecache.TryTake(out int configId))
-                {
-                    InvalideCachedItemIfExists(configId);
-
-                    var config = await dbContext.Configs
-                        .Where(c => c.Id == configId && c.EnableAutomaticQotd)
-                        .Select(c => new
-                        {
-                            c.LastSentTimestamp,
-                            c.QotdTimeHourUtc,
-                            c.QotdTimeMinuteUtc,
-                            c.QotdTimeDayCondition,
-                            c.QotdTimeDayConditionLastChangedTimestamp
-                        })
-                        .FirstOrDefaultAsync();
-                    if (config is null)
-                        continue; // Config no longer exists or sending is disabled, do not recache
-
-                    DateTime nextSendTime = QotdSenderTimeCalculations.GetNextSendTime(config.LastSentTimestamp, config.QotdTimeHourUtc, config.QotdTimeMinuteUtc, config.QotdTimeDayCondition, config.QotdTimeDayConditionLastChangedTimestamp);
-                    CachedConfig newCachedConfig = new() { ConfigId = configId, NextSendTime = nextSendTime };
-                    _cache.Enqueue(newCachedConfig, nextSendTime);
-                    _cachedItems[configId] = newCachedConfig;
-                }
-
-                // Remove from cache
-                while (ConfigIdsToRemoveFromCache.TryTake(out int configId))
-                {
-                    InvalideCachedItemIfExists(configId);
-                }
-            }
-            finally
-            {
-                _cacheLock.Release();
+                configIdsToRecache.Add(configId);
             }
 
+            // Remove from cache
+            while (ConfigIdsToRemoveFromCache.TryTake(out int configId))
+            {
+                InvalideCachedItemIfExists(configId);
+            }
+
+            List<ConfigToSendElement> configsList = await dbContext.Configs
+                .Where(c => configIdsToRecache.Contains(c.Id) && c.EnableAutomaticQotd)
+                .Select(c => new ConfigToSendElement
+                {
+                    Id = c.Id,
+                    LastSent = c.LastSentTimestamp,
+                    Hour = c.QotdTimeHourUtc,
+                    Minute = c.QotdTimeMinuteUtc,
+                    DayCondition = c.QotdTimeDayCondition,
+                    DayConditionLastChanged = c.QotdTimeDayConditionLastChangedTimestamp
+                })
+                .ToListAsync();
+
+            foreach (ConfigToSendElement config in configsList)
+            {
+                RecacheElement(config);
+            }
 
             static void InvalideCachedItemIfExists(int configId)
             {
-                if (_cachedItems.TryGetValue(configId, out CachedConfig? cachedConfig))
+                if (_cachedItems.TryRemove(configId, out CachedConfig? cachedConfig))
                 {
                     cachedConfig.IsValid = false;
-                    _cachedItems.Remove(configId);
                 }
+            }
+        }
+
+        private static void RecacheElement(ConfigToSendElement config)
+        {
+            DateTime nextSendTime = QotdSenderTimeCalculations.GetNextSendTime(config.LastSent, config.Hour, config.Minute, config.DayCondition, config.DayConditionLastChanged);
+            CachedConfig newCachedConfig = new() { ConfigId = config.Id, NextSendTime = nextSendTime };
+            lock (_cacheLock)
+            {
+                _cache.Enqueue(newCachedConfig, nextSendTime);
+                _cachedItems[config.Id] = newCachedConfig;
             }
         }
 
@@ -180,12 +200,10 @@ namespace OpenQotd.QotdSending
         /// </summary>
         public static async Task SendAvailableQotdsAsync()
         {
-            await _cacheLock.WaitAsync();
+            List<int> configsToSend = [];
 
-            try
+            lock (_cacheLock)
             {
-                List<int> configsToSend = [];
-
                 while (true)
                 {
                     if (!_cache.TryPeek(out CachedConfig? peekedConfig, out DateTime peekedConfigTime))
@@ -195,7 +213,7 @@ namespace OpenQotd.QotdSending
                     {
                         // Remove invalidated config from cache
                         _ = _cache.Dequeue();
-                        _ = _cachedItems.Remove(peekedConfig.ConfigId);
+                        _ = _cachedItems.TryRemove(peekedConfig.ConfigId, out _); // no idea why there is no overload of TryRemove that doesn't return the removed item
                         continue;
                     }
 
@@ -205,16 +223,12 @@ namespace OpenQotd.QotdSending
                     // Config is ready to be sent
                     // Also gets removed from cache. After sending, it will be re-cached if needed.
                     _ = _cache.Dequeue();
-                    _ = _cachedItems.Remove(peekedConfig.ConfigId);
+                    _ = _cachedItems.TryRemove(peekedConfig.ConfigId, out _);
                     configsToSend.Add(peekedConfig.ConfigId);
                 }
+            }
 
-                await SendQotdsForConfigIdsAsync(configsToSend);
-            }
-            finally
-            {
-                _cacheLock.Release();
-            }
+            await SendQotdsForConfigIdsAsync(configsToSend);
         }
 
         /// <summary>
@@ -299,6 +313,11 @@ namespace OpenQotd.QotdSending
 
                     await RecacheOrRemoveRequiredElements();
                     await SendAvailableQotdsAsync();
+                }
+                catch (OperationCanceledException)
+                {
+                    Console.WriteLine("Fetch loop cancelled.");
+                    break;
                 }
                 catch (Exception ex)
                 {

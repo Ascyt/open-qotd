@@ -25,7 +25,7 @@ namespace OpenQotd
             Console.WriteLine();
 
             Console.WriteLine("Loading environment variables...");
-            DotNetEnv.Env.Load();
+            DotNetEnv.Env.Load(Path.Combine("..", ".env"));
             Console.WriteLine("Environment variables loaded.");
 
             Console.WriteLine("Loading configuration...");
