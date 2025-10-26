@@ -21,20 +21,29 @@ namespace OpenQotd.Database
         {
             if (_postgresConnectionString == null)
             {
-                string? password = Environment.GetEnvironmentVariable("POSTGRES_PASSWORD");
-                if (string.IsNullOrEmpty(password))
+                string? connectionFromEnv = Environment.GetEnvironmentVariable("POSTGRES_CONNECTION_STRING_OVERRIDE");
+                if (!string.IsNullOrEmpty(connectionFromEnv))
                 {
-                    throw new InvalidOperationException("POSTGRES_PASSWORD environment variable is not set.");
+                    Console.WriteLine("Connection string provided from `POSTGRES_CONNECTION_STRING_OVERRIDE` environment variable.");
+                    _postgresConnectionString = connectionFromEnv;
                 }
-
-                StringBuilder connection = new(Program.AppSettings.PostgresConnectionStringNoPassword.Trim());
-                if (!connection.ToString().EndsWith(';'))
+                else
                 {
-                    connection.Append(';');
-                }
-                connection.Append($"Password={password}");
+                    string? password = Environment.GetEnvironmentVariable("POSTGRES_PASSWORD");
+                    if (string.IsNullOrEmpty(password))
+                    {
+                        throw new InvalidOperationException("POSTGRES_PASSWORD environment variable is not set.");
+                    }
 
-                _postgresConnectionString = connection.ToString();
+                    StringBuilder connection = new(Program.AppSettings.PostgresConnectionStringNoPassword.Trim());
+                    if (!connection.ToString().EndsWith(';'))
+                    {
+                        connection.Append(';');
+                    }
+                    connection.Append($"Password={password}");
+
+                    _postgresConnectionString = connection.ToString();
+                }
             }
 
             if (!optionsBuilder.IsConfigured)

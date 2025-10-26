@@ -88,16 +88,16 @@ namespace OpenQotd.QotdSending
         {
             HashSet<ConfigToSendElement> configs = await GetAllConfigsWithSendingEnabled();
 
-            lock (_cacheLock) 
-            { 
-                _cachedItems = new ConcurrentDictionary<int, CachedConfig>(configs
-                    .Select(c => new CachedConfig
-                    {
-                        ConfigId = c.Id,
-                        NextSendTime = QotdSenderTimeCalculations.GetNextSendTime(c.LastSent, c.Hour, c.Minute, c.DayCondition, c.DayConditionLastChanged)
-                    })
-                    .Select(c => new KeyValuePair<int, CachedConfig>(c.ConfigId, c)));
+            _cachedItems = new ConcurrentDictionary<int, CachedConfig>(configs
+                .Select(c => new CachedConfig
+                {
+                    ConfigId = c.Id,
+                    NextSendTime = QotdSenderTimeCalculations.GetNextSendTime(c.LastSent, c.Hour, c.Minute, c.DayCondition, c.DayConditionLastChanged)
+                })
+                .Select(c => new KeyValuePair<int, CachedConfig>(c.ConfigId, c)));
 
+            lock (_cacheLock)
+            {
                 _cache.Clear();
                 foreach (CachedConfig cached in _cachedItems.Values)
                 {
