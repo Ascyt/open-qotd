@@ -11,3 +11,5 @@ Migrations
 
 notices.json
 feedback.txt
+
+.env
