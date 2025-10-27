@@ -117,7 +117,7 @@ namespace OpenQotd.QotdSending
                 buttons.Add(new(DiscordButtonStyle.Secondary, $"suggest-qotd/{config.ProfileId}", $"Suggest a new {config.QotdShorthandText}"));
                 
             if (config.EnableQotdShowInfoButton)
-                buttons.Add(new(DiscordButtonStyle.Secondary, $"show-general-info/{config.ProfileId}/{question?.GuildDependentId ?? -1}", "🛈"));
+                buttons.Add(new(DiscordButtonStyle.Secondary, $"show-general-info/{config.ProfileId}/{question?.GuildDependentId ?? -1}", "𝐢"));
 
             messageBuilder.AddActionRowComponent(buttons);
         }

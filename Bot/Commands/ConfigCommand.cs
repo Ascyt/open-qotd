@@ -361,7 +361,7 @@ namespace OpenQotd.Commands
                 new DiscordButtonComponent(
                     DiscordButtonStyle.Secondary,
                     $"show-general-info-no-prompt/{profileId}",
-                    "🛈"
+                    "𝐢"
                     )
                 );
         }
