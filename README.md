@@ -1,6 +1,6 @@
 # OpenQOTD
 
-This project is made using C# and [DSharpPlus](https://dsharpplus.github.io/DSharpPlus/) and [SQLite](https://www.sqlite.org/index.html). 
+This project is made using C#, [DSharpPlus](https://dsharpplus.github.io/DSharpPlus/), [PostgreSQL](https://www.postgresql.org/) and [Docker](https://www.docker.com/). 
 
 - [Documentation](https://open-qotd.ascyt.com/documentation)
 - [Community Server](https://open-qotd.ascyt.com/community)
@@ -13,4 +13,4 @@ Feel free to check out the Issues tab for things that need to be implemented!
 
 ## License
 
-This project is licensed under the GNU General Public License v3.0 - see the [LICENSE](LICENSE) file for details.
+This project is licensed under the GNU Affero General Public License v3.0 - see the [LICENSE](LICENSE) file for details.
