@@ -9,8 +9,7 @@ services:
     ports:
       - "5432:5432"
     volumes:
-      - pgdata:/var/lib/postgresql/data
-
+      - ${PGDATA_PATH}:/var/lib/postgresql/data
   bot:
     build: 
       context: .
@@ -22,6 +21,3 @@ services:
       - db
     environment:
       - POSTGRES_CONNECTION_STRING_OVERRIDE=User ID=root;Password=${POSTGRES_PASSWORD};Host=db;Port=5432;Database=openqotd;Pooling=true;MaxPoolSize=100;Connection Lifetime=0
-
-volumes:
-  pgdata:
