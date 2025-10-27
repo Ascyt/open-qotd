@@ -83,7 +83,7 @@
         /// <summary>
         /// The default name for the first profile created in a guild.
         /// </summary>
-        public string ConfigProfileNameDefault { get; set; } = "QOTD";
+        public string ConfigProfileNameDefault { get; set; } = "Default";
 
         /// <summary>
         /// The maximum amount of characters that Question.Text can be. Does not add a database constraint.
