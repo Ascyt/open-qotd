@@ -1,0 +1,39 @@
+<h2 class="mb-4">Changelog</h2>
+
+<section id="v2-0-0">
+    <h3 class="mb-2">2025-10-29: Update v2.0.0</h3>
+    <p>
+        OpenQOTD v2.0.0 is a major update that brings a ton of both large and small features, including a rewrite to large parts of the bot's codebase to improve stability and performance. 
+    </p>
+    <p [ngClass]="{'text-warning': true, 'light-theme': themeSwitcherService.isLightTheme}">
+        ⚠️ For this update, a <b>maintenance</b> is scheduled for 2025-10-29 at around 18:00 UTC - expect the bot to be offline at around this time. 
+    </p>
+    <p>
+        Once v2.0.0 is released, all features will be documented in the <a routerLink="/documentation">Documentation</a> section, however here is a small overview of everything that is new, including some of the things to look out for:
+    </p>
+    <ul>
+        <li><b>Profiles</b>: This is the biggest feature and arguably the heart of the update. The <code>/profiles</code> command allows admins to set up <b>as many instances of the bot as they want</b> - which is essentially equivalent adding the bot for multiple different things simultaneously to the server, be it Question Of The Day, Quote Of The Day, but also things like Topic Of The Week or Fact Of The Month, as this feature harmonizes well with some of the other features introduced in this update.</li>
+        <li><b>Custom title</b>: I've realized that this bot can be much more than just be used for "Questions Of The Day". While it's already possible to use the bot for whatever, it is now possible to customize both the "Question Of The Day" title and the "QOTD" acronym to be whatever your heart pleases.</li>
+        <li><b>More time customization</b>: It's now possible to set a <b>day condition string</b> in the config, which is a short string specifying on which days a QOTD (I'll still be calling them QOTDs in my posts and the docs even though they can now be called whatever) should be sent. This includes sending QOTDs every n days, on certain days of the week, every n'th week on a certain day, or on certain days of the month, as opposed to just daily.</li>
+        <li><b>More info for QOTDs</b>: Questions can now be multi-line and up to 2000 characters long! There are also new properties that can optionally be added when a question is suggested using the button under QOTDs or <code>/suggest</code>, including "Additional Information" (shown when a "Show More" button under the QOTD is pressed), Thumbnail Image URL (can be used to add images to QOTDs), and Staff Info (only gets shown to staff).
+        </li>
+        <li><b>"Stashed" question type</b>: If enabled, questions will get the "Stashed" type as opposed to outright being deleted when suggestions are denied or they are removed. This utility type can also be used to temporarily disable questions!</li>
+        <li><b><code>/questions addbulk</code> and <code>/questions removebulk</code></b>: Have been added alongside <code>/questions changetypebulk</code> to add multiple questions at once (using a file) or remove all questions of a certain type. While the addbulk command has already been available prior to v2, I forgot to make an announcement that I added it, so I just want to make it clear that it does in fact exist.</li>
+        <li><b>Additional config options:</b>
+            <ul>
+                <li><code>enable_qotd_last_available_warn<span class="default-value">true</span></code>: If enabled, a warning will be shown under a sent QOTD if it was the last sendable custom one, advising members to suggest new ones if suggestions are enabled. This has already been the behaviour, however up until now there was no option to disable it.</li>
+                <li><code>enable_qotd_show_info_button<span class="default-value">true</span></code>: If enabled, a little "𝐢" button gets shown under sent QOTDs. This can be used by admins to ephemerally view information about the question, or by anyone to view general info about OpenQOTD.</li>
+                <li><code>enable_deleted_to_stash<span class="default-value">true</span></code>: If enabled, questions will automatically get the "Stashed" type as opposed to being permanently deleted.</li>
+            </ul>
+        </li>
+        <li>
+            <b>Other improvements</b>: There are many small additional improvements to this bot, including a ton of technical changes for maintainability and performance. The main reason that v2 took so long to complete is because I had to make complete rewrites to many parts of the bot, including the switch to a new database engine. Also, note that the open-source license of this bot has been changed from GPL-3.0 to AGPL-3.0 for all future versions of the bot including this one.
+        </li>
+    </ul>
+    <p>
+        With all of that out of the way, if you're an admin of a server you might ask yourself "will I need to do something for v2?", and, well, the answer is no! Unless I messed something up big time, everything should work out-of-the-box just as it has worked previously! If you got any questions regarding this update or OpenQOTD in general, don't hesitate to join the <a href="/community" target="_blank">Community & Support Server</a> or send me a DM on Discord (my user is <code>&commat;ascyt</code>), I'm happy to help! I hope you'll have as much fun using v2 as I've been having implementing it, and many thanks for your interest in this be it still fairly small bot :)
+    </p>
+    <p>
+        <i>Other people celebrate Halloween by dressing up as scary figures, carving a pumpkin or watching a scary movie - I celebrate scary season by pushing huge changes to prod x)</i>
+    </p>
+</section>

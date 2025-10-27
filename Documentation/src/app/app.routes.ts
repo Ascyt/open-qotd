@@ -8,6 +8,7 @@ import { TermsOfServiceComponent } from './terms-of-service/terms-of-service.com
 import { DocumentationComponent } from './documentation/documentation.component';
 import { AboutComponent } from './about/about.component';
 import { VoteComponent } from './vote/vote.component';
+import { ChangelogComponent } from './changelog/changelog.component';
 
 export const routes: Routes = [
     {path: '', redirectTo: '/home', pathMatch: 'full'},
@@ -15,6 +16,7 @@ export const routes: Routes = [
     {path: 'home', component: HomeComponent},
     {path: 'documentation', component: DocumentationComponent},
     {path: 'about', component: AboutComponent},
+    {path: 'changelog', component: ChangelogComponent},
 
     {path: 'vote', component: VoteComponent},
 
@@ -26,7 +28,7 @@ export const routes: Routes = [
     {path: 'terms-of-service', component:TermsOfServiceComponent},
 
     {path: 'community', component: RedirectingComponent, canActivate: [RedirectGuard], data: {externalUrl: 'https://discord.gg/85TtrwuKn8'}},
-    {path: 'add', component: RedirectingComponent, canActivate: [RedirectGuard], data: {externalUrl: 'https://discord.com/oauth2/authorize?client_id=1275472589375930418&permissions=141312&integration_type=0&scope=applications.commands+bot'}},
+    {path: 'add', component: RedirectingComponent, canActivate: [RedirectGuard], data: {externalUrl: 'https://discord.com/oauth2/authorize?client_id=1275472589375930418&permissions=2251816993687552&integration_type=0&scope=bot+applications.commands'}},
 
     {path: '**', component: NotFoundComponent}
 ];
