@@ -8,6 +8,7 @@ import { TermsOfServiceComponent } from './terms-of-service/terms-of-service.com
 import { DocumentationComponent } from './documentation/documentation.component';
 import { AboutComponent } from './about/about.component';
 import { VoteComponent } from './vote/vote.component';
+import { ChangelogComponent } from './changelog/changelog.component';
 
 export const routes: Routes = [
     {path: '', redirectTo: '/home', pathMatch: 'full'},
@@ -15,6 +16,7 @@ export const routes: Routes = [
     {path: 'home', component: HomeComponent},
     {path: 'documentation', component: DocumentationComponent},
     {path: 'about', component: AboutComponent},
+    {path: 'changelog', component: ChangelogComponent},
 
     {path: 'vote', component: VoteComponent},
 
