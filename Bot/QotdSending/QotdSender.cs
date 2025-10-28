@@ -35,7 +35,7 @@ namespace OpenQotd.QotdSending
 
                 // If the guild is not found, disable automatic QOTD sending for it
                 // This is to avoid repeated errors when cache is re-calculated like for startup
-                config.EnableAutomaticQotd = false;
+                foundConfig.EnableAutomaticQotd = false;
 
                 await dbContext.SaveChangesAsync();
                 return false;
