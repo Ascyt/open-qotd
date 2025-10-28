@@ -26,19 +26,18 @@ namespace OpenQotd.QotdSending
             }
             catch (NotFoundException)
             {
-                // TODO: Add guildIds which are not found in an array, if a guild is not found and is in that array erase all data of said guild
+                using AppDbContext dbContext = new();
+                Config? foundConfig = await dbContext.Configs
+                    .FindAsync(config.Id);
 
-                //using AppDbContext dbContext = new();
-                //Config? foundConfig = await dbContext.Configs
-                //    .FindAsync(config.Id);
+                if (foundConfig is null)
+                    return false;
 
-                //if (foundConfig is null)
-                //    return;
+                // If the guild is not found, disable automatic QOTD sending for it
+                // This is to avoid repeated errors when cache is re-calculated like for startup
+                config.EnableAutomaticQotd = false;
 
-                //dbContext.Configs.Remove(foundConfig);
-
-                //await dbContext.SaveChangesAsync();
-                //Console.WriteLine($"Removed dead config with ID {foundConfig.Id} (guild {foundConfig.GuildIdx})");
+                await dbContext.SaveChangesAsync();
                 return false;
             }
 
