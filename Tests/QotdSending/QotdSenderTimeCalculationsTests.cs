@@ -173,18 +173,32 @@ namespace Tests.QotdSending
         }
 
         [Fact]
-        public void DaysOfMonth_SkipsInvalidDaysAndFindsNextValidAcrossMonths()
+        public void DaysOfMonth_SnapsToLastDayWhenMonthHasFewerDays()
         {
-            // allowed days include 31 which doesn't exist in November -> should choose next valid date (e.g., 1st of following month if present)
+            // With snapping semantics: 31 in November (30 days) -> November 30
             string condition = "%m31,1";
 
             DateTime now = new(2025, 11, 15, 6, 0, 0, DateTimeKind.Utc); // November (30 days)
             DateTime? lastSent = null;
 
-            // 31 is invalid in Nov, 1 is valid in Dec -> should return Dec 1
-            DateTime expected = new(2025, 12, 1, 8, 0, 0, DateTimeKind.Utc);
+            // 31 snaps to 30 in Nov, and since it's still in the current month and >= today, expect Nov 30
+            DateTime expected = new(2025, 11, 30, 8, 0, 0, DateTimeKind.Utc);
 
             DateTime next = QotdSenderTimeCalculations.GetNextSendTime(now, lastSent, 8, 0, condition, null);
+
+            Assert.Equal(expected, next);
+        }
+
+        [Theory]
+        [InlineData(2025, 2, 10, 28)] // non-leap year -> Feb 28
+        [InlineData(2024, 2, 10, 29)] // leap year     -> Feb 29
+        public void DaysOfMonth_SnapsToFebEnd_ForRequested31_OnFeb(int year, int month, int dayNow, int expectedDom)
+        {
+            string condition = "%m31";
+            DateTime now = new(year, month, dayNow, 6, 0, 0, DateTimeKind.Utc);
+            DateTime expected = new(year, month, expectedDom, 8, 0, 0, DateTimeKind.Utc);
+
+            DateTime next = QotdSenderTimeCalculations.GetNextSendTime(now, null, 8, 0, condition, null);
 
             Assert.Equal(expected, next);
         }
