@@ -145,7 +145,7 @@
             <code>notices_level<span class="default-value">All</span></code>: Notices are messages that are sent alongside QOTDs, which are written by the developer and are used to inform users about updates, changes, suggestions and thelike.<br />
             The following options are available:
             <ul>
-                <li><code>All</code>: All notices are sent. Keep in mind that some of these notices may include encouraging users to join the community server, donate, contribute, or similar. Consider keeping this enabled to help this free and open-source project work out. Thank you ♡</li>
+                <li><code>All</code>: All notices are sent. Keep in mind that some of these notices may include encouraging users to join the community server, donate, contribute, or similar, so please consider keeping this enabled to help this free and open-source project work out.</li>
                 <li><code>Important</code>: Only important announcements are sent, including maintenance times and breaking changes. It is recommended to keep at least this level enabled.</li>
                 <li><code>None</code>: No notices are sent whatsoever.</li>
             </ul>
@@ -160,8 +160,7 @@
             The channel where logs are sent to, which includes changes being made to the config, questions or suggestions. <br />
             
             <span [ngClass]="{'text-warning': true, 'light-theme': themeSwitcherService.isLightTheme}">
-                <b>⚠️ Warning</b>: This currently does not log QOTDs being sent automatically or using <code>/trigger</code>,
-                or the config getting re-initialized using <code>/config initialize</code>.<br />
+                <b>⚠️ Warning</b>: This currently does not log the config getting re-initialized using <code>/config initialize</code>.<br />
                 I'm working to fix this in a future update, but for now, keep this in mind.
             </span>
         </li>
@@ -192,10 +191,10 @@
         Each question has one of four types, <span class="question-type suggested">Suggested</span>, <span class="question-type accepted">Accepted</span>, <span class="question-type sent">Sent</span> or <span class="question-type stashed">Stashed</span>:
     </p>    
     <ul>
-        <li><span class="question-type suggested">Suggested</span> questions are questions that have been suggested by users, and have to be accepted or denied by staff members to be sendable.</li>
-        <li><span class="question-type accepted">Accepted</span> questions are questions that have been accepted or added by staff members, and are sendable.</li>
-        <li><span class="question-type sent">Sent</span> questions are questions that have been sent already, and are not sendable again.</li>
-        <li><span class="question-type stashed">Stashed</span> questions are questions that have either been deleted (if <code>enable_deleted_to_stash</code> is enabled) or manually set to Stashed.</li>
+        <li><span class="question-type suggested">Suggested</span> questions are those that have been suggested by users, and have to be accepted or denied by staff members to be sendable.</li>
+        <li><span class="question-type accepted">Accepted</span> questions are those that have been accepted or added by staff members, and are sendable.</li>
+        <li><span class="question-type sent">Sent</span> questions are those that have been sent already, and are not sendable again.</li>
+        <li><span class="question-type stashed">Stashed</span> questions are those that have either been deleted (if <code>enable_deleted_to_stash</code> is enabled) or manually set to Stashed.</li>
     </ul>
     <p>
         As you can see, the only questions that are sendable are <span class="question-type accepted">Accepted</span> questions, and they are prioritized over Presets if they are available.<br />
@@ -255,8 +254,8 @@
     <h3 class="mb-2">Suggestions</h3>
     <p>
         If suggestions are enabled, users can suggest questions using <code>/suggest</code> or <code>/qotd</code>.<br />
-        These suggestions (=questions with type <span class="question-type suggested">Suggested</span>) have to be accepted or denied by staff members in order to be sendable, and they are sent to the <code>suggestions_channel</code> with buttons to accept or deny them.<br />
-        Note that anyone can accept or deny suggestions using the buttons of the messages, so make sure to have your <code>suggestions_channel</code> set to a channel that is only viewable by people you trust!<br />
+        These suggestions (=questions with type <span class="question-type suggested">Suggested</span>) have to be accepted or denied by staff members in order to be sendable, and they are sent to the <code>suggestions_channel</code> with buttons to accept or deny them. The user is notified in DMs when their question is accepted/denied, including the denial reason if applicable.<br />
+        Note that anyone can accept or deny suggestions using the buttons of the messages or <code>/suggestions</code> in that channel, so make sure to have your <code>suggestions_channel</code> set to a channel that is only viewable by people you trust!<br />
     </p>
     <h4>Commands</h4>
     <p>
@@ -346,9 +345,9 @@
             This is the same as <code>/questions list type:Sent</code>, except that it is available to all users with the <code>basic_role</code> (not just admins).
         </li>
         <li class="mb-2">
-            <code>/suggest [question]</code>: 
-            Suggest a question to be added to the server, which will create a <span class="question-type suggested">Suggested</span> question that has to be accepted or denied by staff members to be sendable.<br />
-            This is the same as <code>/qotd</code>.
+            <code>/qotd</code>: 
+            Opens up the QOTD suggestion modal for the default profile.<br />
+            <code>/suggest [for]</code> is essentially the same, but allows users to specify any profile where they have suggestion permission.
         </li>
         <li class="mb-2">
             <code>/trigger</code>: 
@@ -363,7 +362,45 @@
     </ul>
 </section>
 
-<p>
+<section id="profiles">
+    <h3 class="mb-2">Profiles</h3>
+    <p>
+        Profiles are an advanced feature that allows you to set up multiple instances of OpenQOTD in a single server, each with its own configuration, questions, presets, and suggestions. This is useful if you want to have different QOTD setups for different purposes, such as having one for daily questions and another for weekly quotes.<br />
+        This feature is designed to be as usable as possible for both admins and regular users, while still acknowledging the increased complexity that comes with it. You also don't need to deal with it if you only use the bot for a single purpose.<br />
+        <code>/profiles</code> can be used to manage and switch between profiles, and note that only users with the "Administrator" server permission can remove and create profiles, however anyone can switch to a profile they have the <code>admin_role</code> for.<br />
+        Any admin-command except for <code>/profiles</code> will only refer to the currently selected profile. For example, if you use <code>/questions add</code>, it will add the question to the currently selected profile; if you haven't selected any profile yet, it will use the default profile. Basic commands will instead include a dropdown to select the profile.<br />
+        Profiles are more or less equivalent to initialized configs (internally, profiles are merely syntactic sugar to allow people to manage multiple configs within a single server). The config variable <code>profile_name</code> is used to identify the profile for admins.<br />
+        Users can view basic informations and run basic commands for all profiles they have the <code>basic_role</code> in, and suggest questions for them if suggestions are enabled. For basic commands, the <code>qotd_title</code> config variable is used to identify the profile, and only profiles that meet these criteria are shown in the dropdown to users in commands like <code>/suggest [for]</code>.<br />
+        Note that as an anti-spam measure, the total amount of profiles in a server is limited to <b>64</b>.
+    </p>
+    <h4>Commands</h4>
+    <ul>
+        <li class="mb-2">
+            <code>/profiles new</code>: This lets you enter new-profile-mode. This command is only available to users with the "Administrator" server permission.<br />
+            The command itself does <b>not</b> create a new profile immediately, but after running it, <code>/config initialize</code> will let you initialize a new config independently of the existing ones. Once this is done, the new profile is created. While not a requirement, it is recommended to set the <code>profile_name</code>, <code>qotd_title</code> and <code>qotd_shorthand</code> config variables to avoid confusion and ambiguity for admins and members, and to disable <code>enable_qotd_automatic_presets</code> and to set <code>notices_level</code> to <code>None</code>.
+        </li>
+        <li class="mb-2">
+            <code>/profiles list</code>: List all viewable profiles in the server.<br />
+            For users with the "Administrator" server permission, all profiles are shown; for other users, only profiles where they have the <code>basic_role</code> are shown. The currently selected profile is indicated with a "☑️" symbol. Profiles that a user can switch to, i.e. profiles where they have the <code>admin_role</code>, are shown with a "◻️" symbol, while those that are merely viewable are shown using "▪️".
+        </li>
+        <li class="mb-2">
+            <code>/profiles switchto [profile]</code>: Switch to a different profile.<br />
+            Here, the profile names of the switchable profiles are shown. A user can only switch to profiles where they have the <code>admin_role</code> in.<br />
+            Once switched, all subsequent admin-commands that this user runs will refer to the selected profile until another profile is selected.
+        </li>
+        <li class="mb-2">
+            <code>/profiles delete</code>: Delete the currently selected profile. This command is only available to users with the "Administrator" server permission.<br />
+            Deleting a profile will permanently remove all its configuration, questions, presets, and suggestions. This action is irreversible.<br />
+            The default profile cannot be deleted, and may instead be re-assigned using <code>/profiles setdefault</code> before deleting the current default profile.
+        </li>
+        <li class="mb-2">
+            <code>/profiles setdefault</code>: Mark the currently selected profile as the global default profile. This command is only available to users with the "Administrator" server permission.<br />
+            The default profile is the one that is used for <code>/qotd</code> and for admin commands when a user has not selected any profile yet, and it cannot be deleted unless another profile is set as default first.
+        </li>
+    </ul>
+</section>
+
+<p class="mt-4">
     &gt; OpenQOTD is looking for contributors! If you want to help out with making the bot or this website better, you can take a look at the <a href="/source" target="_blank">source code</a> on GitHub or <a href="https://ascyt.com/contact">send me a message</a>!<br />
     &gt; Have any questions, suggestions, or want to report a bug? Please let us know in our <a href="community" target="_blank">community server</a>!
 </p>
