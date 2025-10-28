@@ -7,7 +7,7 @@
 <section id="general">
     <h3 class="mb-2">General Usage</h3>
     <p>
-        The main way to interact with OpenQOTD is using <a href="https://support-apps.discord.com/hc/en-us/articles/26501837786775-Slash-Commands-FAQ" target="_blank">Slash Commands</a>.<br />
+        You can interact with OpenQOTD using <a href="https://support-apps.discord.com/hc/en-us/articles/26501837786775-Slash-Commands-FAQ" target="_blank">Slash Commands</a>.<br />
         OpenQOTD also only acts once the configuration has been initialized, otherwise it does nothing. 
     </p>
 </section>
@@ -16,8 +16,8 @@
     <h3 class="mb-2">Configuration</h3>
     <p>
         OpenQOTD must be configured initially using <code>/config initialize</code>.<br />
-        Afterwards, <code>/config set</code> and <code>/config reset</code> can be used to set the config,
-        and <code>/config get</code> can be used to view it.
+        Afterwards, <code>/config set</code> can be used to set config values (use <code>/config reset</code> to reset non-boolean optional values to their defaults),
+        and <code>/config get</code> can be used to retrieve it.
     </p>
     <p>
         <code>/config</code> can <b>only</b> be run by users with the "Administrator" server permission.
@@ -38,24 +38,21 @@
                 <li><code>/sentquestions</code></li>
             </ul>
             This is set to everyone by default. That means, if this variable is unset, everyone in your server is able to run these commands.<br />
-            Do not try to set this to "&#64;everyone", it will not work. 
+            Do not try to set this to "&commat;everyone", it will not work. Instead, reset it using <code>/config reset basic_role</code> if you want everyone to be able to run these commands.
         </li>
         <li class="mb-2">
             <code class="required">admin_role</code>: 
             This is the role that is required to run administrative and potentially destructive commands, which includes:
             <ul>
                 <li><code>/questions</code></li>
-                <li><code>/suggestions</code></li>
                 <li><code>/presets</code></li>
                 <li><code>/trigger</code></li>
             </ul>
             The "Administrator" server permission overrides this role, and anyone with this permission can run every command regardless of what roles they have.<br />
-            
-            <p [ngClass]="{'text-warning': true, 'light-theme': themeSwitcherService.isLightTheme}">
-                <b>⚠️ Warning</b>: While people without this role cannot run <code>/suggestions</code>, they <b>can</b> accept or deny suggestions using the buttons of the messages,
-                so make sure to have your <code>suggestions_channel</code> set to a channel that is only viewable by people you trust!<br />
-                It's recommended to set it to a staff-only channel, and it can also be within a thread, to make it easier for organization purposes.
-            </p>
+        </li>
+        <li class="mb-2">
+            <code class="required">qotd_channel</code>: 
+            This is the channel that QOTDs are sent to, which includes the daily QOTD and the QOTDs that are triggered manually using <code>/trigger</code>.
         </li>
         <li class="mb-2">
             <code class="required">qotd_time_hour_utc</code> & <code class="required">qotd_time_minute_utc</code>: 
@@ -65,8 +62,16 @@
             You can use <a href="https://dateful.com/convert/utc" target="_blank">this tool</a> to convert your local time to UTC, and keep in mind that it might change due to daylight saving time.
         </li>
         <li class="mb-2">
-            <code class="required">qotd_channel</code>: 
-            This is the channel that QOTDs are sent to, which includes the daily QOTD and the QOTDs that are triggered manually using <code>/trigger</code>.
+            <code>qotd_day_condition</code>: Can be used to specify on which days a QOTD should be sent. If unset, a QOTD gets sent every day.<br />
+            Note that this string must start with a percent sign (<code>%</code>) and is case-sensitive. The "epoch day" refers to the day that this config variable was last changed.<br />
+            The following formats are supported:
+            <ul>
+                <li><code>%D[n]</code>&nbsp;(Every <code>[n]</code> days): Sends a QOTD every <code>[n]</code> days including the epoch day onwards. For example, <code>%D2</code> sends a QOTD every other day.</li>
+                <li><code>%w&lbrace;n&rbrace;</code>&nbsp;(On specific days of the week): Sends a QOTD on the specified days of the week, where <code>&lbrace;n&rbrace;</code> is a comma-separated list of day numbers starting with Monday as 1 (1 = Monday, 2 = Tuesday, 7 = Sunday, etc.). For example, <code>%w1,3,5</code> sends a QOTD on Mondays, Wednesdays, and Fridays.</li>
+                <li><code>%W[n];[m]</code>&nbsp;(Every <code>[n]</code> weeks on the <code>[m]</code>th day of the week): Sends a QOTD every <code>[n]</code> weeks on the specified day of the week, where <code>[m]</code> is the day of the week with Monday as 1 to Sunday as 7. For example, <code>%W2;3</code> sends a QOTD every two weeks on Wednesdays.</li>
+                <li><code>%M&lbrace;n&rbrace;</code>&nbsp;(On specific days of the month): Sends a QOTD on the specified days of the month, where <code>&lbrace;n&rbrace;</code> is a comma-separated list of day numbers (1-31). Note that if a month doesn't have the specified amount of days, then the last day of the month is chosen. For example, <code>%M1,15,31</code> sends a QOTD on the 1st, the 15th, and on the last day of every month.</li>
+            </ul>
+            Using <code>/help</code>, you can check when the next QOTD is scheduled to be sent.
         </li>
         <li class="mb-2">
             <code>qotd_ping_role</code>: 
@@ -76,30 +81,34 @@
         <li class="mb-2">
             <code>qotd_title<span class="default-value">Question Of The Day</span></code>:
             The title that is displayed in QOTD messages.<br />
-            You can set this to display a different text, such as "Quote Of The Day" or "Topic Of The Day", allowing you to use the bot for whichever non-question purposes you want.<br />
+            You can set this to display a different text, such as "Quote Of The Week" or "Topic Of The Month", allowing you to use the bot for whichever non-question purposes you want.<br />
             This works great in combination with <strong>Profiles</strong>, to allow you to set up multiple instances of the bot, each with a different purpose. 
         </li>
         <li class="mb-2">
+            <code>qotd_shorthand<span class="default-value">QOTD</span></code>: An acronym or shortened form of the QOTD title that is used in various places, such as in button labels and command descriptions.<br />
+            Similar to <code>qotd_title</code>, you can set this to whatever you want, such as "QOTW" for "Quote Of The Week" or "TOTM" for "Topic Of The Month".
+        </li>
+        <li class="mb-2">
             <code>enable_automatic_qotd<span class="default-value">true</span></code>: 
-            Determines whether the QOTD is sent automatically every day at the set time.<br />
+            If enabled, a QOTD is sent automatically every day at the set time.<br />
             If this variable is set to <code>false</code>, the QOTD has to be triggered manually using <code>/trigger</code>.
         </li>
         <li class="mb-2">
             <code>enable_qotd_pin_message<span class="default-value">true</span></code>:
-            Determines whether the old QOTD, if existant and pinned, is unpinned and the new QOTD is pinned automatically after it is sent.
+            If enabled, the old QOTD, if existant and pinned, is unpinned and the new QOTD is pinned automatically after it is sent.
         </li>
         <li class="mb-2">
             <code>enable_qotd_create_thread<span class="default-value">false</span></code>:
-            Determines whether to create a thread for the QOTD when it is sent, with the auto-archive duration being 24 hours.
+            If enabled, a thread is created for the QOTD when it is sent, with the auto-archive duration being 24 hours.
         </li>
         <li class="mb-2">
             <code>enable_qotd_automatic_presets<span class="default-value">true</span></code>:
-            Determines whether Presets are sent if there are no custom questions available.<br />
-            See <b>Presets</b> for more information.
+            If enabled, Presets are sent if there are no custom questions available.<br />
+            See <a href="/documentation#presets">Presets</a> for more information.
         </li>
         <li class="mb-2">
             <code>enable_qotd_last_available_warn<span class="default-value">true</span></code>: 
-            Determines whether a "Warning: Last QOTD" embed should be appended to a sent QOTD if it is the last available custom QOTD,
+            If enabled, a "Warning: Last QOTD" embed should be appended to a sent QOTD if it is the last available custom QOTD,
             advising users to make a suggestion if suggestions are enabled.
         </li>
         <li class="mb-2">
@@ -108,7 +117,7 @@
         </li>
         <li class="mb-2">
             <code>enable_qotd_show_info_button<span class="default-value">true</span></code>:
-            Determines whether a little "🛈"-button should be added under QOTDs.<br />
+            Determines whether a little "𝐢"-button should be added under QOTDs.<br />
             For non-admins and/or preset questions, it shows the output of <code>/help</code>; for normal questions if pressed by an admin, there is a prompt for whether to show <code>/questions view</code> for this question or <code>/help</code>.<br />
             This is purely visual and for convenience, it does not alter any data, and the button responses only get shown to the person who pressed the button.
         </li>
@@ -123,7 +132,7 @@
             If this variable is unset, suggestions are not sent anywhere and can only be viewed using <code>/suggestions</code>.<br />
             See <b>Suggestions</b> for more information.<br />
             <span [ngClass]="{'text-warning': true, 'light-theme': themeSwitcherService.isLightTheme}">
-                <b>⚠️ Warning</b>: Make sure to have this set to a channel that is only viewable by people you trust, as anyone can accept or deny suggestions using the buttons of the messages!<br />
+                <b>⚠️ Warning</b>: Make sure to have this set to a channel that is only viewable by people you trust, as anyone can accept or deny suggestions using the buttons of the messages or <code>/suggestions</code> inside of that channel!<br />
             </span>
             <b>It is recommended to use this if you have suggestions enabled, as it makes them much easier to manage.</b>
         </li>
@@ -167,7 +176,16 @@
         Presets work a little differently, to learn more about them see <b>Presets</b>.
     </p>
     <p>
-        Each question's body text is limited to <b>256 characters</b>. As an anti-spam measure, the total amount of questions is limited to <b>65536</b>. If a larger amount is needed, feel free to let me know personally and we'll figure something out.
+        A submittor can add the following information to a question when suggesting it:
+    </p>
+    <ul>
+        <li><b>Contents</b> (required): The main body of the question. Can be up to 2000 characters long.</li>
+        <li><b>Additional Information</b> (optional): If provided, a button will be available under the sent QOTD for users to ephemerally view this information. Can be up to 2000 characters long.</li>
+        <li><b>Thumbnail Image URL</b> (optional): If provided, this URL will be used as a thumbnail for the question. This does not check if the URL is valid, so make sure that this is a valid link starting with <code>https://</code>. Can be up to 256 characters long.</li>
+        <li><b>Staff Info</b> (optional): If provided, this information will get shown to staff members in the suggestion message or when viewed using the info button or <code>/questions view</code>. Can be up to 1000 characters long.</li>
+    </ul>
+    <p>
+        As an anti-spam measure, the total amount of questions (under all profiles combined) is limited to <b>65536</b>. If a larger amount is needed, feel free to let me know personally and we'll figure something out.
     </p>
     <h4>Types</h4>
     <p>
