@@ -1,0 +1,23 @@
+services:
+  db:
+    image: postgres:17
+    restart: always
+    environment:
+      POSTGRES_USER: root
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: openqotd
+    ports:
+      - "5432:5432"
+    volumes:
+      - ${PGDATA_PATH}:/var/lib/postgresql/data
+  bot:
+    build: 
+      context: .
+      dockerfile: Dockerfile
+    restart: always
+    env_file:
+      - .env
+    depends_on:
+      - db
+    environment:
+      - POSTGRES_CONNECTION_STRING_OVERRIDE=User ID=root;Password=${POSTGRES_PASSWORD};Host=db;Port=5432;Database=openqotd;Pooling=true;MaxPoolSize=100;Connection Lifetime=0
