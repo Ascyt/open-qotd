@@ -48,11 +48,11 @@ namespace OpenQotd
         /// <summary>
         /// See <see cref="UserIsAdmin(CommandContext, Config?, bool)"/>.
         /// </summary>
-        public static async Task<bool> UserIsAdmin(InteractionCreatedEventArgs args, Config? config)
+        public static async Task<bool> UserIsAdmin(InteractionCreatedEventArgs args, Config? config, bool responseOnError=true)
         {
             (bool, string?) result = await UserIsAdmin(args.Interaction.Guild!, await args.Interaction.Guild!.GetMemberAsync(args.Interaction.User!.Id), config);
 
-            if (!result.Item1)
+            if (!result.Item1 && responseOnError)
             {
                 DiscordInteractionResponseBuilder response = new();
                 response.AddEmbed(
@@ -130,11 +130,11 @@ namespace OpenQotd
         /// See <see cref="UserIsBasic(CommandContext, Config?, bool)"/>.
         /// </summary>
         /// <param name="member">Optionally provided to avoid re-fetching</param>
-        public static async Task<bool> UserIsBasic(InteractionCreatedEventArgs args, Config? config, DiscordMember? member = null)
+        public static async Task<bool> UserIsBasic(InteractionCreatedEventArgs args, Config? config, DiscordMember? member = null, bool responseOnError=true)
         {
             (bool, string?) result = await UserIsBasic(args.Interaction.Guild!, member ?? await args.Interaction.Guild!.GetMemberAsync(args.Interaction.User!.Id), config);
 
-            if (!result.Item1)
+            if (!result.Item1 && responseOnError)
             {
                 DiscordInteractionResponseBuilder response = new();
                 response.AddEmbed(

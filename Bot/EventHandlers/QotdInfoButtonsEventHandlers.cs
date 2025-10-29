@@ -66,7 +66,7 @@ namespace OpenQotd.EventHandlers
                 return;
 
             // If this is a response to a question and the user is an admin, show the prompt.
-            if (questionGuildDependentId != -1 && await CommandRequirements.UserIsAdmin(args, config))
+            if (questionGuildDependentId != -1 && await CommandRequirements.UserIsAdmin(args, config, responseOnError:false))
             {
                 DiscordInteractionResponseBuilder promptMessage = new();
                 promptMessage.AddEmbed(GenericEmbeds.Info(title: "Choose An Option",
