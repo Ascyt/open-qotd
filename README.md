@@ -18,6 +18,7 @@ To deploy, you will need to have [git](https://git-scm.com/install/windows), [.N
 2. Create a `.env`-file (in the repo root) and replace the parts in the square brackets with your information:
     ```env
     POSTGRES_PASSWORD=[choose a secure password for postgres]
+    POSTGRES_PORT=[use 5432 if you're not running multiple instances at once]
     OPENQOTD_TOKEN=[your Discord bot's token]
     PGDATA_PATH=[wherever you want your data to be stored]
     ```
