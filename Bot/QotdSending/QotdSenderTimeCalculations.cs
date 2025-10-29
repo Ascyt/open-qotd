@@ -131,30 +131,33 @@ namespace OpenQotd.QotdSending
                             qotdTimeHourUtc, qotdTimeMinuteUtc, 0, DateTimeKind.Utc
                         );
                     }
-
                 case ParsedDayCondition.DayConditionType.DaysOfMonth:
                     {
                         int[] allowedDaysOfMonth = [.. parsedCondition.AllowedDays
-                .Distinct()
-                .OrderBy(d => d)];
+                            .Distinct()
+                            .OrderBy(d => d)];
 
                         DateTime today = now.Date;
                         int year = today.Year;
                         int month = today.Month;
                         int dim = DateTime.DaysInMonth(year, month);
 
+                        // Try current month — snap requested day to last day if it exceeds month length
                         foreach (int d in allowedDaysOfMonth)
                         {
-                            if (d < 1 || d > dim) continue;
-                            if (d < today.Day) continue;
-                            if (d == today.Day && alreadySentToday) continue;
+                            if (d < 1) continue;
+
+                            int day = Math.Min(d, dim);
+                            if (day < today.Day) continue;
+                            if (day == today.Day && alreadySentToday) continue;
 
                             return new DateTime(
-                                year, month, d,
+                                year, month, day,
                                 qotdTimeHourUtc, qotdTimeMinuteUtc, 0, DateTimeKind.Utc
                             );
                         }
 
+                        // Try next 12 months — snap to last day per month as needed
                         for (int offset = 1; offset <= 12; offset++)
                         {
                             int m = month + offset;
@@ -164,15 +167,17 @@ namespace OpenQotd.QotdSending
                             int dimFuture = DateTime.DaysInMonth(y, m);
                             foreach (int d in allowedDaysOfMonth)
                             {
-                                if (d < 1 || d > dimFuture) continue;
+                                if (d < 1) continue;
 
+                                int day = Math.Min(d, dimFuture);
                                 return new DateTime(
-                                    y, m, d,
+                                    y, m, day,
                                     qotdTimeHourUtc, qotdTimeMinuteUtc, 0, DateTimeKind.Utc
                                 );
                             }
                         }
 
+                        // Fallback (should rarely be hit with the snapping behavior)
                         int fallbackMonth = month == 12 ? 1 : month + 1;
                         int fallbackYear = month == 12 ? year + 1 : year;
                         return new DateTime(

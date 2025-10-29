@@ -1,10 +1,22 @@
 .navbar {
+    position: fixed;
+    width: 100%;
     background-color: var(--back-high);
     color: var(--front);
     box-shadow: 0 0 10px var(--back-high);
     margin-bottom: 20px;
 
     transition: 0.2s;
+}
+.spacer {
+    height: 100px;
+    transition: height 0.3s;
+
+    &.expanded {
+        @media (max-width: 767.9999px) {
+            height: 420px;
+        }
+    }
 }
 .nav-link {
     padding: 20px;

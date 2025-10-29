@@ -93,7 +93,7 @@
         /// <summary>
         /// The maximum amount of characters that Question.Notes can be. Does not add a database constraint.
         /// </summary>
-        public int QuestionNotesMaxLength { get; set; } = 1000;
+        public int QuestionNotesMaxLength { get; set; } = 2000;
 
         /// <summary>
         /// The maximum amount of characters that Question.ThumbnailImageUrl can be. Does not add a database constraint.
