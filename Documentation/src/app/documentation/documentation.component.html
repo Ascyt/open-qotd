@@ -1,21 +1,20 @@
 <div class="sidebar">
     <ul>
         @for (section of sections; track section.id) {
-            <li>
+            <li [ngClass]="{'active': activeIds.includes(section.id)}">
                 <a href="documentation#{{section.id}}">{{section.title}}</a>
             </li>
         }
     </ul>
 </div>
 
-<div class="contents">
-    <h2 class="mb-2">Documentation</h2>
-
-    <p>
-        Welcome to the documentation of OpenQOTD! Here you can find all the information you need to get started with the bot, as well as some more advanced topics.
-    </p>
-
+<div class="content">
     <section id="general">
+        <h2 class="mb-2">Documentation</h2>
+
+        <p>
+            Welcome to the documentation of OpenQOTD! Here you can find all the information you need to get started with the bot, as well as some more advanced topics.
+        </p>
         <h3 class="mb-2">General Usage</h3>
         <p>
             You can interact with OpenQOTD using <a href="https://support-apps.discord.com/hc/en-us/articles/26501837786775-Slash-Commands-FAQ" target="_blank">Slash Commands</a>.<br />

@@ -1,9 +1,49 @@
 .sidebar {
-    position: fixed;
+  position: fixed;
+  height: 100%; 
+  overflow-y: auto;
+  width: 200px;
+
+  ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+  }
+
+  li {
+    margin-bottom: .5rem;
+    width: 95%;
+    margin-right: 100px;
+
+    &.active a {
+      color: var(--front);
+      background: var(--back-mid);
+      font-weight: bold;
+      border-radius: 4px;
+    }
+  }
+
+  a {
+    display: block;
+    color: var(--front-low);
+    text-decoration: none;
+    padding: 0.5rem 1rem;
+    border-radius: 4px;
+    font-size: 1rem;
+    font-weight: normal;
+    background: var(--back-high);
+    transition: background 0.2s, color 0.2s, font-weight 0.2s;
+
+    &:hover {
+      background: var(--back-low) !important;
+      color: var(--front);
+    }
+  }
 }
 
-.contents {
+.content {
     margin-left: 200px;
+    padding-right: 100px;
 }
 
 section {

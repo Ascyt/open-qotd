@@ -13,48 +13,43 @@ import { RouterModule } from '@angular/router';
 export class DocumentationComponent implements AfterViewInit, OnDestroy {
   public sections:{id:string, title:string}[] = [];
   private observer:IntersectionObserver|null = null;
-  private activeId:string = '';
+  public activeIds:string[] = [];
 
   constructor(public themeSwitcherService:ThemeSwitcherService) {
   }
 
   ngAfterViewInit(): void {
-    const sections:HTMLElement[] = Array.from(document.querySelectorAll('section'));
-    
+    const sections: HTMLElement[] = Array.from(document.querySelectorAll('section'));
+
     this.sections = sections.map((section, i) => {
-      let id:string = (section as HTMLElement).id;
+      let id: string = section.id;
       if (id === '') {
         id = `section-${i + 1}`;
-        (section as HTMLElement).id = id;
+        section.id = id;
       }
-      
-      const heading:HTMLElement|null = section.querySelector('h1,h2,h3');
-      const title:string = heading?.innerText?.trim() || id;
+      const heading: HTMLElement | null = section.querySelector('h3');
+      const title: string = heading?.innerText?.trim() || id;
       return { id, title };
     });
 
+    // Keep a Set of currently-intersecting IDs
+    const currentlyActive = new Set<string>();
+
     this.observer = new IntersectionObserver(
       entries => {
-        entries.forEach(entry => {
+        for (const entry of entries) {
+          const sectionId = (entry.target as HTMLElement).id;
           if (entry.isIntersecting) {
-            // old element deactivation
-            if (this.activeId !== '') {
-              const oldElement:HTMLElement|null = document.getElementById(this.activeId);
-              if (oldElement !== null) {
-                oldElement.classList.remove('active');
-              }
-            }
-
-            // new element activation
-            const element:HTMLElement = entry.target as HTMLElement;
-            element.classList.add('active');
-            this.activeId = element.id;
+            currentlyActive.add(sectionId);
+          } else {
+            currentlyActive.delete(sectionId);
           }
-        });
+        }
+        // Convert to array. Optionally, sort according to your desired order.
+        this.activeIds = Array.from(currentlyActive);
       },
-      { root: null, rootMargin: '0px 0px -60% 0px', threshold: [0.1, 0.5] }
+      { root: null, rootMargin: '-10% 0px -10% 0px', threshold: [0.25] }
     );
-
     sections.forEach(section => {
       this.observer?.observe(section);
     });
