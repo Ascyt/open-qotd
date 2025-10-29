@@ -53,6 +53,7 @@ section {
         display: none;
         color: var(--front-low);
         text-decoration: none;
+        filter: opacity(0.5);
         &::after {
             content: "🔗";
         }

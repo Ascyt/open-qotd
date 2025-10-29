@@ -92,7 +92,7 @@
                 <code>qotd_title<span class="default-value">Question Of The Day</span></code>:
                 The title that is displayed in QOTD messages.<br />
                 You can set this to display a different text, such as "Quote Of The Week" or "Topic Of The Month", allowing you to use the bot for whichever non-question purposes you want.<br />
-                This works great in combination with <strong>Profiles</strong>, to allow you to set up multiple instances of the bot, each with a different purpose. 
+                This works great in combination with <a href="documentation#profiles">Profiles</a>, to allow you to set up multiple instances of the bot, each with a different purpose. 
             </li>
             <li class="mb-2">
                 <code>qotd_shorthand<span class="default-value">QOTD</span></code>: An acronym or shortened form of the QOTD title that is used in various places, such as in button labels and command descriptions.<br />
@@ -105,7 +105,7 @@
             </li>
             <li class="mb-2">
                 <code>enable_qotd_pin_message<span class="default-value">true</span></code>:
-                If enabled, the old QOTD, if existant and pinned, is unpinned and the new QOTD is pinned automatically after it is sent.
+                If enabled, the old QOTD, if existent and pinned, is unpinned and the new QOTD is pinned automatically after it is sent.
             </li>
             <li class="mb-2">
                 <code>enable_qotd_create_thread<span class="default-value">false</span></code>:
@@ -123,28 +123,28 @@
             </li>
             <li class="mb-2">
                 <code>enable_qotd_unavailable_message<span class="default-value">true</span></code>:
-                Determines whether a message is sent if there are no QOTDs available, which happens if there are no custom questions available and presets are disabled or exhausted.<br />
+                If enabled, a message is sent if there are no QOTDs available, which happens if there are no custom questions available and presets are either disabled or exhausted.<br />
             </li>
             <li class="mb-2">
                 <code>enable_qotd_show_info_button<span class="default-value">true</span></code>:
-                Determines whether a little "𝐢"-button should be added under QOTDs.<br />
+                If enabled, a little "𝐢"-button gets added under QOTDs.<br />
                 For non-admins and/or preset questions, it shows the output of <code>/help</code>; for normal questions if pressed by an admin, there is a prompt for whether to show <code>/questions view</code> for this question or <code>/help</code>.<br />
                 This is purely visual and for convenience, it does not alter any data, and the button responses only get shown to the person who pressed the button.
             </li>
             <li class="mb-2">
                 <code>enable_suggestions<span class="default-value">true</span></code>:
-                Determines whether suggestions are enabled.<br />
-                If suggestions are disabled, the <code>/suggest</code> and <code>/qotd</code> commands are not available.
+                If enabled, users with the <code>basic_role</code> can suggest new questions using <code>/suggest</code>, <code>/qotd</code> or the suggest button under sent QOTDs.<br />
+                Suggested questions then have to be accepted by a staff member in order to be sendable. See <a href="documentation#suggestions">Suggestions</a> for more information.
             </li>
             <li class="mb-2">
                 <code>suggestions_channel</code>:
                 The channel where new suggestions are sent to, with buttons to accept/deny them.<br />
                 If this variable is unset, suggestions are not sent anywhere and can only be viewed using <code>/suggestions</code>.<br />
-                See <b>Suggestions</b> for more information.<br />
+                It is recommended to use this if you have suggestions enabled, as it makes them much easier to manage. <br />
+                See <a href="documentation#suggestions">Suggestions</a> for more information.<br />
                 <span [ngClass]="{'text-warning': true, 'light-theme': themeSwitcherService.isLightTheme}">
                     <b>⚠️ Warning</b>: Make sure to have this set to a channel that is only viewable by people you trust, as anyone can accept or deny suggestions using the buttons of the messages or <code>/suggestions</code> inside of that channel!<br />
                 </span>
-                <b>It is recommended to use this if you have suggestions enabled, as it makes them much easier to manage.</b>
             </li>
             <li class="mb-2">
                 <code>suggestions_ping_role</code>:
@@ -155,7 +155,7 @@
                 <code>notices_level<span class="default-value">All</span></code>: Notices are messages that are sent alongside QOTDs, which are written by the developer and are used to inform users about updates, changes, suggestions and thelike.<br />
                 The following options are available:
                 <ul>
-                    <li><code>All</code>: All notices are sent. Keep in mind that some of these notices may include encouraging users to join the community server, donate, contribute, or similar, so please consider keeping this enabled to help this free and open-source project work out.</li>
+                    <li><code>All</code>: All notices are sent. Keep in mind that some of these notices may include encouraging users to join the community server, donate, contribute, or similar, so keeping this enabled is appreciated in order to help this free and open-source project work out.</li>
                     <li><code>Important</code>: Only important announcements are sent, including maintenance times and breaking changes. It is recommended to keep at least this level enabled.</li>
                     <li><code>None</code>: No notices are sent whatsoever.</li>
                 </ul>
@@ -170,11 +170,13 @@
                 The channel where logs are sent to, which includes changes being made to the config, questions or suggestions. <br />
                 
                 <span [ngClass]="{'text-warning': true, 'light-theme': themeSwitcherService.isLightTheme}">
-                    <b>⚠️ Warning</b>: This currently does not log the config getting re-initialized using <code>/config initialize</code>.<br />
-                    I'm working to fix this in a future update, but for now, keep this in mind.
+                    <b>⚠️ Warning</b>: This currently does not log the config getting re-initialized using <code>/config initialize</code>. I'm working to fix this in a future update, but for now, keep this in mind.
                 </span>
             </li>
         </ul>
+        <p [ngClass]="{'text-warning': true, 'light-theme': themeSwitcherService.isLightTheme}">
+            <b>⚠️ Important</b>: Make sure that, if set, the <code>qotd_channel</code>, <code>suggestions_channel</code> and <code>logs_channel</code> are channels that the bot has access to, can send messages <b>with embeds</b> in, and, if enabled, also pin messages, ping roles and manage threads in respectively. 
+        </p>
     </section>
 
     <section id="questions">
@@ -182,7 +184,7 @@
         <p>
             Questions are the main feature of OpenQOTD, and they are what the bot sends every day.<br />
             They can be added by staff members or suggested by users (if suggestions are enabled). 
-            Presets work a little differently, to learn more about them see <b>Presets</b>.
+            Presets work a little differently, to learn more about them see <a href="documentation#presets">Presets</a>.
         </p>
         <p>
             A submittor can add the following information to a question when suggesting it:
@@ -201,14 +203,14 @@
             Each question has one of four types, <span class="question-type suggested">Suggested</span>, <span class="question-type accepted">Accepted</span>, <span class="question-type sent">Sent</span> or <span class="question-type stashed">Stashed</span>:
         </p>    
         <ul>
-            <li><span class="question-type suggested">Suggested</span> questions are those that have been suggested by users, and have to be accepted or denied by staff members to be sendable.</li>
-            <li><span class="question-type accepted">Accepted</span> questions are those that have been accepted or added by staff members, and are sendable.</li>
-            <li><span class="question-type sent">Sent</span> questions are those that have been sent already, and are not sendable again.</li>
+            <li><span class="question-type suggested">Suggested</span> questions are those that have been suggested by users, and have to be accepted or denied by staff members in order to be sendable.</li>
+            <li><span class="question-type accepted">Accepted</span> questions are those that have been accepted or added by staff members, and are randomly chosen to be sent as QOTDs.</li>
+            <li><span class="question-type sent">Sent</span> questions are those that have been sent already, and are not sendable again. Note that all questions of this type are publicly viewable to anyone with the <code>basic_role</code> using <code>/sentquestions</code>.</li>
             <li><span class="question-type stashed">Stashed</span> questions are those that have either been deleted (if <code>enable_deleted_to_stash</code> is enabled) or manually set to Stashed.</li>
         </ul>
         <p>
             As you can see, the only questions that are sendable are <span class="question-type accepted">Accepted</span> questions, and they are prioritized over Presets if they are available.<br />
-            If a QOTD is triggered either daily automatically or using <code>/trigger</code>, a random <span class="question-type accepted">Accepted</span> question is sent, and that question is marked as <span class="question-type sent">Sent</span>.
+            If a QOTD is triggered either automatically or using <code>/trigger</code>, a random <span class="question-type accepted">Accepted</span> question is sent, and that question is marked as <span class="question-type sent">Sent</span>.
         </p>
         <h4>Commands</h4>
         <p>
@@ -263,8 +265,9 @@
     <section id="suggestions">
         <h3 class="mb-2">Suggestions <a class="url-insert" href="documentation#suggestions"></a></h3>
         <p>
-            If suggestions are enabled, users can suggest questions using <code>/suggest</code> or <code>/qotd</code>.<br />
+            If suggestions are enabled (<code>/config set enable_suggestions:True</code>), users can suggest questions using <code>/suggest</code> or <code>/qotd</code>.<br />
             These suggestions (=questions with type <span class="question-type suggested">Suggested</span>) have to be accepted or denied by staff members in order to be sendable, and they are sent to the <code>suggestions_channel</code> with buttons to accept or deny them. The user is notified in DMs when their question is accepted/denied, including the denial reason if applicable.<br />
+            If a suggestion is accepted, its type is changed to <span class="question-type accepted">Accepted</span>, and if it is denied, its type is changed to <span class="question-type stashed">Stashed</span> (or permanently deleted if <code>enable_deleted_to_stash</code> is false).<br />
             Note that anyone can accept or deny suggestions using the buttons of the messages or <code>/suggestions</code> in that channel, so make sure to have your <code>suggestions_channel</code> set to a channel that is only viewable by people you trust!<br />
         </p>
         <h4>Commands</h4>
@@ -287,7 +290,7 @@
             </li>
             <li class="mb-2">
                 <code>/suggestions denyall</code>: 
-                Denies all suggestions without reason. This permanently removes all suggestions from the bot and notifies the suggesters in private messages.<br />
+                Denies all suggestions without reason. This stashes/deletes all suggestions from the bot and notifies the suggesters in private messages.<br />
             </li>
         </ul>
         <p>
@@ -298,7 +301,7 @@
     <section id="presets">
         <h3 class="mb-2">Presets <a class="url-insert" href="documentation#presets"></a></h3>
         <p>
-            Presets are a special type of questions that are sent if they are enabled and there are no custom questions available.<br />
+            Presets are a special type of questions that are sent if they are enabled (<code>/config set enable_qotd_automatic_presets:True</code>) and there are no custom questions available.<br />
             Once a preset is sent, it is marked as completed, and is not sendable unless it is manually enabled again.
             They do NOT show in the <code>/questions</code> or <code>/suggestions</code> listings, and they are not editable, however
             it is possible to disable them individually by manually marking them as completed using <code>/presets setactive</code>.<br />
@@ -321,7 +324,7 @@
             </li>
             <li class="mb-2">
                 <code>/presets suggest</code>: 
-                Suggest a preset to be added to the bot globally. This is similar to <code>/feedback</code>, only that it is specifically for suggesting presets.
+                Suggest a preset to be added to the bot globally. If you have any good ideas for preset questions, feel free to suggest them using this command!
             </li>
         </ul>
     </section>
@@ -329,22 +332,23 @@
     <section id="other-commands">
         <h3 class="mb-2">Other Commands <a class="url-insert" href="documentation#other-commands"></a></h3>
         <p>
-            The following commands are other commands, most of which are available to everyone with the <code>basic_role</code> role (with a notable exception being <code>/trigger</code> being admin-only):<br />
+            The following commands are other commands, most of which are available to everyone with the <code>basic_role</code> role (with a notable exception being <code>/trigger</code> which is admin-only):<br />
             <i>Required parameters are shown in square brackets (<code>[required]</code>) and optional in angled brackets (<code>&lt;required&gt;</code>), and default values are shown using "<code><span class="default-value">value</span></code>".</i>
         </p>
         <ul>
             <li class="mb-2">
-                <code>/help</code>: Print general information about the bot.
+                <code>/help</code>: Print general information about the bot, including some useful information about the config.
             </li>
             <li class="mb-2">
-                <code>/leaderboard &lt;page<span class="default-value">1</span>&gt;</code>: 
-                View the leaderboard of the server, which shows the top users by the amount of <span class="question-type sent">Sent</span> questions they have added
+                <code>/leaderboard [of] &lt;page<span class="default-value">1</span>&gt;</code>: 
+                View the leaderboard of a certain profile, which shows the top users by the amount of <span class="question-type sent">Sent</span> questions they have added
                 (questions that have been accepted and sent as QOTD).<br />
                 This is the same as <code>/lb</code>.
             </li>
             <li class="mb-2">
-                <code>/topic &lt;include_presets<span class="default-value">true</span>&gt;</code>:
-                Send a random question of type <span class="question-type sent">Sent</span> to the current channel. <br />
+                <code>/topic [from] &lt;include_presets<span class="default-value">true</span>&gt;</code>:
+                Send a random question from a certain profile of type <span class="question-type sent">Sent</span> to the current channel.<br />
+                If <code>include_presets</code> is set to true <b>and</b> presets are enabled in the config (check with <code>/help</code>), presets are also included in the random selection.<br />
                 This can be used to revive a dead chat and find an interesting topic to talk about.<br />
                 Using a button below the message, the person who ran the command can reroll the question as many times as they want.<br />
                 This command is purely visual, and does not alter the questions in any way, and the same topic can be sent multiple times. 
@@ -361,7 +365,7 @@
             </li>
             <li class="mb-2">
                 <code>/trigger</code>: 
-                Trigger a QOTD manually. This sends a random available QOTD, as if it was sent automatically.<br />
+                Trigger a QOTD manually. This sends a random available QOTD, as if it was sent automatically. This also prevents a second QOTD from being sent automatically at the same day and recalculates the QOTD schedule.<br />
                 This command is only available to Administrators or users with the <code>admin_role</code> set in the config.
             </li>
             <li class="mb-2">
@@ -400,7 +404,7 @@
             </li>
             <li class="mb-2">
                 <code>/profiles delete</code>: Delete the currently selected profile. This command is only available to users with the "Administrator" server permission.<br />
-                Deleting a profile will permanently remove all its configuration, questions, presets, and suggestions. This action is irreversible.<br />
+                Deleting a profile will permanently remove all its configuration, questions, presets, and suggestions. This action is <b>irreversible</b>.<br />
                 The default profile cannot be deleted, and may instead be re-assigned using <code>/profiles setdefault</code> before deleting the current default profile.
             </li>
             <li class="mb-2">
@@ -413,7 +417,7 @@
     <section id="self-hosting">
         <h3>Self-Hosting <a class="url-insert" href="documentation#self-hosting"></a></h3>
         <p>
-            OpenQOTD is open-source and can be self-hosted! If you want to run your own instance of the bot, you can find the source code on <a href="/source" target="_blank">GitHub</a>. Follow the instructions in the <a href="https://github.com/Ascyt/open-qotd/blob/main/README.md" target="_blank">README</a> to set it up, and let me know if there are any issues and I'm happy to help. Note that for versions v2.0.0 onward, the <a href="/license" target="_blank">AGPL-3.0 License</a> requires you to publish the source code of your instance (or provide a link to the OpenQOTD repository if you didn't make any modifications) if your instance is publicly accessible, which includes allowing other people to add your bot to their servers or using it in a public server.
+            OpenQOTD is open-source and can be self-hosted! If you want to run your own instance of the bot, you can find the source code on <a href="/source" target="_blank">GitHub</a>. Follow the instructions in the <a href="https://github.com/Ascyt/open-qotd/blob/main/README.md" target="_blank">README</a> to set it up, and let me know if there are any issues and I'm happy to help. Note that for versions v2.0.0 onward, the <a href="/license" target="_blank">AGPL-3.0 License</a> requires you to publish the source code of your instance (or provide a link to the OpenQOTD repository if you didn't make any modifications) if your instance is publicly accessible (i.e. if other people can add your bot to their servers or if you're using it in a public server).
         </p>
     </section>
 

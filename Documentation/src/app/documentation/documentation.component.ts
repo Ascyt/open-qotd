@@ -2,11 +2,12 @@ import { AfterViewInit, Component, OnDestroy } from '@angular/core';
 import { ThemeSwitcherService } from '../theme-switcher/theme-switcher.service';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
+import { NgbModule } from "@ng-bootstrap/ng-bootstrap";
 
 @Component({
   selector: 'app-documentation',
   standalone: true,
-  imports: [CommonModule, RouterModule],
+  imports: [CommonModule, RouterModule, NgbModule],
   templateUrl: './documentation.component.html',
   styleUrl: './documentation.component.scss'
 })
