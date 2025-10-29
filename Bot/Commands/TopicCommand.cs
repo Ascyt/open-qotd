@@ -21,13 +21,15 @@ namespace OpenQotd.Commands
         [Description("Sends a random Sent QOTD to the current channel.")]
         public static async Task TopicAsync(CommandContext context,
             [Description("Which OpenQOTD profile to take the topic from.")][SlashAutoCompleteProvider<ViewableProfilesAutoCompleteProvider>] int from,
-            [Description("Whether or not to include all existing Preset questions.")] bool includePresets=true)
+            [Description("Includes all Preset questions if enabled in the config.")] bool includePresets=true)
         {
             int profileId = from;
 
             Config? config = await ProfileHelpers.TryGetConfigAsync(context, from);
             if (config is null || !await CommandRequirements.UserIsBasic(context, config))
                 return;
+
+            includePresets = includePresets && config.EnableQotdAutomaticPresets; // Presets can only be included if enabled in config.
 
             Question[] questions;
             using (AppDbContext dbContext = new())

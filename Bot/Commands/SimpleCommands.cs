@@ -116,6 +116,7 @@ namespace OpenQotd.Commands
                 $"- {config.QotdShorthandText} day condition: {(string.IsNullOrWhiteSpace(config.QotdTimeDayCondition) ? "*daily*" : $"`{config.QotdTimeDayCondition}`")}\n" +
                 $"- Next {config.QotdShorthandText} will be sent at: {(nextQotdTime is null ? "*disabled*" : DSharpPlus.Formatter.Timestamp(nextQotdTime.Value, DSharpPlus.TimestampFormat.LongDateTime))}\n" +
                 $"- Suggestions enabled: **{config.EnableSuggestions}**\n" +
+                $"- Presets enabled: **{config.EnableQotdAutomaticPresets}**\n" +
                 $"- Your role: **{userRole}**";
 
             return GenericEmbeds.Info(title: $"OpenQOTD v{Program.AppSettings.Version}", message:
