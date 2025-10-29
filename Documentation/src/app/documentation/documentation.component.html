@@ -15,15 +15,15 @@
         <p>
             Welcome to the documentation of OpenQOTD! Here you can find all the information you need to get started with the bot, as well as some more advanced topics.
         </p>
-        <h3 class="mb-2">General Usage</h3>
+        <h3 class="mb-2">General Usage <a class="url-insert" href="documentation#general"></a></h3>
         <p>
             You can interact with OpenQOTD using <a href="https://support-apps.discord.com/hc/en-us/articles/26501837786775-Slash-Commands-FAQ" target="_blank">Slash Commands</a>.<br />
             OpenQOTD also only acts once the configuration has been initialized, otherwise it does nothing. 
         </p>
     </section>
 
-    <section id="config">
-        <h3 class="mb-2">Configuration</h3>
+    <section id="configuration">
+        <h3 class="mb-2">Configuration <a class="url-insert" href="documentation#configuration"></a></h3>
         <p>
             OpenQOTD must be configured initially using <code>/config initialize</code>.<br />
             Afterwards, <code>/config set</code> can be used to set config values (use <code>/config reset</code> to reset non-boolean optional values to their defaults),
@@ -178,7 +178,7 @@
     </section>
 
     <section id="questions">
-        <h3 class="mb-2">Questions</h3>
+        <h3 class="mb-2">Questions <a class="url-insert" href="documentation#questions"></a></h3>
         <p>
             Questions are the main feature of OpenQOTD, and they are what the bot sends every day.<br />
             They can be added by staff members or suggested by users (if suggestions are enabled). 
@@ -261,7 +261,7 @@
     </section>
 
     <section id="suggestions">
-        <h3 class="mb-2">Suggestions</h3>
+        <h3 class="mb-2">Suggestions <a class="url-insert" href="documentation#suggestions"></a></h3>
         <p>
             If suggestions are enabled, users can suggest questions using <code>/suggest</code> or <code>/qotd</code>.<br />
             These suggestions (=questions with type <span class="question-type suggested">Suggested</span>) have to be accepted or denied by staff members in order to be sendable, and they are sent to the <code>suggestions_channel</code> with buttons to accept or deny them. The user is notified in DMs when their question is accepted/denied, including the denial reason if applicable.<br />
@@ -296,7 +296,7 @@
     </section>
 
     <section id="presets">
-        <h3 class="mb-2">Presets</h3>
+        <h3 class="mb-2">Presets <a class="url-insert" href="documentation#presets"></a></h3>
         <p>
             Presets are a special type of questions that are sent if they are enabled and there are no custom questions available.<br />
             Once a preset is sent, it is marked as completed, and is not sendable unless it is manually enabled again.
@@ -326,8 +326,8 @@
         </ul>
     </section>
 
-    <section id="commands">
-        <h3 class="mb-2">Other Commands</h3>
+    <section id="other-commands">
+        <h3 class="mb-2">Other Commands <a class="url-insert" href="documentation#other-commands"></a></h3>
         <p>
             The following commands are other commands, most of which are available to everyone with the <code>basic_role</code> role (with a notable exception being <code>/trigger</code> being admin-only):<br />
             <i>Required parameters are shown in square brackets (<code>[required]</code>) and optional in angled brackets (<code>&lt;required&gt;</code>), and default values are shown using "<code><span class="default-value">value</span></code>".</i>
@@ -373,7 +373,7 @@
     </section>
 
     <section id="profiles">
-        <h3 class="mb-2">Profiles</h3>
+        <h3 class="mb-2">Profiles <a class="url-insert" href="documentation#profiles"></a></h3>
         <p>
             Profiles are an advanced feature that allows you to set up multiple instances of OpenQOTD in a single server, each with its own configuration, questions, presets, and suggestions. This is useful if you want to have different QOTD setups for different purposes, such as having one for daily questions and another for weekly quotes.<br />
             This feature is designed to be as usable as possible for both admins and regular users, while still acknowledging the increased complexity that comes with it. You also don't need to deal with it if you only use the bot for a single purpose.<br />
@@ -411,7 +411,7 @@
     </section>
 
     <section id="self-hosting">
-        <h3>Self-Hosting</h3>
+        <h3>Self-Hosting <a class="url-insert" href="documentation#self-hosting"></a></h3>
         <p>
             OpenQOTD is open-source and can be self-hosted! If you want to run your own instance of the bot, you can find the source code on <a href="/source" target="_blank">GitHub</a>. Follow the instructions in the <a href="https://github.com/Ascyt/open-qotd/blob/main/README.md" target="_blank">README</a> to set it up, and let me know if there are any issues and I'm happy to help. Note that for versions v2.0.0 onward, the <a href="/license" target="_blank">AGPL-3.0 License</a> requires you to publish the source code of your instance (or provide a link to the OpenQOTD repository if you didn't make any modifications) if your instance is publicly accessible, which includes allowing other people to add your bot to their servers or using it in a public server.
         </p>
