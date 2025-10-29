@@ -1,10 +1,10 @@
 <div class="title mb-2">
     <h1 class="name">OpenQOTD</h1>
-    <h3 class="subtitle mb-4">Question Of The Days done right</h3>
+    <h3 class="subtitle mb-4">Questions Of The Day done right</h3>
 </div>
 
 <p class="description italic">
-    OpenQOTD is a Discord bot that handles Question Of The Days, with a strong focus on allowing your members to suggest their own questions for your server.<br />
+    OpenQOTD is a Discord bot that allows user-suggested, staff-added, or preset messages to be sent at regular intervals. It was originally meant to only be a "Question Of The Day" (QOTD) bot, however it has since evolved to allow for much more than that, with many more features planned.<br />
     Written in <a href="https://dotnet.microsoft.com/en-us/languages/csharp" target="_blank" ngbTooltip="https://dotnet.microsoft.com/en-us/languages/csharp">C#</a>
     using <a href="https://dsharpplus.github.io/DSharpPlus/" target="_blank" ngbTooltip="https://dsharpplus.github.io/DSharpPlus/">DSharpPlus</a>, and guaranteed to be completely free and open-source forever. <a routerLink="/vote">Vote for OpenQOTD</a>
 </p>
@@ -17,96 +17,63 @@
     
     <p class="description smaller italic">
         As OpenQOTD becomes part of more servers, it will be more and more difficult for me to keep up with demand and ever-increasing server costs.<br />
-        I'm a 17-year-old student and hobbyist programmer without a stable income, and I alone cannot afford much more than a crappy azure server with 4GB of RAM.<br />
+        I'm a young student and hobbyist programmer without a stable income, and I alone cannot afford much more than to run the bot on my personal computer.<br />
         Even just a small donation helps out a ton, and I would be very thankful. I promise to use the money for the maintainability and usability of OpenQOTD if needed.
     </p>
 </div>
-<h2 class="underlined-heading mb-4">Features</h2>
 
 <div class="features">
     <div class="feature">
         <h3>Question Of The Day</h3>
-        <p>As the name suggests, OpenQOTD sends a daily question every day in a configured channel.</p>
+        <p>As the name suggests, OpenQOTD can send a random QOTD every day in a configured channel, making sure that none are sent twice.</p>
+        
+        <div class="screenshot">
+            <img src="assets/images/screenshots/question-of-the-day.png" alt="Question Of The Day message that was sent" />
+        </div>
     </div>
-    <div class="feature">
-        <h3>Pings</h3>
-        <p>You can set up a Ping Role to get pinged every time a QOTD is sent!</p>
-    </div>
-    <div class="feature">
-        <h3>Custom Questions</h3>
-        <p>OpenQOTD makes it very easy and intuitive to add custom questions alongside the presets, and they are even prioritized over them.</p>
-    </div>
-    <div class="feature">
-        <h3>Suggestions</h3>
-        <p>With OpenQOTD's extensive Suggestions feature, it's easy for users of your server to suggest questions,
-            which have to be accepted or denied by your staff members to be sendable.</p>
-    </div>
-    <div class="feature">
-        <h3>Random Sending</h3>
-        <p>OpenQOTD sends a random available and unique QOTD at a time, while keeping track of the ones that have been sent already to make sure nothing gets sent twice.</p>
-    </div>
-    <div class="feature">
-        <h3>Presets</h3>
-        <p>With over 150 presets and counting, OpenQOTD is sure to keep your members interested and engaged,
-            even when there are no custom questions available.
-        </p>
-    </div>
-    <div class="feature">
-        <h3>Questions Search</h3>
-        <p>In a server with many QOTDs suggested or sent, it can be hard to keep track of whether a newly suggested question is actually original or not.
-            Which is why OpenQOTD not only lets you search for accepted questions, but also for questions that have already been sent before.
-        </p>
-    </div> 
     <div class="feature">
         <h3>Configurability</h3>
-        <p>
-            Want to change the channels where the QOTD Suggestions are sent or disable the automatic sending of QOTDs and want to trigger them manually instead?
-            These and more options are able to be configured using the bot's commands, without the need to log into some sort of online dashboard.
-        </p>
-    </div> 
-    <div class="feature">
-        <h3>Few Permissions</h3>
-        <p>
-            OpenQOTD only requires three permissions: <b>Send Messages</b> (duh), <b>Manage Messages</b> (for pinning the QOTD if set up) and <b>Mention All Roles</b> (for pinging the ping roles if set up).<br />
-            This means that you can be sure that OpenQOTD is not able to do anything unsafe to your server or its members.
-        </p>
+        <p>OpenQOTD is highly configurable, allowing you to use the bot for various other purposes, such as Quote Of The Day, Fact Of The Week or Post Of The Month, and much more, all of which can be set up to run simultaneously using the Profiles feature.</p>
+
+        <div class="screenshot">
+            <img src="assets/images/screenshots/fun-fact-of-the-week.png" alt="Custom 'Fun Fact Of The Week' message that was sent" />
+        </div>
     </div>
     <div class="feature">
-        <h3>Fully Documented</h3>
+        <h3>Ping Roles, Pins, Threads</h3>
+        <p>OpenQOTD can be configured to ping a specific role, pin the QOTD message, and even create threads for each question. And no, we don't require you to pay or vote for any of this or any of the other features that OpenQOTD offers.</p>
+
+        <div class="screenshot">
+            <img src="assets/images/screenshots/qotd-with-ping-pin-thread.png" alt="Sent QOTD with set up role ping, pin, and thread" />
+        </div>
+    </div>
+    <div class="feature">
+        <h3>Suggestions System</h3>
+        <p>OpenQOTD features a built-in suggestions system, allowing users to propose new questions easily, which have to be accepted or denied by your staff members in order to be sendable.</p>
+        <div class="row">
+            <div class="col-4 screenshot">
+                <img style="width: 100%" src="assets/images/screenshots/suggest-qotd.png" alt="Modal for suggesting a QOTD" />
+            </div>
+            <div class="col-4 screenshot">
+                <img style="width: 100%" src="assets/images/screenshots/suggested-message-accept-deny.png" alt="Sent suggestion message with accept and deny buttons" />
+            </div>
+        </div>
+    </div>
+    <div class="feature">
+        <h3>Preset Questions</h3>
+        <p>OpenQOTD comes with over 170 preset questions out of the box if no custom ones are available, covering a wide range of topics to keep your server engaged.</p>
+        <div class="screenshot">
+            <img src="assets/images/screenshots/presets-list.png" alt="List of preset questions" />
+        </div>
+    </div>
+    <div class="feature">
+        <h3>Actively Maintained, Fully Documented, Transparent and Safe</h3>
         <p>
             Every feature of OpenQOTD is documented in the <a routerLink="/documentation" ngbTooltip="https://ascyt.com/open-qotd/documentation">Documentation</a>,
-            which is always up-to-date and easy to understand, even for beginners.
+            which is always up-to-date and made to be easy to understand, even for beginners.<br />
+            OpenQOTD is actively maintained and regularly updated to ensure the best performance and security, with an active community and a ton of features planned for the future (such as a public question repository!) with all parts of the source code and what I'm planning on adding to the bot being publicly accessible.<br />
+            The bot only requires four permissions to run: <b>Send Messages</b> (duh), <b>Mention Everyone</b> (for the ping roles if enabled), <b>Pin Messages</b> (for pinning the QOTD message if enabled), and <b>Manage Threads</b> (for creating threads if enabled). However, if you want, you're also free to self host the bot! See the docs for more information.<br />
+            Aside from that, I am always available on the <a href="community" target="_blank">Community & Support Server</a> or by DMs (<code>&commat;ascyt</code> on Discord) to help you with any questions or issues you might have, and I strive to make OpenQOTD the best it can be.
         </p>
-    </div> 
-    <div class="feature">
-        <h3>Community, Support and Feedback</h3>
-        <p>
-            OpenQOTD has a <a href="community" target="_blank" ngbTooltip="https://discord.com/invite/85TtrwuKn8">dedicated support server</a> where you can ask questions, suggest features or report bugs.
-            However, if you want, sending feedback or suggestions using the bot directly is also possible!
-            <a href="https://ascyt.com/" target="_blank" ngbTooltip="https://ascyt.com/">I, the developer</a>, am always open to feedback and suggestions and want to make OpenQOTD the best it can be.
-        </p>
-    </div> 
-</div>
-
-<h2 class="underlined-heading mb-4">Screenshots</h2>
-
-<div class="screenshots">
-    <div class="screenshot">
-        <img src="assets/images/screenshots/qotd.png" alt="QOTD message that was sent" />
-    </div>
-    <div class="screenshot">
-        <img src="assets/images/screenshots/questions-search.png" alt="Questions search feature using /questions search" />
-    </div>
-    <div class="screenshot">
-        <img src="assets/images/screenshots/suggestions.png" alt="A suggestion being submitted" />
-    </div>
-    <div class="screenshot">
-        <img src="assets/images/screenshots/suggestions-deny.png" alt="That suggested question being denied" />
-    </div>
-    <div class="screenshot">
-        <img src="assets/images/screenshots/suggestions-deny-dm.png" alt="The DM that has been sent to the user after the question was denied" />
-    </div>
-    <div class="screenshot">
-        <img src="assets/images/screenshots/presets.png" alt="Presets list, with warning because they are disabled" />
     </div>
 </div>
