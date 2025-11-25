@@ -22,52 +22,14 @@ namespace OpenQotd.Commands
             [Description("The role a user needs to have to execute admin commands (overrides BasicRole).")] DiscordRole AdminRole,
             [Description("The channel the QOTD should get sent in.")] DiscordChannel QotdChannel,
             [Description("The UTC hour of the day the QOTDs should get sent (0-23).")] int QotdTimeHourUtc,
-            [Description("The UTC minute of the day the QOTDs should get sent (0-59).")] int QotdTimeMinuteUtc,
-            [Description("Specifies on which days the QOTDs should get sent (sends daily if unset).")] string? QotdTimeDayCondition = null,
-            [Description("The display name of the profile this config belongs to (default \"QOTD\").")] string? ProfileName = null,
-            [Description("The role a user needs to have to execute any basic commands (allows anyone by default).")] DiscordRole? BasicRole = null,
-            [Description("The role that will get pinged when a new QOTD is sent.")] DiscordRole? QotdPingRole = null,
-            [Description("The title that is displayed in QOTD messages. (defaults to \"Question Of The Day\") if unset).")] string? QotdTitle = null,
-            [Description("The shorthand that is sometimes displayed in place of the title. (defaults to \"QOTD\") if unset).")] string? QotdShorthand = null,
-            [Description("Hex color code of the QOTD embed message. (defaults to \"#8acfac\") if unset).")] string? QotdEmbedColorHex = null,
-            [Description("Whether to send a QOTD daily automatically, if disabled `/trigger` is needed (true by default).")] bool EnableAutomaticQotd = true,
-            [Description("Whether to pin the most recent QOTD to the channel or not (true by default).")] bool EnableQotdPinMessage = true,
-            [Description("Whether to automatically create a thread for every QOTD that gets sent (false by default).")] bool EnableQotdCreateThread = false,
-            [Description("Whether to send a random preset when there is no Accepted QOTD available (true by default).")] bool EnableQotdAutomaticPresets = true,
-            [Description("Whether to send a warning embed when the sent QOTD is the last available (true by default).")] bool EnableQotdLastAvailableWarn = true,
-            [Description("Whether to send a \"not available\" message when there is no QOTD available (true by default).")] bool EnableQotdUnvailableMessage = true,
-            [Description("Whether to include a button for general info about OpenQOTD under sent QOTDs (true by default).")] bool EnableQotdShowInfoButton = true,
-            [Description("Whether to include a footer with info and a questions left count in sent QOTDs (true by default).")] bool EnableQotdShowFooter = true,
-            [Description("Whether to include the username of who suggested the QOTD (true by default).")] bool EnableQotdShowCredit = true,
-            [Description("Whether to include a counter to QOTDs (eg. \"QOTD #42\", uses Sent count; true by default).")] bool EnableQotdShowCounter = true,
-            [Description("Whether to allow users with the BasicRole to suggest QOTDs (true by default).")] bool EnableSuggestions = true,
-            [Description("The channel new QOTD suggestions get announced in.")] DiscordChannel? SuggestionsChannel = null,
-            [Description("The role that will get pinged when a new QOTD is suggested.")] DiscordRole? SuggestionsPingRole = null,
-            [Description("Whether all, only important, or no notices should be shown under QOTDs (all by default).")] Config.NoticeLevel NoticesLevel = Config.NoticeLevel.All,
-			[Description("Whether questions should get the \"Stashed\" type instead of being deleted (true by default).")] bool EnableDeletedToStash = true,
-			[Description("The channel where commands, QOTDs and more get logged to.")] DiscordChannel? LogsChannel = null)
+            [Description("The UTC minute of the day the QOTDs should get sent (0-59).")] int QotdTimeMinuteUtc,            
+            [Description("Whether to send a QOTD daily automatically (warning: may send a QOTD before setup is finished).")] bool EnableAutomaticQotd)
         {
             if (!await CommandRequirements.UserHasAdministratorPermission(context))
                 return;
 
             QotdTimeMinuteUtc = Math.Clamp(QotdTimeMinuteUtc, 0, 59);
             QotdTimeHourUtc = Math.Clamp(QotdTimeHourUtc, 0, 23);
-
-            if (QotdTimeDayCondition is not null && !await IsValidDayCondition(context, QotdTimeDayCondition))
-                return;
-
-            if (ProfileName is not null && !await IsProfileNameValid(context, ProfileName))
-                return;
-            if (QotdTitle is not null && !await IsQotdTitleValid(context, QotdTitle))
-                return;
-            if (QotdShorthand is not null && !await IsQotdShorthandValid(context, QotdShorthand))
-                return;
-            if (QotdEmbedColorHex is not null)
-            {
-                (bool valid, QotdEmbedColorHex) = await IsQotdEmbedColorHexValid(context, QotdEmbedColorHex);
-                if (!valid)
-                    return;
-            }
 
             int existingConfigsCount;
             using (AppDbContext dbContext = new())
@@ -83,35 +45,12 @@ namespace OpenQotd.Commands
                 GuildId = context!.Guild!.Id,
                 ProfileId = profileId,
                 IsDefaultProfile = existingConfigsCount == 0,
-                ProfileName = ProfileName ?? ProfileHelpers.GenerateProfileName(profileId),
-                BasicRoleId = BasicRole?.Id,
+                ProfileName = ProfileHelpers.GenerateProfileName(profileId),
                 AdminRoleId = AdminRole.Id,
                 QotdChannelId = QotdChannel.Id,
-                QotdPingRoleId = QotdPingRole?.Id,
-                QotdTitle = QotdTitle,
-                QotdShorthand = QotdShorthand,
-                QotdEmbedColorHex = QotdEmbedColorHex,
-                EnableAutomaticQotd = EnableAutomaticQotd,
-                EnableQotdPinMessage = EnableQotdPinMessage,
-                EnableQotdCreateThread = EnableQotdCreateThread,
-                EnableQotdAutomaticPresets = EnableQotdAutomaticPresets,
-                EnableQotdLastAvailableWarn = EnableQotdLastAvailableWarn,
-                EnableQotdUnavailableMessage = EnableQotdUnvailableMessage,
-                EnableQotdShowInfoButton = EnableQotdShowInfoButton,
-                EnableQotdShowFooter = EnableQotdShowFooter,
-                EnableQotdShowCredit = EnableQotdShowCredit,
-                EnableQotdShowCounter = EnableQotdShowCounter,
                 QotdTimeHourUtc = QotdTimeHourUtc,
                 QotdTimeMinuteUtc = QotdTimeMinuteUtc,
-                QotdTimeDayCondition = QotdTimeDayCondition,
-                QotdTimeDayConditionLastChangedTimestamp = QotdTimeDayCondition is null ? null : DateTime.UtcNow,
-                EnableSuggestions = EnableSuggestions,
-                SuggestionsChannelId = SuggestionsChannel?.Id,
-                SuggestionsPingRoleId = SuggestionsPingRole?.Id,
-                NoticesLevel = NoticesLevel,
-                EnableDeletedToStash = EnableDeletedToStash,
-                LogsChannelId = LogsChannel?.Id,
-                InitializedTimestamp = DateTime.UtcNow
+                EnableAutomaticQotd = EnableAutomaticQotd
             };
             bool reInitialized = false;
 
@@ -142,7 +81,7 @@ namespace OpenQotd.Commands
 
             await context.RespondAsync(builder);
 
-            // Can cause issues
+            // Can cause issuesSS
             // await LogUserAction(context, "Initialize config", configString);
         }
 
@@ -167,35 +106,113 @@ namespace OpenQotd.Commands
         }
 
         [Command("set")]
-        [Description("Set a config value")]
-        public static async Task SetAsync(CommandContext context, 
-            [Description("The display name of the profile this config belongs to (default \"QOTD\").")] string? ProfileName = null,
-            [Description("The role a user needs to have to execute any basic commands (allows anyone by default).")] DiscordRole? BasicRole = null,
-            [Description("The role a user needs to have to execute admin commands (overrides BasicRole).")] DiscordRole? AdminRole = null,
-            [Description("The channel the QOTD should get sent in.")] DiscordChannel? QotdChannel = null,
-            [Description("The UTC hour of the day the QOTDs should get sent (0-23).")] int? QotdTimeHourUtc = null,
-            [Description("The UTC minute of the day the QOTDs should get sent (0-59).")] int? QotdTimeMinuteUtc = null,
-            [Description("Specifies on which days the QOTDs should get sent (sends daily if unset).")] string? QotdTimeDayCondition = null,
-            [Description("Hex color code of the QOTD embed message. (defaults to \"#8acfac\") if unset).")] string? QotdEmbedColorHex = null,
-            [Description("The role that will get pinged when a new QOTD is sent.")] DiscordRole? QotdPingRole = null,
-            [Description("The title that is displayed in QOTD messages. (defaults to \"Question Of The Day\") if unset).")] string? QotdTitle = null,
-            [Description("The shorthand that is sometimes displayed in place of the title. (defaults to \"QOTD\") if unset).")] string? QotdShorthand = null,
-            [Description("Whether to send a QOTD daily automatically, if disabled `/trigger` is needed (true by default).")] bool? EnableAutomaticQotd = null,
-            [Description("Whether to pin the most recent QOTD to the channel or not (true by default).")] bool? EnableQotdPinMessage = null,
-            [Description("Whether to automatically create a thread for every QOTD that gets sent (false by default).")] bool? EnableQotdCreateThread = null,
-            [Description("Whether to send a random preset when there is no Accepted QOTD available (true by default).")] bool? EnableQotdAutomaticPresets = null,
-            [Description("Whether to send a warning embed when the sent QOTD is the last available (true by default).")] bool? EnableQotdLastAvailableWarn = null,
-            [Description("Whether to send a \"not available\" message when there is no QOTD available (true by default).")] bool? EnableQotdUnavailableMessage = null,
-            [Description("Whether to include a button for general info about OpenQOTD under sent QOTDs (true by default).")] bool? EnableQotdShowInfoButton = null,
-            [Description("Whether to include a footer with info and a questions left count in sent QOTDs (true by default).")] bool? EnableQotdShowFooter = null,
-            [Description("Whether to include the username of who suggested the QOTD (true by default).")] bool? EnableQotdShowCredit = null,
-            [Description("Whether to include a counter to QOTDs (eg. \"QOTD #42\", uses Sent count; true by default).")] bool? EnableQotdShowCounter = null,
-            [Description("Whether to allow users with the BasicRole to suggest QOTDs (true by default).")] bool? EnableSuggestions = null,
-            [Description("The channel new QOTD suggestions get announced in.")] DiscordChannel? SuggestionsChannel = null,
-            [Description("The role that will get pinged when a new QOTD is suggested.")] DiscordRole? SuggestionsPingRole = null,
-            [Description("Whether all, only important, or no notices should be shown under QOTDs (all by default).")] Config.NoticeLevel? NoticesLevel = null,
-			[Description("Whether questions should get the \"Stashed\" type instead of being deleted (true by default).")] bool? EnableDeletedToStash = null,
-			[Description("The channel where commands, QOTDs and more get logged to.")] DiscordChannel? LogsChannel = null)
+        public class ConfigSetCommand
+        {
+            [Command("general")]
+            [Description("Set config values related to general settings")]
+            public static async Task SetGeneralAsync(CommandContext context,
+                [Description("The display name of the profile this config belongs to (default \"QOTD\")")] string? ProfileName = null,
+                [Description("The role a user needs to have to execute any basic commands (allows anyone by default).")] DiscordRole? BasicRole = null,
+                [Description("The role a user needs to have to execute admin commands (overrides BasicRole).")] DiscordRole? AdminRole = null,
+                [Description("Whether all, only important, or no notices should be shown under QOTDs (all by default).")] Config.NoticeLevel? NoticesLevel = null,
+                [Description("Whether questions should get the \"Stashed\" type instead of being deleted (true by default).")] bool? EnableDeletedToStash = null,
+                [Description("The channel where executed admin commands get logged to.")] DiscordChannel? LogsChannel = null
+            )
+            => await SetAllAsync(context,
+                ProfileName: ProfileName,
+                BasicRole: BasicRole,
+                AdminRole: AdminRole,
+                NoticesLevel: NoticesLevel,
+                EnableDeletedToStash: EnableDeletedToStash,
+                LogsChannel: LogsChannel);
+
+            [Command("qotd_sending")]
+            [Description("Set config values related to QOTD sending")]
+            public static async Task SetQotdSendingAsync(CommandContext context,
+                [Description("The channel the QOTD should get sent in.")] DiscordChannel? Channel = null,
+                [Description("The UTC hour of the day the QOTDs should get sent (0-23).")] int? TimeHourUtc = null,
+                [Description("The UTC minute of the day the QOTDs should get sent (0-59).")] int? TimeMinuteUtc = null,
+                [Description("Specifies on which days the QOTDs should get sent (sends daily if unset).")] string? TimeDayCondition = null,
+                [Description("Whether to send a QOTD daily automatically, if disabled `/trigger` is needed (true by default).")] bool? EnableAutomaticQotd = null,
+                [Description("Whether to send a random preset when there is no Accepted QOTD available (true by default).")] bool? EnableAutomaticPresets = null,
+                [Description("Whether to send a warning embed when the sent QOTD is the last available (true by default).")] bool? EnableLastAvailableWarn = null,
+                [Description("Whether to send a \"not available\" message when there is no QOTD available (true by default).")] bool? EnableUnavailableMessage = null)
+            => await SetAllAsync(context,
+                QotdChannel: Channel,
+                QotdTimeHourUtc: TimeHourUtc,
+                QotdTimeMinuteUtc: TimeMinuteUtc,
+                QotdTimeDayCondition: TimeDayCondition,
+                EnableAutomaticQotd: EnableAutomaticQotd,
+                EnableQotdAutomaticPresets: EnableAutomaticPresets,
+                EnableQotdLastAvailableWarn: EnableLastAvailableWarn,
+                EnableQotdUnavailableMessage: EnableUnavailableMessage);
+
+            [Command("qotd_message")]
+            [Description("Set config values related to QOTD message appearance and behavior")]
+            public static async Task SetQotdMessageAsync(CommandContext context,
+                [Description("The role that will get pinged when a new QOTD is sent.")] DiscordRole? PingRole = null,
+                [Description("The title that is displayed in QOTD messages. (defaults to \"Question Of The Day\") if unset)")] string? Title = null,
+                [Description("The shorthand that is sometimes displayed in place of the title. (defaults to \"QOTD\") if unset)")] string? Shorthand = null,
+                [Description("Hex color code of the QOTD embed message. (defaults to \"#8acfac\") if unset).")] string? EmbedColorHex = null,
+                [Description("Whether to pin the most recent QOTD to the channel or not (true by default).")] bool? EnablePinMessage = null,
+                [Description("Whether to automatically create a thread for every QOTD that gets sent (false by default).")] bool? EnableCreateThread = null,
+                [Description("Whether to include a button for general info about OpenQOTD under sent QOTDs (true by default).")] bool? EnableShowInfoButton = null,
+                [Description("Whether to include a footer with info and a questions left count in sent QOTDs (true by default).")] bool? EnableShowFooter = null,
+                [Description("Whether to include the username of who suggested the QOTD (true by default).")] bool? EnableShowCredit = null,
+                [Description("Whether to include a counter to QOTDs (eg. \"QOTD #42\", uses Sent count; true by default).")] bool? EnableShowCounter = null)
+            => await SetAllAsync(context,
+                QotdPingRole: PingRole,
+                QotdTitle: Title,
+                QotdShorthand: Shorthand,
+                QotdEmbedColorHex: EmbedColorHex,
+                EnableQotdPinMessage: EnablePinMessage,
+                EnableQotdCreateThread: EnableCreateThread,
+                EnableQotdShowInfoButton: EnableShowInfoButton,
+                EnableQotdShowFooter: EnableShowFooter,
+                EnableQotdShowCredit: EnableShowCredit,
+                EnableQotdShowCounter: EnableShowCounter);
+
+            [Command("suggestions")]
+            [Description("Set config values related to QOTD user suggestions")]
+            public static async Task SetSuggestionsAsync(CommandContext context,
+                [Description("Whether to allow users with the basic_role to suggest QOTDs (true by default).")] bool? Enable = null,
+                [Description("The channel new QOTD suggestions get announced in.")] DiscordChannel? Channel = null,
+                [Description("The role that will get pinged when a new QOTD is suggested.")] DiscordRole? PingRole = null
+            )
+            => await SetAllAsync(context, 
+                EnableSuggestions: Enable,
+                SuggestionsChannel: Channel,
+                SuggestionsPingRole: PingRole);
+        }
+
+        private static async Task SetAllAsync(CommandContext context, 
+            string? ProfileName = null,
+            DiscordRole? BasicRole = null,
+            DiscordRole? AdminRole = null,
+            DiscordChannel? QotdChannel = null,
+            int? QotdTimeHourUtc = null,
+            int? QotdTimeMinuteUtc = null,
+            string? QotdTimeDayCondition = null,
+            string? QotdEmbedColorHex = null,
+            DiscordRole? QotdPingRole = null,
+            string? QotdTitle = null,
+            string? QotdShorthand = null,
+            bool? EnableAutomaticQotd = null,
+            bool? EnableQotdPinMessage = null,
+            bool? EnableQotdCreateThread = null,
+            bool? EnableQotdAutomaticPresets = null,
+            bool? EnableQotdLastAvailableWarn = null,
+            bool? EnableQotdUnavailableMessage = null,
+            bool? EnableQotdShowInfoButton = null,
+            bool? EnableQotdShowFooter = null,
+            bool? EnableQotdShowCredit = null,
+            bool? EnableQotdShowCounter = null,
+            bool? EnableSuggestions = null,
+            DiscordChannel? SuggestionsChannel = null,
+            DiscordRole? SuggestionsPingRole = null,
+            Config.NoticeLevel? NoticesLevel = null,
+			bool? EnableDeletedToStash = null,
+			DiscordChannel? LogsChannel = null)
         {
             if (!await CommandRequirements.UserHasAdministratorPermission(context))
                 return;
@@ -326,17 +343,59 @@ namespace OpenQotd.Commands
         }
 
         [Command("reset")]
-        [Description("Reset optional config values to be unset")]
-        public static async Task ResetAsync(CommandContext context,
-            [Description("The role a user needs to have to execute any basic commands (allows anyone when reset).")] SingleOption? BasicRole = null,
-            [Description("Specifies on which days the QOTDs should get sent (sends daily when reset).")] SingleOption? QotdTimeDayCondition = null,
-            [Description("The title that is displayed in QOTD messages. (defaults to \"Question Of The Day\" when reset).")] SingleOption? QotdTitle = null,
-            [Description("The shorthand that is sometimes displayed in place of the title. (defaults to \"QOTD\" when reset).")] SingleOption? QotdShorthand = null,
-            [Description("Hex color code of the QOTD embed message. (defaults to \"#8acfac\" when reset).")] SingleOption? QotdEmbedColorHex = null,
-            [Description("The role that will get pinged when a new QOTD is sent (no role is pinged when reset).")] SingleOption? QotdPingRole = null,
-            [Description("The channel new QOTD suggestions get announced in (no announcements are sent when reset).")] SingleOption? SuggestionsChannel = null,
-            [Description("The role that will get pinged when a new QOTD is suggested (no role is pinged when reset).")] SingleOption? SuggestionsPingRole = null,
-            [Description("The channel where commands, QOTDs and more get logged to (no logs are used when reset).")] SingleOption? LogsChannel = null)
+        public class ConfigResetCommand
+        {
+            [Command("general")]
+            [Description("Reset optional config values related to general settings to be unset")]
+            public static async Task ResetGeneralAsync(CommandContext context,
+                [Description("The role a user needs to have to execute any basic commands (allows anyone when reset).")] SingleOption? BasicRole = null,
+                [Description("The channel where commands, QOTDs and more get logged to (no logs are used when reset).")] SingleOption? LogsChannel = null
+            )
+            => await ResetAllAsync(context,
+                BasicRole: BasicRole,
+                LogsChannel: LogsChannel);
+
+            [Command("qotd_sending")]
+            [Description("Reset config values related to QOTD sending to be unset")]
+            public static async Task ResetQotdSendingAsync(CommandContext context,
+                [Description("Specifies on which days the QOTDs should get sent (sends daily when reset).")] SingleOption? TimeDayCondition = null)
+            => await ResetAllAsync(context,
+                QotdTimeDayCondition: TimeDayCondition);
+
+            [Command("qotd_message")]
+            [Description("Reset config values related to QOTD message appearance and behavior to be unset")]
+            public static async Task ResetQotdMessageAsync(CommandContext context,
+                [Description("The role that will get pinged when a new QOTD is sent (no role is pinged when reset).")] SingleOption? PingRole = null,
+                [Description("Hex color code of the QOTD embed message. (defaults to \"#8acfac\" when reset).")] SingleOption? EmbedColorHex = null,
+                [Description("The title that is displayed in QOTD messages. (defaults to \"Question Of The Day\" when reset).")] SingleOption? Title = null,
+                [Description("The shorthand that is sometimes displayed in place of the title. (defaults to \"QOTD\" when reset).")] SingleOption? Shorthand = null)
+            => await ResetAllAsync(context,
+                QotdPingRole: PingRole,
+                QotdTitle: Title,
+                QotdShorthand: Shorthand,
+                QotdEmbedColorHex: EmbedColorHex);
+
+            [Command("suggestions")]
+            [Description("Reset config values related to QOTD user suggestions to be unset")]
+            public static async Task ResetSuggestionsAsync(CommandContext context,
+                [Description("The channel new QOTD suggestions get announced in (no announcements are sent when reset).")] SingleOption? Channel = null,
+                [Description("The role that will get pinged when a new QOTD is suggested (no role is pinged when reset).")] SingleOption? PingRole = null
+            )
+            => await ResetAllAsync(context, 
+                SuggestionsChannel: Channel,
+                SuggestionsPingRole: PingRole);
+        }
+
+        private static async Task ResetAllAsync(CommandContext context,
+            SingleOption? BasicRole = null,
+            SingleOption? QotdTimeDayCondition = null,
+            SingleOption? QotdTitle = null,
+            SingleOption? QotdShorthand = null,
+            SingleOption? QotdEmbedColorHex = null,
+            SingleOption? QotdPingRole = null,
+            SingleOption? SuggestionsChannel = null,
+            SingleOption? SuggestionsPingRole = null,
+            SingleOption? LogsChannel = null)
         {
             if (!await CommandRequirements.UserHasAdministratorPermission(context))
                 return;
@@ -507,7 +566,10 @@ namespace OpenQotd.Commands
 
         private static bool IsValidHexCode(ref string hexCode)
         {
-            if (hexCode.Length != 7 || !hexCode.StartsWith('#'))
+            if (!hexCode.StartsWith('#'))
+                hexCode = "#" + hexCode;
+
+            if (hexCode.Length != 7)
                 return false;
 
             hexCode = hexCode.ToLowerInvariant();
