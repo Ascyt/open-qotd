@@ -81,7 +81,7 @@ namespace OpenQotd.Commands
 
             await context.RespondAsync(builder);
 
-            // Can cause issuesSS
+            // Can cause issues
             // await LogUserAction(context, "Initialize config", configString);
         }
 
