@@ -145,15 +145,20 @@ namespace OpenQotd.QotdSending
             int presetIndex = QotdSenderHelpers.GetRandomPreset(presetSents);
             int presetsAvailable = Presets.Values.Length - presetSents.Count;
 
-            DiscordMessageBuilder messageBuilder = new();
-            messageBuilder.AddEmbed(
+            DiscordEmbedBuilder presetEmbed = 
                 GenericEmbeds.Custom($"{d.QotdTitle}",
-                $"{Presets.Values[presetIndex]}\n" +
-                $"\n" +
-                $"*Preset Question*",
-                color: "#8acfac")
-                .WithFooter($"{presetsAvailable - 1} preset{(presetsAvailable - 1 == 1 ? "" : "s")} left{(d.config.EnableSuggestions ? $", {d.SuggestCommand}" : "")} \x2022 Preset ID: {presetIndex}")
-                );
+                $"{Presets.Values[presetIndex]}" + (d.config.EnableQotdShowCredit ? (
+                    $"\n\n" +
+                    $"*Preset Question*") : ""
+                    ),
+                color: d.config.QotdEmbedColorHexEffective);
+
+            if (d.config.EnableQotdShowFooter)
+                presetEmbed.WithFooter(
+                $"{presetsAvailable - 1} preset{(presetsAvailable - 1 == 1 ? "" : "s")} left{(d.config.EnableSuggestions ? $", {d.SuggestCommand} to suggest" : "")} \x2022 Preset ID: {presetIndex}");
+
+            DiscordMessageBuilder messageBuilder = new();
+            messageBuilder.AddEmbed(presetEmbed);
             await QotdSenderHelpers.AddPingRoleIfEnabledAndExistent(d, messageBuilder);
 
             QotdSenderHelpers.AddButtonsIfEnabled(d.config, null, messageBuilder);
@@ -205,12 +210,15 @@ namespace OpenQotd.QotdSending
             }
 
             DiscordEmbedBuilder qotdEmbed =
-                GenericEmbeds.Custom($"{d.QotdTitle} #{sentQuestionsCount}",
-                $"{question.Text}\n" +
-                $"\n" +
-                $"*Submitted by <@{question.SubmittedByUserId}>*",
-                color: "#8acfac")
-                .WithFooter($"{acceptedQuestionsCount} question{(acceptedQuestionsCount == 1 ? "" : "s")} left{(d.config.EnableSuggestions ? $", {d.SuggestCommand}" : "")} \x2022 Question ID: {question.GuildDependentId}");
+                GenericEmbeds.Custom($"{d.QotdTitle}{(d.config.EnableQotdShowCounter ? $" #{sentQuestionsCount}" : "")}",
+                $"{question.Text}" + (d.config.EnableQotdShowCredit ? (
+                    $"\n\n" +
+                    $"*Submitted by <@{question.SubmittedByUserId}>*") : ""
+                    ),
+                color: d.config.QotdEmbedColorHexEffective);
+            if (d.config.EnableQotdShowFooter) 
+                qotdEmbed.WithFooter($"{acceptedQuestionsCount} question{(acceptedQuestionsCount == 1 ? "" : "s")} left{(d.config.EnableSuggestions ? $", {d.SuggestCommand} to suggest" : "")} \x2022 Question ID: {question.GuildDependentId}");
+
             if (question.ThumbnailImageUrl is not null)
                 qotdEmbed.WithThumbnail(question.ThumbnailImageUrl);
             messageBuilder.AddEmbed(qotdEmbed);

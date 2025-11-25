@@ -95,15 +95,23 @@ namespace OpenQotd.Helpers
 
                 string embedBody = GetEmbedBody(question);
 
-                messageBuilder.AddEmbed(GenericEmbeds.Custom($"{config.QotdShorthandText} Suggestion Accepted", embedBody +
-                    $"\n\nAccepted by: {user.Mention}", color: "#20ff20"));
+                DiscordEmbedBuilder editEmbed = GenericEmbeds.Custom($"{config.QotdShorthandText} Suggestion Accepted", embedBody +
+                    $"\n\nAccepted by: {user.Mention}", color: "#20ff20");
+                
+                if (question.ThumbnailImageUrl is not null)
+                {
+                    editEmbed.WithThumbnail(question.ThumbnailImageUrl);
+                }
+
+                messageBuilder.AddEmbed(editEmbed);
 
                 if (result is null)
                     await suggestionMessage.ModifyAsync(messageBuilder);
                 else
                     await result.Interaction.CreateResponseAsync(DiscordInteractionResponseType.UpdateMessage, new DiscordInteractionResponseBuilder(messageBuilder));
 
-                await suggestionMessage.UnpinAsync();
+                if (config.EnableSuggestionsPinMessage)
+                    await suggestionMessage.UnpinAsync();
             }
 
             if (!logAndNotify)
@@ -192,7 +200,8 @@ namespace OpenQotd.Helpers
                     $"\n\nDenied by: {user.Mention}{(reason != null ? $"\nReason: \"**{reason}**\"" : "")}", color: "#ff2020"));
 
                 await suggestionMessage.ModifyAsync(messageBuilder);
-                await suggestionMessage.UnpinAsync();
+                if (config.EnableSuggestionsPinMessage)
+                    await suggestionMessage.UnpinAsync();
             }
 
             DiscordEmbed responseEmbed = GenericEmbeds.Success($"Successfully Denied {config.QotdShorthandText} Suggestion",
