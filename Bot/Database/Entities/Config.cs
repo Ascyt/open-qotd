@@ -225,32 +225,39 @@ namespace OpenQotd.Database.Entities
             return
                 $"**Profile:** *{ProfileName}*{(IsDefaultProfile ? " (default profile)" : "")}\n" +
                 $"\n" +
+                $"**General:**\n" +
                 $"- basic_role: {FormatRole(BasicRoleId)}\n" +
                 $"- admin_role: {FormatRole(AdminRoleId)}\n" +
-                $"- qotd_channel: {FormatChannel(QotdChannelId)}\n" +
-                $"- qotd_ping_role: {FormatRole(QotdPingRoleId)}\n" +
-                $"- qotd_title: *{QotdTitle ?? Program.AppSettings.ConfigQotdTitleDefault}*\n" +
-                $"- qotd_shorthand: *{QotdShorthand ?? Program.AppSettings.ConfigQotdShorthandDefault}*\n" +
-                $"- qotd_embed_color_hex: `{QotdEmbedColorHexEffective}`{(QotdEmbedColorHex is null ? " (default)" : "")}\n" +
-                $"- enable_automatic_qotd: **{EnableAutomaticQotd}**\n" +
-                $"- enable_qotd_pin_message: **{EnableQotdPinMessage}**\n" +
-                $"- enable_qotd_create_thread: **{EnableQotdCreateThread}**\n" +
-                $"- enable_qotd_automatic_presets: **{EnableQotdAutomaticPresets}**\n" +
-                $"- enable_qotd_last_available_warn: **{EnableQotdLastAvailableWarn}**\n" +
-                $"- enable_qotd_unavailable_message: **{EnableQotdUnavailableMessage}**\n" +
-                $"- enable_qotd_show_info_button: **{EnableQotdShowInfoButton}**\n" +
-                $"- enable_qotd_show_footer: **{EnableQotdShowFooter}**\n" +
-                $"- enable_qotd_show_credit: **{EnableQotdShowCredit}**\n" +
-                $"- enable_qotd_show_counter: **{EnableQotdShowCounter}**\n" +
-                $"- qotd_time_hour_utc: **{QotdTimeHourUtc}**\n" +
-                $"- qotd_time_minute_utc: **{QotdTimeMinuteUtc}**\n" +
-                $"- qotd_time_day_condition: {(QotdTimeDayCondition is null ? "*daily*" : $"`{QotdTimeDayCondition}`")}\n" +
-                $"- enable_suggestions: **{EnableSuggestions}**\n" +
-                $"- suggestions_channel: {FormatChannel(SuggestionsChannelId)}\n" +
-                $"- suggestions_ping_role: {FormatRole(SuggestionsPingRoleId)}\n" +
                 $"- notices_level: **{NoticesLevel}**\n" +
                 $"- enable_deleted_questions_to_stash: **{EnableDeletedToStash}**\n" +
-                $"- logs_channel: {FormatChannel(LogsChannelId)}";
+                $"- logs_channel: {FormatChannel(LogsChannelId)}\n" +
+                $"\n" +
+                $"**QOTD Sending:**\n" +
+                $"- channel: {FormatChannel(QotdChannelId)}\n" +
+                $"- time_hour_utc: **{QotdTimeHourUtc}**\n" +
+                $"- time_minute_utc: **{QotdTimeMinuteUtc}**\n" +
+                $"- time_day_condition: {(QotdTimeDayCondition is null ? "*daily*" : $"`{QotdTimeDayCondition}`")}\n" +
+                $"- enable_automatic_qotd: **{EnableAutomaticQotd}**\n" +
+                $"- enable_automatic_presets: **{EnableQotdAutomaticPresets}**\n" +
+                $"- enable_last_available_warn: **{EnableQotdLastAvailableWarn}**\n" +
+                $"- enable_unavailable_message: **{EnableQotdUnavailableMessage}**\n" +
+                $"\n" +
+                $"**QOTD Message:**\n" +
+                $"- ping_role: {FormatRole(QotdPingRoleId)}\n" +
+                $"- title: *{QotdTitleText}*{(QotdTitle is null ? " (default)" : "")}\n" +
+                $"- shorthand: *{QotdShorthandText}*{(QotdShorthand is null ? " (default)" : "")}\n" +
+                $"- embed_color_hex: `{QotdEmbedColorHexEffective}`{(QotdEmbedColorHex is null ? " (default)" : "")}\n" +
+                $"- enable_pin_message: **{EnableQotdPinMessage}**\n" +
+                $"- enable_create_thread: **{EnableQotdCreateThread}**\n" +
+                $"- enable_show_info_button: **{EnableQotdShowInfoButton}**\n" +
+                $"- enable_show_footer: **{EnableQotdShowFooter}**\n" +
+                $"- enable_show_credit: **{EnableQotdShowCredit}**\n" +
+                $"- enable_show_counter: **{EnableQotdShowCounter}**\n" +
+                $"\n" +
+                $"**Suggestions:**\n" +
+                $"- enabled: **{EnableSuggestions}**\n" +
+                $"- channel: {FormatChannel(SuggestionsChannelId)}\n" +
+                $"- ping_role: {FormatRole(SuggestionsPingRoleId)}\n";
         }
 
         private static string FormatRole(ulong? roleId)
