@@ -569,7 +569,7 @@ namespace OpenQotd.Commands
             return (true, qotdEmbedColorHex);
         }
 
-        private static bool IsValidHexCode(ref string hexCode)
+        internal static bool IsValidHexCode(ref string hexCode)
         {
             if (!hexCode.StartsWith('#'))
                 hexCode = "#" + hexCode;
