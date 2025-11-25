@@ -103,6 +103,21 @@ namespace OpenQotd.Database.Entities
         public bool EnableQotdShowInfoButton { get; set; } = true;
 
         /// <summary>
+        /// If true, show the footer in the QOTD embed with info on how many questions are left and the question ID.
+        /// </summary>
+        public bool EnableQotdShowFooter { get; set; } = true;
+
+        /// <summary>
+        /// If true, show the username of the submittor in the QOTD embed.
+        /// </summary>
+        public bool EnableQotdShowCredit { get; set; } = true;
+
+        /// <summary>
+        /// If true, show a counter of the sent index this QOTD is (e.g. "QOTD #42").
+        /// </summary>
+        public bool EnableQotdShowCounter { get; set; } = true;
+
+        /// <summary>
         /// The hour (0-23) in UTC when the daily QOTD is sent if automatic QOTDs are enabled.
         /// </summary>
         public int QotdTimeHourUtc { get; set; }
@@ -132,6 +147,12 @@ namespace OpenQotd.Database.Entities
         /// </summary>
         public string? QotdShorthand { get; set; } = null;
         public string QotdShorthandText => QotdShorthand ?? Program.AppSettings.ConfigQotdShorthandDefault;
+
+        /// <summary>
+        /// The hex color code of the QOTD embed. If null, the default color is used.
+        /// </summary>
+        public string? QotdEmbedColorHex { get; set; } = null;
+        public string QotdEmbedColorHexEffective => QotdEmbedColorHex ?? Program.AppSettings.ConfigQotdEmbedColorHexDefault;
 
         /// <summary>
         /// If true, users can suggest questions using /suggest or /qotd.
@@ -210,6 +231,7 @@ namespace OpenQotd.Database.Entities
                 $"- qotd_ping_role: {FormatRole(QotdPingRoleId)}\n" +
                 $"- qotd_title: *{QotdTitle ?? Program.AppSettings.ConfigQotdTitleDefault}*\n" +
                 $"- qotd_shorthand: *{QotdShorthand ?? Program.AppSettings.ConfigQotdShorthandDefault}*\n" +
+                $"- qotd_embed_color_hex: `{QotdEmbedColorHexEffective}`{(QotdEmbedColorHex is null ? " (default)" : "")}\n" +
                 $"- enable_automatic_qotd: **{EnableAutomaticQotd}**\n" +
                 $"- enable_qotd_pin_message: **{EnableQotdPinMessage}**\n" +
                 $"- enable_qotd_create_thread: **{EnableQotdCreateThread}**\n" +
@@ -217,6 +239,9 @@ namespace OpenQotd.Database.Entities
                 $"- enable_qotd_last_available_warn: **{EnableQotdLastAvailableWarn}**\n" +
                 $"- enable_qotd_unavailable_message: **{EnableQotdUnavailableMessage}**\n" +
                 $"- enable_qotd_show_info_button: **{EnableQotdShowInfoButton}**\n" +
+                $"- enable_qotd_show_footer: **{EnableQotdShowFooter}**\n" +
+                $"- enable_qotd_show_credit: **{EnableQotdShowCredit}**\n" +
+                $"- enable_qotd_show_counter: **{EnableQotdShowCounter}**\n" +
                 $"- qotd_time_hour_utc: **{QotdTimeHourUtc}**\n" +
                 $"- qotd_time_minute_utc: **{QotdTimeMinuteUtc}**\n" +
                 $"- qotd_time_day_condition: {(QotdTimeDayCondition is null ? "*daily*" : $"`{QotdTimeDayCondition}`")}\n" +

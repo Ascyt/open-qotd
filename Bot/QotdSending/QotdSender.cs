@@ -209,7 +209,7 @@ namespace OpenQotd.QotdSending
                 $"{question.Text}\n" +
                 $"\n" +
                 $"*Submitted by <@{question.SubmittedByUserId}>*",
-                color: "#8acfac")
+                color: d.config.QotdEmbedColorHexEffective)
                 .WithFooter($"{acceptedQuestionsCount} question{(acceptedQuestionsCount == 1 ? "" : "s")} left{(d.config.EnableSuggestions ? $", {d.SuggestCommand}" : "")} \x2022 Question ID: {question.GuildDependentId}");
             if (question.ThumbnailImageUrl is not null)
                 qotdEmbed.WithThumbnail(question.ThumbnailImageUrl);
