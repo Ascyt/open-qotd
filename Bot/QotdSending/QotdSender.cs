@@ -147,9 +147,10 @@ namespace OpenQotd.QotdSending
 
             DiscordEmbedBuilder presetEmbed = 
                 GenericEmbeds.Custom($"{d.QotdTitle}",
-                $"{Presets.Values[presetIndex]}\n" +
-                $"\n" +
-                $"*Preset Question*",
+                $"{Presets.Values[presetIndex]}" + (d.config.EnableQotdShowCredit ? (
+                    $"\n\n" +
+                    $"*Preset Question*") : ""
+                    ),
                 color: d.config.QotdEmbedColorHexEffective);
 
             if (d.config.EnableQotdShowFooter)
@@ -210,9 +211,10 @@ namespace OpenQotd.QotdSending
 
             DiscordEmbedBuilder qotdEmbed =
                 GenericEmbeds.Custom($"{d.QotdTitle} #{sentQuestionsCount}",
-                $"{question.Text}\n" +
-                $"\n" +
-                $"*Submitted by <@{question.SubmittedByUserId}>*",
+                $"{question.Text}" + (d.config.EnableQotdShowCredit ? (
+                    $"\n\n" +
+                    $"*Submitted by <@{question.SubmittedByUserId}>*") : ""
+                    ),
                 color: d.config.QotdEmbedColorHexEffective);
             if (d.config.EnableQotdShowFooter) 
                 qotdEmbed.WithFooter($"{acceptedQuestionsCount} question{(acceptedQuestionsCount == 1 ? "" : "s")} left{(d.config.EnableSuggestions ? $", {d.SuggestCommand} to suggest" : "")} \x2022 Question ID: {question.GuildDependentId}");
