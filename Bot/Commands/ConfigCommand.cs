@@ -177,12 +177,14 @@ namespace OpenQotd.Commands
             public static async Task SetSuggestionsAsync(CommandContext context,
                 [Description("Whether to allow users with the basic_role to suggest QOTDs (true by default).")] bool? Enabled = null,
                 [Description("The channel new QOTD suggestions get announced in.")] DiscordChannel? Channel = null,
-                [Description("The role that will get pinged when a new QOTD is suggested.")] DiscordRole? PingRole = null
+                [Description("The role that will get pinged when a new QOTD is suggested.")] DiscordRole? PingRole = null,
+                [Description("Whether to pin suggestion messages when they are sent to the suggestions channel (true by default).")] bool? EnablePinMessage = null
             )
             => await SetAllAsync(context, 
                 EnableSuggestions: Enabled,
                 SuggestionsChannel: Channel,
-                SuggestionsPingRole: PingRole);
+                SuggestionsPingRole: PingRole,
+                EnableSuggestionsPinMessage: EnablePinMessage);
         }
 
         private static async Task SetAllAsync(CommandContext context, 
@@ -210,6 +212,7 @@ namespace OpenQotd.Commands
             bool? EnableSuggestions = null,
             DiscordChannel? SuggestionsChannel = null,
             DiscordRole? SuggestionsPingRole = null,
+            bool? EnableSuggestionsPinMessage = null,
             Config.NoticeLevel? NoticesLevel = null,
 			bool? EnableDeletedToStash = null,
 			DiscordChannel? LogsChannel = null)
@@ -314,6 +317,8 @@ namespace OpenQotd.Commands
                     config.SuggestionsChannelId = SuggestionsChannel.Id;
                 if (SuggestionsPingRole is not null)
                     config.SuggestionsPingRoleId = SuggestionsPingRole.Id;
+                if (EnableSuggestionsPinMessage is not null)
+                    config.EnableSuggestionsPinMessage = EnableSuggestionsPinMessage.Value;
                 if (NoticesLevel is not null)
                     config.NoticesLevel = NoticesLevel.Value;
                 if (EnableDeletedToStash is not null)

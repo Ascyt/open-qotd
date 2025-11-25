@@ -173,6 +173,14 @@ namespace OpenQotd.Database.Entities
         public ulong? SuggestionsPingRoleId { get; set; }
 
         /// <summary>
+        /// If true, the bot will pin suggestion messages when they are sent to the suggestions channel.
+        /// </summary>
+        /// <remarks>
+        /// If this is true, any accepted/denied suggestion messages will also be unpinned.
+        /// </remarks>
+        public bool EnableSuggestionsPinMessage { get; set; } = true;
+
+        /// <summary>
         /// Which notices should be sent to the guild under QOTDs.
         /// </summary>
         public NoticeLevel NoticesLevel { get; set; } = NoticeLevel.All;
@@ -257,7 +265,8 @@ namespace OpenQotd.Database.Entities
                 $"**Suggestions:**\n" +
                 $"- enabled: **{EnableSuggestions}**\n" +
                 $"- channel: {FormatChannel(SuggestionsChannelId)}\n" +
-                $"- ping_role: {FormatRole(SuggestionsPingRoleId)}\n";
+                $"- ping_role: {FormatRole(SuggestionsPingRoleId)}\n" +
+                $"- enable_pin_message: **{EnableSuggestionsPinMessage}**";
         }
 
         private static string FormatRole(ulong? roleId)
