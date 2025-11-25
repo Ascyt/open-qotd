@@ -229,6 +229,7 @@ namespace OpenQotd.Commands
             await context.RespondAsync(
                 GenericEmbeds.Success("Added Bulk Questions", body)
                 );
+            await Logging.LogUserAction(context, config, "Added Bulk Questions", message: body);
         }
 
         [Command("changetype")]
