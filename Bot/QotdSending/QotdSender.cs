@@ -210,7 +210,7 @@ namespace OpenQotd.QotdSending
             }
 
             DiscordEmbedBuilder qotdEmbed =
-                GenericEmbeds.Custom($"{d.QotdTitle} #{sentQuestionsCount}",
+                GenericEmbeds.Custom($"{d.QotdTitle}{(d.config.EnableQotdShowCounter ? $" #{sentQuestionsCount}" : "")}",
                 $"{question.Text}" + (d.config.EnableQotdShowCredit ? (
                     $"\n\n" +
                     $"*Submitted by <@{question.SubmittedByUserId}>*") : ""
