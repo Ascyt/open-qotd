@@ -227,7 +227,8 @@ namespace OpenQotd.EventHandlers.Suggestions
                     messageBuilder
                 );
 
-            await message.PinAsync();
+            if (config.EnableSuggestionsPinMessage)
+                await message.PinAsync();
 
             using (AppDbContext dbContext = new())
             {

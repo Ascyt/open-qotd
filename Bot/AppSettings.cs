@@ -76,6 +76,11 @@
         public string ConfigQotdShorthandDefault { get; set; } = "QOTD";
 
         /// <summary>
+        /// The default hex color code of the QOTD embed if Config.QotdEmbedColorHex is not set.
+        /// </summary>
+        public string ConfigQotdEmbedColorHexDefault { get; set; } = "#8acfac";
+
+        /// <summary>
         /// The maximum amount of characters that Config.ProfileLength can be. Does not add a database constraint.
         /// </summary>
         public int ConfigProfileNameMaxLength { get; set; } = 32;

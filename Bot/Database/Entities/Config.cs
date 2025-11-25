@@ -103,6 +103,21 @@ namespace OpenQotd.Database.Entities
         public bool EnableQotdShowInfoButton { get; set; } = true;
 
         /// <summary>
+        /// If true, show the footer in the QOTD embed with info on how many questions are left and the question ID.
+        /// </summary>
+        public bool EnableQotdShowFooter { get; set; } = true;
+
+        /// <summary>
+        /// If true, show the username of the submittor in the QOTD embed.
+        /// </summary>
+        public bool EnableQotdShowCredit { get; set; } = true;
+
+        /// <summary>
+        /// If true, show a counter of the sent index this QOTD is (e.g. "QOTD #42").
+        /// </summary>
+        public bool EnableQotdShowCounter { get; set; } = true;
+
+        /// <summary>
         /// The hour (0-23) in UTC when the daily QOTD is sent if automatic QOTDs are enabled.
         /// </summary>
         public int QotdTimeHourUtc { get; set; }
@@ -134,6 +149,12 @@ namespace OpenQotd.Database.Entities
         public string QotdShorthandText => QotdShorthand ?? Program.AppSettings.ConfigQotdShorthandDefault;
 
         /// <summary>
+        /// The hex color code of the QOTD embed. If null, the default color is used.
+        /// </summary>
+        public string? QotdEmbedColorHex { get; set; } = null;
+        public string QotdEmbedColorHexEffective => QotdEmbedColorHex ?? Program.AppSettings.ConfigQotdEmbedColorHexDefault;
+
+        /// <summary>
         /// If true, users can suggest questions using /suggest or /qotd.
         /// </summary>
         public bool EnableSuggestions { get; set; } = true;
@@ -150,6 +171,14 @@ namespace OpenQotd.Database.Entities
         /// A warning will be sent if this is set but <see cref="SuggestionsChannelId"/> is null.
         /// </remarks>
         public ulong? SuggestionsPingRoleId { get; set; }
+
+        /// <summary>
+        /// If true, the bot will pin suggestion messages when they are sent to the suggestions channel.
+        /// </summary>
+        /// <remarks>
+        /// If this is true, any accepted/denied suggestion messages will also be unpinned.
+        /// </remarks>
+        public bool EnableSuggestionsPinMessage { get; set; } = true;
 
         /// <summary>
         /// Which notices should be sent to the guild under QOTDs.
@@ -204,28 +233,40 @@ namespace OpenQotd.Database.Entities
             return
                 $"**Profile:** *{ProfileName}*{(IsDefaultProfile ? " (default profile)" : "")}\n" +
                 $"\n" +
+                $"**General:**\n" +
                 $"- basic_role: {FormatRole(BasicRoleId)}\n" +
                 $"- admin_role: {FormatRole(AdminRoleId)}\n" +
-                $"- qotd_channel: {FormatChannel(QotdChannelId)}\n" +
-                $"- qotd_ping_role: {FormatRole(QotdPingRoleId)}\n" +
-                $"- qotd_title: *{QotdTitle ?? Program.AppSettings.ConfigQotdTitleDefault}*\n" +
-                $"- qotd_shorthand: *{QotdShorthand ?? Program.AppSettings.ConfigQotdShorthandDefault}*\n" +
-                $"- enable_automatic_qotd: **{EnableAutomaticQotd}**\n" +
-                $"- enable_qotd_pin_message: **{EnableQotdPinMessage}**\n" +
-                $"- enable_qotd_create_thread: **{EnableQotdCreateThread}**\n" +
-                $"- enable_qotd_automatic_presets: **{EnableQotdAutomaticPresets}**\n" +
-                $"- enable_qotd_last_available_warn: **{EnableQotdLastAvailableWarn}**\n" +
-                $"- enable_qotd_unavailable_message: **{EnableQotdUnavailableMessage}**\n" +
-                $"- enable_qotd_show_info_button: **{EnableQotdShowInfoButton}**\n" +
-                $"- qotd_time_hour_utc: **{QotdTimeHourUtc}**\n" +
-                $"- qotd_time_minute_utc: **{QotdTimeMinuteUtc}**\n" +
-                $"- qotd_time_day_condition: {(QotdTimeDayCondition is null ? "*daily*" : $"`{QotdTimeDayCondition}`")}\n" +
-                $"- enable_suggestions: **{EnableSuggestions}**\n" +
-                $"- suggestions_channel: {FormatChannel(SuggestionsChannelId)}\n" +
-                $"- suggestions_ping_role: {FormatRole(SuggestionsPingRoleId)}\n" +
                 $"- notices_level: **{NoticesLevel}**\n" +
                 $"- enable_deleted_questions_to_stash: **{EnableDeletedToStash}**\n" +
-                $"- logs_channel: {FormatChannel(LogsChannelId)}";
+                $"- logs_channel: {FormatChannel(LogsChannelId)}\n" +
+                $"\n" +
+                $"**QOTD Sending:**\n" +
+                $"- channel: {FormatChannel(QotdChannelId)}\n" +
+                $"- time_hour_utc: **{QotdTimeHourUtc}**\n" +
+                $"- time_minute_utc: **{QotdTimeMinuteUtc}**\n" +
+                $"- time_day_condition: {(QotdTimeDayCondition is null ? "*daily*" : $"`{QotdTimeDayCondition}`")}\n" +
+                $"- enable_automatic_qotd: **{EnableAutomaticQotd}**\n" +
+                $"- enable_automatic_presets: **{EnableQotdAutomaticPresets}**\n" +
+                $"- enable_last_available_warn: **{EnableQotdLastAvailableWarn}**\n" +
+                $"- enable_unavailable_message: **{EnableQotdUnavailableMessage}**\n" +
+                $"\n" +
+                $"**QOTD Message:**\n" +
+                $"- ping_role: {FormatRole(QotdPingRoleId)}\n" +
+                $"- title: *{QotdTitleText}*{(QotdTitle is null ? " (default)" : "")}\n" +
+                $"- shorthand: *{QotdShorthandText}*{(QotdShorthand is null ? " (default)" : "")}\n" +
+                $"- embed_color_hex: `{QotdEmbedColorHexEffective}`{(QotdEmbedColorHex is null ? " (default)" : "")}\n" +
+                $"- enable_pin_message: **{EnableQotdPinMessage}**\n" +
+                $"- enable_create_thread: **{EnableQotdCreateThread}**\n" +
+                $"- enable_show_info_button: **{EnableQotdShowInfoButton}**\n" +
+                $"- enable_show_footer: **{EnableQotdShowFooter}**\n" +
+                $"- enable_show_credit: **{EnableQotdShowCredit}**\n" +
+                $"- enable_show_counter: **{EnableQotdShowCounter}**\n" +
+                $"\n" +
+                $"**Suggestions:**\n" +
+                $"- enabled: **{EnableSuggestions}**\n" +
+                $"- channel: {FormatChannel(SuggestionsChannelId)}\n" +
+                $"- ping_role: {FormatRole(SuggestionsPingRoleId)}\n" +
+                $"- enable_pin_message: **{EnableSuggestionsPinMessage}**";
         }
 
         private static string FormatRole(ulong? roleId)
