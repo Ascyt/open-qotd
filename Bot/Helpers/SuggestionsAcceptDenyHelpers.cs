@@ -197,7 +197,7 @@ namespace OpenQotd.Helpers
                 string embedBody = GetEmbedBody(question);
 
                 messageBuilder.AddEmbed(GenericEmbeds.Custom($"{config.QotdShorthandText} Suggestion Denied", embedBody +
-                    $"\n\nDenied by: {user.Mention}{(reason != null ? $"\nReason: \"**{reason}**\"" : "")}", color: "#ff2020"));
+                    $"\n\nDenied by: {user.Mention}{(!string.IsNullOrEmpty(reason) ? $"\nReason: \"**{reason}**\"" : "")}", color: "#ff2020"));
 
                 await suggestionMessage.ModifyAsync(messageBuilder);
                 if (config.EnableSuggestionsPinMessage)
@@ -205,7 +205,7 @@ namespace OpenQotd.Helpers
             }
 
             DiscordEmbed responseEmbed = GenericEmbeds.Success($"Successfully Denied {config.QotdShorthandText} Suggestion",
-                $"{(reason != null ? $"\nReason: \"**{reason}**\"" : "")}");
+                $"{(!string.IsNullOrEmpty(reason) ? $"\nReason: \"**{reason}**\"" : "")}");
 
             if (result is not null)
             {
@@ -238,8 +238,8 @@ namespace OpenQotd.Helpers
                 userSendMessage.AddEmbed(GenericEmbeds.Custom($"{guild.Name}: {config.QotdShorthandText} Suggestion Denied",
                         $"Your {config.QotdTitleText} Suggestion:\n" +
                         $"\"**{question.Text}**\"\n\n" +
-                        $"Has been :x: **DENIED** :x: {(reason != null ? $"for the following reason:\n" +
-                        $"> *{reason}*" : "")}",
+                        $"Has been :x: **DENIED** :x:{(!string.IsNullOrEmpty(reason) ? $" for the following reason:\n" +
+                        $"\"**{reason}**\"" : ".")}",
                         color: "#ff2020"
                     ).WithFooter($"Server ID: {guild.Id}"));
 
@@ -248,12 +248,14 @@ namespace OpenQotd.Helpers
                     );
             }
 
+            string logTitle = "Denied Suggestion" + (config.EnableDeletedToStash ? " (moved to stash)" : "");
+            string logBody = $"{question}" + (!string.IsNullOrEmpty(reason) ?
+                $"\n\nDenial Reason: \"**{reason}**\"" : "");
+
             if (context is null)
-                await Logging.LogUserAction(suggestionMessage!.Channel!, user, config, "Denied Suggestion" + (config.EnableDeletedToStash ? " (moved to stash)" : ""), $"{question}\n\n" +
-                $"Denial Reason: \"**{reason}**\"");
+                await Logging.LogUserAction(suggestionMessage!.Channel!, user, config, logTitle, logBody);
             else
-                await Logging.LogUserAction(context, config, "Denied Suggestion" + (config.EnableDeletedToStash ? " (moved to stash)" : ""), $"{question}\n\n" +
-                $"Denial Reason: \"**{reason}**\"");
+                await Logging.LogUserAction(context, config, logTitle, logBody);
         }
     }
 }

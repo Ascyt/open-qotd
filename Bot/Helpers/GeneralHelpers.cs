@@ -61,7 +61,7 @@ namespace OpenQotd.Helpers
                 .WithTitle($"Denial of \"{TrimIfNecessary(question.Text!, 32)}\"")
                 .WithCustomId($"suggestions-deny/{config.ProfileId}/{question.GuildDependentId}")
                 .AddTextInputComponent(new DiscordTextInputComponent(
-                    label: "Denial Reason", customId: "reason", placeholder: "This will be sent to the user.", max_length: 1024, required: true, style: DiscordTextInputStyle.Paragraph));
+                    label: "Denial Reason", customId: "reason", placeholder: "Add an optional denial reason that will be sent to the user.", max_length: 1024, required: false, style: DiscordTextInputStyle.Paragraph));
         }
 
         /// <summary>
