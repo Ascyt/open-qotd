@@ -35,7 +35,7 @@ namespace OpenQotd.Commands
                 return;
             }
 
-            DiscordInteractionResponseBuilder modal = CreateSuggestionEventHandlers.GetQotdModal(config, context.Guild!.Name);
+            DiscordModalBuilder modal = CreateSuggestionEventHandlers.GetQotdModal(config, context.Guild!.Name);
 
             await (context as SlashCommandContext)!.RespondWithModalAsync(modal);
         }

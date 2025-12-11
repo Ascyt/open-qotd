@@ -16,19 +16,19 @@ namespace OpenQotd.EventHandlers.Suggestions
         /// <summary>
         /// Get the modal for adding a new question.
         /// </summary>
-        public static DiscordInteractionResponseBuilder GetQuestionModal(Config config)
+        public static DiscordModalBuilder GetQuestionModal(Config config)
         {
-            return new DiscordInteractionResponseBuilder()
+            return new DiscordModalBuilder()
                 .WithTitle($"Add a new {config.QotdShorthandText}!")
                 .WithCustomId($"add-question/{config.ProfileId}")
-                .AddTextInputComponent(new DiscordTextInputComponent(
-                    label: "Contents", customId: "text", placeholder: "The primary text body of the question.", max_length: Program.AppSettings.QuestionTextMaxLength, required: true, style: DiscordTextInputStyle.Paragraph))
-                .AddTextInputComponent(new DiscordTextInputComponent(
-                    label: "(optional) Additional Information", customId: "notes", placeholder: $"There will be a button for people to view this info under the sent {config.QotdShorthandText}.", max_length: Program.AppSettings.QuestionNotesMaxLength, required: false, style: DiscordTextInputStyle.Paragraph))
-                .AddTextInputComponent(new DiscordTextInputComponent(
-                    label: "(optional) Thumbnail (Image link)", customId: "thumbnail-url", placeholder: "Will be shown alongside the QOTD.", max_length: Program.AppSettings.QuestionThumbnailImageUrlMaxLength, required: false, style: DiscordTextInputStyle.Short))
-                .AddTextInputComponent(new DiscordTextInputComponent(
-                    label: "(optional) Staff Info", customId: "suggester-adminonly", placeholder: "This will only be visible to staff for reviewing the suggestion.", max_length: Program.AppSettings.QuestionSuggesterAdminInfoMaxLength, required: false, style: DiscordTextInputStyle.Paragraph));
+                .AddTextInput(label: "Contents", input: new DiscordTextInputComponent(
+                    customId: "text", placeholder: "The primary text body of the question.", max_length: Program.AppSettings.QuestionTextMaxLength, required: true, style: DiscordTextInputStyle.Paragraph))
+                .AddTextInput(label: "(optional) Additional Information", input: new DiscordTextInputComponent(
+                    customId: "notes", placeholder: $"There will be a button for people to view this info under the sent {config.QotdShorthandText}.", max_length: Program.AppSettings.QuestionNotesMaxLength, required: false, style: DiscordTextInputStyle.Paragraph))
+                .AddTextInput(label: "(optional) Thumbnail (Image link)", input: new DiscordTextInputComponent(
+                    customId: "thumbnail-url", placeholder: "Will be shown alongside the QOTD.", max_length: Program.AppSettings.QuestionThumbnailImageUrlMaxLength, required: false, style: DiscordTextInputStyle.Short))
+                .AddTextInput(label: "(optional) Staff Info", input: new DiscordTextInputComponent(
+                    customId: "suggester-adminonly", placeholder: "This will only be visible to staff for reviewing the suggestion.", max_length: Program.AppSettings.QuestionSuggesterAdminInfoMaxLength, required: false, style: DiscordTextInputStyle.Paragraph));
         }
 
         public static async Task SuggestQotdModalSubmitted(ModalSubmittedEventArgs args, int profileId)
@@ -63,16 +63,16 @@ namespace OpenQotd.EventHandlers.Suggestions
                 return;
             }
 
-            string text = args.Values["text"];
-            string? notes = args.Values["notes"];
+            string text = ((TextInputModalSubmission)args.Values["text"]).Value;
+            string? notes = ((TextInputModalSubmission)args.Values["notes"]).Value;
             if (string.IsNullOrWhiteSpace(notes))
                 notes = null;
 
-            string? thumbnailUrl = args.Values["thumbnail-url"];
+            string? thumbnailUrl = ((TextInputModalSubmission)args.Values["thumbnail-url"]).Value;
             if (string.IsNullOrWhiteSpace(thumbnailUrl))
                 thumbnailUrl = null;
 
-            string? suggesterAdminOnly = args.Values["suggester-adminonly"];
+            string? suggesterAdminOnly = ((TextInputModalSubmission)args.Values["suggester-adminonly"]).Value;
             if (string.IsNullOrWhiteSpace(suggesterAdminOnly))
                 suggesterAdminOnly = null;
 
