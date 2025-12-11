@@ -172,10 +172,10 @@ namespace OpenQotd.Helpers
         private static void AddPaginationButtonsToMessage<T>(IDiscordMessageBuilder messageBuilder, PageInfo<T> pi)
         {
             messageBuilder.AddActionRowComponent(
-                new DiscordButtonComponent(DiscordButtonStyle.Secondary, "first", "⭰", disabled: pi.CurrentPage == 1),
-                new DiscordButtonComponent(DiscordButtonStyle.Primary, "backward", "⭠", disabled: pi.CurrentPage == 1),
-                new DiscordButtonComponent(DiscordButtonStyle.Primary, "forward", "⭢", disabled: pi.CurrentPage == pi.TotalPagesCount),
-                new DiscordButtonComponent(DiscordButtonStyle.Secondary, "last", "⭲", disabled: pi.CurrentPage == pi.TotalPagesCount)
+                new DiscordButtonComponent(DiscordButtonStyle.Secondary, "first", "|<", disabled: pi.CurrentPage == 1),
+                new DiscordButtonComponent(DiscordButtonStyle.Primary, "backward", "<", disabled: pi.CurrentPage == 1),
+                new DiscordButtonComponent(DiscordButtonStyle.Primary, "forward", ">", disabled: pi.CurrentPage == pi.TotalPagesCount),
+                new DiscordButtonComponent(DiscordButtonStyle.Secondary, "last", ">|", disabled: pi.CurrentPage == pi.TotalPagesCount)
             );
         }
 
