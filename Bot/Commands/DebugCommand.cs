@@ -36,7 +36,8 @@ namespace OpenQotd.Commands
             switch (argsSplit[0])
             {
                 case "sudo":
-                    switch (argsSplit[1])
+                    string? firstArgSudo = argsSplit.Length <= 1 ? null : argsSplit[1];
+                    switch (firstArgSudo)
                     {
                         case "0":
                             sudoUserIds.Remove(context.User.Id);
@@ -59,7 +60,7 @@ namespace OpenQotd.Commands
                             }
                             break;
                     }
-                    break;
+                    return;
                 case "c":
                     switch (argsSplit[1])
                     {
