@@ -27,156 +27,224 @@
         <p>
             OpenQOTD must be configured initially using <code>/config initialize</code>.<br />
             Afterwards, <code>/config set</code> can be used to set config values (use <code>/config reset</code> to reset non-boolean optional values to their defaults),
-            and <code>/config get</code> can be used to retrieve it.
+            and <code>/config get</code> can be used to retrieve it.<br />
+            If <code>/config initialize</code> is used when the config is already initialized, it will reset all config values to their defaults and require re-initialization.
         </p>
         <p>
             <code>/config</code> can <b>only</b> be run by users with the "Administrator" server permission.
         </p>
         <h4>Variables</h4>
         <p>
-            The following config variables can be set using <code>/config initialize</code> or <code>/config set</code>:<br />
-            <i>Required fields are marked with "</i><code class="required">field</code><i>", and default values are shown using "<code><span class="default-value">value</span></code>".</i>
+            The following config variables can be set using <code>/config set</code>, and optional variables can be reset using <code>/config reset</code>.<br />
+            They are grouped into four sub-categories, <code>general</code>, <code>qotd_sending</code>, <code>qotd_message</code>, and <code>suggestions</code>:<br />
+            <i>Default values are shown using "<code><span class="default-value">value</span></code>".</i>
         </p>
-        <ul>
-            <li class="mb-2">
-                <code>basic_role</code>: 
-                This is the role that is required to run non-administrative commands, which includes:
-                <ul>
-                    <li><code>/suggest</code> (if suggestions are enabled)</li>
-                    <li><code>/leaderboard</code></li>
-                    <li><code>/topic</code></li>
-                    <li><code>/sentquestions</code></li>
-                </ul>
-                This is set to everyone by default. That means, if this variable is unset, everyone in your server is able to run these commands.<br />
-                Do not try to set this to "&commat;everyone", it will not work. Instead, reset it using <code>/config reset basic_role</code> if you want everyone to be able to run these commands.
-            </li>
-            <li class="mb-2">
-                <code class="required">admin_role</code>: 
-                This is the role that is required to run administrative and potentially destructive commands, which includes:
-                <ul>
-                    <li><code>/questions</code></li>
-                    <li><code>/presets</code></li>
-                    <li><code>/trigger</code></li>
-                </ul>
-                The "Administrator" server permission overrides this role, and anyone with this permission can run every command regardless of what roles they have.<br />
-            </li>
-            <li class="mb-2">
-                <code class="required">qotd_channel</code>: 
-                This is the channel that QOTDs are sent to, which includes the daily QOTD and the QOTDs that are triggered manually using <code>/trigger</code>.
-            </li>
-            <li class="mb-2">
-                <code class="required">qotd_time_hour_utc</code> & <code class="required">qotd_time_minute_utc</code>: 
-                The hour and minute at which the QOTDs are sent (if <code>enable_automatic_qotd</code> is enabled), in UTC time.<br />
-                The hour must be between 0 and 23, and the minute must be between 0 and 59.<br />
-                For example, if you want the QOTD to be sent at 3:47 PM UTC, you would set <code>qotd_time_hour_utc</code> to 15 and <code>qotd_time_minute_utc</code> to 47.<br />
-                You can use <a href="https://dateful.com/convert/utc" target="_blank">this tool</a> to convert your local time to UTC, and keep in mind that it might change due to daylight saving time.
-            </li>
-            <li class="mb-2">
-                <code>qotd_day_condition</code>: Can be used to specify on which days a QOTD should be sent. If unset, a QOTD gets sent every day.<br />
-                Note that this string must start with a percent sign (<code>%</code>) and is case-sensitive. The "epoch day" refers to the day that this config variable was last changed.<br />
-                The following formats are supported:
-                <ul>
-                    <li><code>%D[n]</code>&nbsp;(Every <code>[n]</code> days): Sends a QOTD every <code>[n]</code> days including the epoch day onwards. For example, <code>%D2</code> sends a QOTD every other day.</li>
-                    <li><code>%w&lbrace;n&rbrace;</code>&nbsp;(On specific days of the week): Sends a QOTD on the specified days of the week, where <code>&lbrace;n&rbrace;</code> is a comma-separated list of day numbers starting with Monday as 1 (1 = Monday, 2 = Tuesday, 7 = Sunday, etc.). For example, <code>%w1,3,5</code> sends a QOTD on Mondays, Wednesdays, and Fridays.</li>
-                    <li><code>%W[n];[m]</code>&nbsp;(Every <code>[n]</code> weeks on the <code>[m]</code>th day of the week): Sends a QOTD every <code>[n]</code> weeks on the specified day of the week, where <code>[m]</code> is the day of the week with Monday as 1 to Sunday as 7. For example, <code>%W2;3</code> sends a QOTD every two weeks on Wednesdays.</li>
-                    <li><code>%M&lbrace;n&rbrace;</code>&nbsp;(On specific days of the month): Sends a QOTD on the specified days of the month, where <code>&lbrace;n&rbrace;</code> is a comma-separated list of day numbers (1-31). Note that if a month doesn't have the specified amount of days, then the last day of the month is chosen. For example, <code>%M1,15,31</code> sends a QOTD on the 1st, the 15th, and on the last day of every month.</li>
-                </ul>
-                Using <code>/help</code>, you can check when the next QOTD is scheduled to be sent.
-            </li>
-            <li class="mb-2">
-                <code>qotd_ping_role</code>: 
-                This is the role that gets pinged when a QOTD is sent manually or using <code>/trigger</code>, even if it is a preset or there is no QOTD available.<br />
-                If this variable is unset, no role is pinged.
-            </li>
-            <li class="mb-2">
-                <code>qotd_title<span class="default-value">Question Of The Day</span></code>:
-                The title that is displayed in QOTD messages.<br />
-                You can set this to display a different text, such as "Quote Of The Week" or "Topic Of The Month", allowing you to use the bot for whichever non-question purposes you want.<br />
-                This works great in combination with <a href="documentation#profiles">Profiles</a>, to allow you to set up multiple instances of the bot, each with a different purpose. 
-            </li>
-            <li class="mb-2">
-                <code>qotd_shorthand<span class="default-value">QOTD</span></code>: An acronym or shortened form of the QOTD title that is used in various places, such as in button labels and command descriptions.<br />
-                Similar to <code>qotd_title</code>, you can set this to whatever you want, such as "QOTW" for "Quote Of The Week" or "TOTM" for "Topic Of The Month".
-            </li>
-            <li class="mb-2">
-                <code>enable_automatic_qotd<span class="default-value">true</span></code>: 
-                If enabled, a QOTD is sent automatically every day at the set time.<br />
-                If this variable is set to <code>false</code>, the QOTD has to be triggered manually using <code>/trigger</code>.
-            </li>
-            <li class="mb-2">
-                <code>enable_qotd_pin_message<span class="default-value">true</span></code>:
-                If enabled, the old QOTD, if existent and pinned, is unpinned and the new QOTD is pinned automatically after it is sent.
-            </li>
-            <li class="mb-2">
-                <code>enable_qotd_create_thread<span class="default-value">false</span></code>:
-                If enabled, a thread is created for the QOTD when it is sent, with the auto-archive duration being 24 hours.
-            </li>
-            <li class="mb-2">
-                <code>enable_qotd_automatic_presets<span class="default-value">true</span></code>:
-                If enabled, Presets are sent if there are no custom questions available.<br />
-                See <a href="/documentation#presets">Presets</a> for more information.
-            </li>
-            <li class="mb-2">
-                <code>enable_qotd_last_available_warn<span class="default-value">true</span></code>: 
-                If enabled, a "Warning: Last QOTD" embed should be appended to a sent QOTD if it is the last available custom QOTD,
-                advising users to make a suggestion if suggestions are enabled.
-            </li>
-            <li class="mb-2">
-                <code>enable_qotd_unavailable_message<span class="default-value">true</span></code>:
-                If enabled, a message is sent if there are no QOTDs available, which happens if there are no custom questions available and presets are either disabled or exhausted.<br />
-            </li>
-            <li class="mb-2">
-                <code>enable_qotd_show_info_button<span class="default-value">true</span></code>:
-                If enabled, a little "𝐢"-button gets added under QOTDs.<br />
-                For non-admins and/or preset questions, it shows the output of <code>/help</code>; for normal questions if pressed by an admin, there is a prompt for whether to show <code>/questions view</code> for this question or <code>/help</code>.<br />
-                This is purely visual and for convenience, it does not alter any data, and the button responses only get shown to the person who pressed the button.
-            </li>
-            <li class="mb-2">
-                <code>enable_suggestions<span class="default-value">true</span></code>:
-                If enabled, users with the <code>basic_role</code> can suggest new questions using <code>/suggest</code>, <code>/qotd</code> or the suggest button under sent QOTDs.<br />
-                Suggested questions then have to be accepted by a staff member in order to be sendable. See <a href="documentation#suggestions">Suggestions</a> for more information.
-            </li>
-            <li class="mb-2">
-                <code>suggestions_channel</code>:
-                The channel where new suggestions are sent to, with buttons to accept/deny them.<br />
-                If this variable is unset, suggestions are not sent anywhere and can only be viewed using <code>/suggestions</code>.<br />
-                It is recommended to use this if you have suggestions enabled, as it makes them much easier to manage. <br />
-                See <a href="documentation#suggestions">Suggestions</a> for more information.<br />
-                <span [ngClass]="{'text-warning': true, 'light-theme': themeSwitcherService.isLightTheme}">
-                    <b>⚠️ Warning</b>: Make sure to have this set to a channel that is only viewable by people you trust, as anyone can accept or deny suggestions using the buttons of the messages or <code>/suggestions</code> inside of that channel!<br />
-                </span>
-            </li>
-            <li class="mb-2">
-                <code>suggestions_ping_role</code>:
-                The role that gets pinged alongside with the message in the <code>suggestions_channel</code> when a new suggestion is received.<br />
-                If this variable is unset, no role is pinged.
-            </li>
-            <li class="mb-2">
-                <code>notices_level<span class="default-value">All</span></code>: Notices are messages that are sent alongside QOTDs, which are written by the developer and are used to inform users about updates, changes, suggestions and thelike.<br />
-                The following options are available:
-                <ul>
-                    <li><code>All</code>: All notices are sent. Keep in mind that some of these notices may include encouraging users to join the community server, donate, contribute, or similar, so keeping this enabled is appreciated in order to help this free and open-source project work out.</li>
-                    <li><code>Important</code>: Only important announcements are sent, including maintenance times and breaking changes. It is recommended to keep at least this level enabled.</li>
-                    <li><code>None</code>: No notices are sent whatsoever.</li>
-                </ul>
-            </li>
-            <li class="mb-2">
-                <code>enable_deleted_to_stash<span class="default-value">true</span></code>: 
-                If enabled, when a suggestion gets denied or a question gets manually deleted, instead of being permanently deleted, its type will get set to <span class="question-type stashed">Stashed</span> unless it already is <span class="question-type stashed">Stashed</span>. <br />
-                Stashed questions can be cleared and thus be permanently deleted using <code>/questions clearstash</code>.
-            </li>
-            <li class="mb-2">
-                <code>logs_channel</code>:
-                The channel where logs are sent to, which includes changes being made to the config, questions or suggestions. <br />
-                
-                <span [ngClass]="{'text-warning': true, 'light-theme': themeSwitcherService.isLightTheme}">
-                    <b>⚠️ Warning</b>: This currently does not log the config getting re-initialized using <code>/config initialize</code>. I'm working to fix this in a future update, but for now, keep this in mind.
-                </span>
-            </li>
-        </ul>
         <p [ngClass]="{'text-warning': true, 'light-theme': themeSwitcherService.isLightTheme}">
-            <b>⚠️ Important</b>: Make sure that, if set, the <code>qotd_channel</code>, <code>suggestions_channel</code> and <code>logs_channel</code> are channels that the bot has access to, can send messages <b>with embeds</b> in, and, if enabled, also pin messages, ping roles and manage threads in respectively. 
+            <b>⚠️ Important</b>: Make sure that, if set, the <code>qotd_sending channel</code>, <code>suggestions channel</code> and <code>logs channel</code> are channels that the bot is able to see, can send messages <b>with embeds</b> in, and, if enabled, also pin messages, ping roles and manage threads in respectively. 
         </p>
+            <div ngbAccordion [closeOthers]="true" class="accordion mb-2">
+                <div ngbAccordionItem class="accordion-item">
+                    <h2 ngbAccordionHeader class="accordion-header">
+                        <button ngbAccordionButton class="accordion-button"><code>general</code>: Values related to general settings.</button>
+                    </h2>
+                    <div ngbAccordionCollapse class="accordion-collapse">
+                        <div ngbAccordionBody class="accordion-body"> 
+                            <ul>
+                                <li class="mb-2">
+                                    <code>basic_role</code>: 
+                                    This is the role that is required to run non-administrative commands, which includes:
+                                    <ul>
+                                        <li><code>/suggest</code> (if suggestions are enabled)</li>
+                                        <li><code>/leaderboard</code></li>
+                                        <li><code>/topic</code></li>
+                                        <li><code>/sentquestions</code></li>
+                                    </ul>
+                                    This is set to everyone by default. That means, if this variable is unset, everyone in your server is able to run these commands.<br />
+                                    Do not try to set this to "&commat;everyone", it will not work. Instead, reset it using <code>/config reset basic_role</code> if you want everyone to be able to run these commands.
+                                </li>
+                                <li class="mb-2">
+                                    <code>admin_role</code>: 
+                                    This is the role that is required to run administrative and potentially destructive commands, which includes:
+                                    <ul>
+                                        <li><code>/questions</code></li>
+                                        <li><code>/presets</code></li>
+                                        <li><code>/trigger</code></li>
+                                    </ul>
+                                    The "Administrator" server permission overrides this role, and anyone with this permission can run every command regardless of what roles they have.<br />
+                                </li>
+                                <li class="mb-2">
+                                    <code>notices_level<span class="default-value">All</span></code>: Notices are messages that are sent alongside QOTDs, which are written by the developer and are used to inform users about updates, changes, suggestions and thelike.<br />
+                                    The following options are available:
+                                    <ul>
+                                        <li><code>All</code>: All notices are sent. Keep in mind that some of these notices may include encouraging users to join the community server, donate, contribute, or similar, so keeping this enabled is appreciated in order to help this free and open-source project work out.</li>
+                                        <li><code>Important</code>: Only important announcements are sent, including maintenance times and breaking changes. It is recommended to keep at least this level enabled.</li>
+                                        <li><code>None</code>: No notices are sent whatsoever.</li>
+                                    </ul>
+                                </li>
+                                <li class="mb-2">
+                                    <code>enable_deleted_to_stash<span class="default-value">true</span></code>: 
+                                    If enabled, when a suggestion gets denied or a question gets manually deleted, instead of being permanently deleted, its type will get set to <span class="question-type stashed">Stashed</span> unless it already is <span class="question-type stashed">Stashed</span>. <br />
+                                    Stashed questions can be cleared and thus be permanently deleted using <code>/questions clearstash</code>.
+                                </li>
+                                <li class="mb-2">
+                                    <code>logs_channel</code>:
+                                    The channel where logs are sent to, which includes changes being made to the config, questions or suggestions. <br />
+                                    
+                                    <span [ngClass]="{'text-warning': true, 'light-theme': themeSwitcherService.isLightTheme}">
+                                        <b>⚠️ Warning</b>: This currently does not log the config getting re-initialized using <code>/config initialize</code>. I'm working to fix this in a future update, but for now, keep this in mind.
+                                    </span>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+                <div ngbAccordionItem class="accordion-item">
+                    <h2 ngbAccordionHeader class="accordion-header">
+                        <button ngbAccordionButton class="accordion-button"><code>qotd_sending</code>: Values related to if, how, and when QOTDs are sent.</button>
+                    </h2>
+                    <div ngbAccordionCollapse class="accordion-collapse">
+                        <div ngbAccordionBody class="accordion-body"> 
+                            <ul>
+                                <li class="mb-2">
+                                    <code>channel</code>: 
+                                    This is the channel that QOTDs are sent to, which includes the daily QOTD and the QOTDs that are triggered manually using <code>/trigger</code>.
+                                </li>
+                                <li class="mb-2">
+                                    <code>time_hour_utc</code> & <code>time_minute_utc</code>: 
+                                    The hour and minute at which the QOTDs are sent (if <code>enable_automatic_qotd</code> is enabled), in UTC time.<br />
+                                    The hour must be between 0 and 23, and the minute must be between 0 and 59.<br />
+                                    For example, if you want the QOTD to be sent at 3:47 PM UTC, you would set <code>time_hour_utc</code> to 15 and <code>time_minute_utc</code> to 47.<br />
+                                    You can use <a href="https://dateful.com/convert/utc" target="_blank">this tool</a> to convert your local time to UTC, and keep in mind that it might change due to daylight saving time.
+                                </li>
+                                <li class="mb-2">
+                                    <code>time_day_condition</code>: Can be used to specify on which days a QOTD should be sent. If unset, a QOTD gets sent every day.<br />
+                                    Note that this string must start with a percent sign (<code>%</code>) and is case-sensitive. The "epoch day" refers to the day that this config variable was last changed.<br />
+                                    The following formats are supported:
+                                    <ul>
+                                        <li><code>%D[n]</code>&nbsp;(Every <code>[n]</code> days): Sends a QOTD every <code>[n]</code> days including the epoch day onwards. For example, <code>%D2</code> sends a QOTD every other day.</li>
+                                        <li><code>%w&lbrace;n&rbrace;</code>&nbsp;(On specific days of the week): Sends a QOTD on the specified days of the week, where <code>&lbrace;n&rbrace;</code> is a comma-separated list of day numbers starting with Monday as 1 (1 = Monday, 2 = Tuesday, 7 = Sunday, etc.). For example, <code>%w1,3,5</code> sends a QOTD on Mondays, Wednesdays, and Fridays.</li>
+                                        <li><code>%W[n];[m]</code>&nbsp;(Every <code>[n]</code> weeks on the <code>[m]</code>th day of the week): Sends a QOTD every <code>[n]</code> weeks on the specified day of the week, where <code>[m]</code> is the day of the week with Monday as 1 to Sunday as 7. For example, <code>%W2;3</code> sends a QOTD every two weeks on Wednesdays.</li>
+                                        <li><code>%M&lbrace;n&rbrace;</code>&nbsp;(On specific days of the month): Sends a QOTD on the specified days of the month, where <code>&lbrace;n&rbrace;</code> is a comma-separated list of day numbers (1-31). Note that if a month doesn't have the specified amount of days, then the last day of the month is chosen. For example, <code>%M1,15,31</code> sends a QOTD on the 1st, the 15th, and on the last day of every month.</li>
+                                    </ul>
+                                    Using <code>/help</code>, you can check when the next QOTD is scheduled to be sent.
+                                </li>
+                                <li class="mb-2">
+                                    <code>enable_automatic_qotd<span class="default-value">true</span></code>: 
+                                    If enabled, a QOTD is sent automatically every day at the set time.<br />
+                                    If this variable is set to <code>false</code>, the QOTD has to be triggered manually using <code>/trigger</code>.
+                                </li>
+                                <li class="mb-2">
+                                    <code>enable_automatic_presets<span class="default-value">true</span></code>:
+                                    If enabled, Presets are sent if there are no custom questions available.<br />
+                                    See <a href="/documentation#presets">Presets</a> for more information.
+                                </li>
+                                <li class="mb-2">
+                                    <code>enable_last_available_warn<span class="default-value">true</span></code>: 
+                                    If enabled, a "Warning: Last QOTD" embed should be appended to a sent QOTD if it is the last available custom QOTD,
+                                    advising users to make a suggestion if suggestions are enabled.
+                                </li>
+                                <li class="mb-2">
+                                    <code>enable_unavailable_message<span class="default-value">true</span></code>:
+                                    If enabled, a message is sent if there are no QOTDs available, which happens if there are no custom questions available and presets are either disabled or exhausted.<br />
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+                <div ngbAccordionItem class="accordion-item">
+                    <h2 ngbAccordionHeader class="accordion-header">
+                        <button ngbAccordionButton class="accordion-button"><code>qotd_message</code>: Values related to the appearance and behaviour of sent QOTD messages.</button>
+                    </h2>
+                    <div ngbAccordionCollapse class="accordion-collapse">
+                        <div ngbAccordionBody class="accordion-body"> 
+                            <ul>
+                                <li class="mb-2">
+                                    <code>ping_role</code>: 
+                                    This is the role that gets pinged when a QOTD is sent manually or using <code>/trigger</code>, even if it is a preset or there is no QOTD available.<br />
+                                    If this variable is unset, no role is pinged.
+                                </li>
+                                <li class="mb-2">
+                                    <code>title<span class="default-value">Question Of The Day</span></code>:
+                                    The title that is displayed in QOTD messages.<br />
+                                    You can set this to display a different text, such as "Quote Of The Week" or "Topic Of The Month", allowing you to use the bot for whichever non-question purposes you want.<br />
+                                    This works great in combination with <a href="documentation#profiles">Profiles</a>, to allow you to set up multiple instances of the bot, each with a different purpose. 
+                                </li>
+                                <li class="mb-2">
+                                    <code>shorthand<span class="default-value">QOTD</span></code>: An acronym or shortened form of the QOTD title that is used in various places, such as in button labels and command descriptions.<br />
+                                    Similar to <code>title</code>, you can set this to whatever you want, such as "QOTW" for "Quote Of The Week" or "TOTM" for "Topic Of The Month".
+                                </li>
+                                <li class="mb-2">
+                                    <code>embed_color_hex<span class="default-value">#8acfac</span></code>: Hex color code (in the format <code>#RRGGBB</code>) for the color of the QOTD embed.<br />
+                                    You can use <a href="https://htmlcolorcodes.com/color-picker/" target="_blank">this tool</a> to find a color you like.
+                                </li>
+                                <li class="mb-2">
+                                    <code>enable_pin_message<span class="default-value">true</span></code>:
+                                    If enabled, the old QOTD, if existent and pinned, is unpinned and the new QOTD is pinned automatically after it is sent.
+                                </li>
+                                <li class="mb-2">
+                                    <code>enable_create_thread<span class="default-value">false</span></code>:
+                                    If enabled, a thread is created for the QOTD when it is sent, with the auto-archive duration being 24 hours.
+                                </li>
+                                <li class="mb-2">
+                                    <code>enable_show_info_button<span class="default-value">true</span></code>:
+                                    If enabled, a little "𝐢"-button gets added under QOTDs.<br />
+                                    For non-admins and/or preset questions, it shows the output of <code>/help</code>; for normal questions if pressed by an admin, there is a prompt for whether to show <code>/questions view</code> for this question or <code>/help</code>.<br />
+                                    This is purely visual and for convenience, it does not alter any data, and the button responses only get shown to the person who pressed the button.
+                                </li>
+                                <li class="mb-2">
+                                    <code>enable_show_footer<span class="default-value">true</span></code>:
+                                    If enabled, all sent QOTDs will include a footer on how many questions are left, the command to suggest a new QOTD, and the ID of the question.
+                                </li>
+                                <li class="mb-2">
+                                    <code>enable_show_credit<span class="default-value">true</span></code>:
+                                    If enabled, sent QOTDs will include information on who suggested/added the question, or a note that it is a preset question, under sent QOTDs.
+                                </li>
+                                <li class="mb-2">
+                                    <code>enable_show_counter<span class="default-value">true</span></code>:
+                                    If enabled, sent QOTDs will include a counter showing which number QOTD this is, such as "Question Of The Day #42".<br />
+                                    The count of <span class="question-type sent">Sent</span> questions is used for this, and the counter does not show for preset questions.
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+                <div ngbAccordionItem class="accordion-item">
+                    <h2 ngbAccordionHeader class="accordion-header">
+                        <button ngbAccordionButton class="accordion-button"><code>suggestions</code>: Values related to user QOTD suggestions.</button>
+                    </h2>
+                    <div ngbAccordionCollapse class="accordion-collapse">
+                        <div ngbAccordionBody class="accordion-body"> 
+                            <ul>
+                                <li class="mb-2">
+                                    <code>enable<span class="default-value">true</span></code>:
+                                    If enabled, users with the <code>basic_role</code> can suggest new questions using <code>/suggest</code>, <code>/qotd</code> or the suggest button under sent QOTDs.<br />
+                                    Suggested questions then have to be accepted by a staff member in order to be sendable. See <a href="documentation#suggestions">Suggestions</a> for more information.
+                                </li>
+                                <li class="mb-2">
+                                    <code>channel</code>:
+                                    The channel where new suggestions are sent to, with buttons to accept/deny them.<br />
+                                    If this variable is unset, suggestions are not sent anywhere and can only be viewed using <code>/suggestions</code>.<br />
+                                    It is recommended to use this if you have suggestions enabled, as it makes them much easier to manage. <br />
+                                    See <a href="documentation#suggestions">Suggestions</a> for more information.<br />
+                                    <span [ngClass]="{'text-warning': true, 'light-theme': themeSwitcherService.isLightTheme}">
+                                        <b>⚠️ Warning</b>: Make sure to have this set to a channel that is only viewable by people you trust, as anyone can accept or deny suggestions using the buttons of the messages or <code>/suggestions</code> inside of that channel!<br />
+                                    </span>
+                                </li>
+                                <li class="mb-2">
+                                    <code>ping_role</code>:
+                                    The role that gets pinged alongside with the message in the <code>suggestions channel</code> when a new suggestion is received.<br />
+                                    If this variable is unset, no role is pinged.
+                                </li>
+                                <li class="mb-2">
+                                    <code>enable_pin_message<span class="default-value">true</span></code>:
+                                    If enabled, new suggestion messages are pinned automatically after being sent.<br />
+                                    Suggestion messages that are either accepted or denied are unpinned automatically.
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
     </section>
 
     <section id="questions">
