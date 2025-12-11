@@ -98,7 +98,7 @@ namespace OpenQotd.Commands
             if (!await CommandRequirements.IsWithinMaxQuestionsAmount(context, 1))
                 return;
 
-            await (context as SlashCommandContext)!.RespondWithModalAsync(CreateQuestionEventHandlers.GetQuestionModal(config));
+            await (context as SlashCommandContext)!.RespondWithModalAsync(QuestionsEventHandlers.GetQuestionsAddModal(config));
         }
 
         [Command("addbulk")]

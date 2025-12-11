@@ -118,6 +118,12 @@ namespace OpenQotd.EventHandlers
 
                     await CreateSuggestionEventHandlers.SuggestQotdModalSubmitted(args, int.Parse(idArgs[1]));
                     return;
+                case "questions-add":
+                    if (!await HasExactlyNArguments(args, idArgs, 1))
+                        return;
+
+                    await QuestionsEventHandlers.QuestionsAddModalSubmitted(args, int.Parse(idArgs[1]));
+                    return;
             }
 
             await RespondWithError(args, $"Unknown event: `{args.Interaction.Data.CustomId}`");
