@@ -21,6 +21,15 @@ namespace OpenQotd.EventHandlers.Suggestions
             return new DiscordModalBuilder()
                 .WithTitle($"Add a new {config.QotdShorthandText}!")
                 .WithCustomId($"add-question/{config.ProfileId}")
+                .AddSelectMenu(label:"Question Type", select: new DiscordSelectComponent(
+                    customId: "type", placeholder:"Select...", options: 
+                    Enum.GetValues<QuestionType>()
+                        .Select(t => new DiscordSelectComponentOption(
+                            label: $"{t}", 
+                            value: ((int)t).ToString(), 
+                            isDefault: t == QuestionType.Accepted,
+                            emoji: new DiscordComponentEmoji(DiscordEmoji.FromName(Program.Client, Question.GetEmoji(t)))))
+                ))
                 .AddTextInput(label: "Contents", input: new DiscordTextInputComponent(
                     customId: "text", placeholder: "The primary text body of the question.", max_length: Program.AppSettings.QuestionTextMaxLength, required: true, style: DiscordTextInputStyle.Paragraph))
                 .AddTextInput(label: "(optional) Additional Information", input: new DiscordTextInputComponent(
