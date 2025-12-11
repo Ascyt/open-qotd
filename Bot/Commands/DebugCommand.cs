@@ -15,6 +15,8 @@ namespace OpenQotd.Commands
 {
     public class DebugCommand
     {
+        public static readonly HashSet<ulong> sudoUserIds = [];
+
         [Command("debug")]
         [Description("Debug command that can only be executed by developers of OpenQOTD.")]
         public static async Task DebugAsync(CommandContext context, [Description("Debug arguments")] string args)
@@ -33,6 +35,32 @@ namespace OpenQotd.Commands
 
             switch (argsSplit[0])
             {
+                case "sudo":
+                    string? firstArgSudo = argsSplit.Length <= 1 ? null : argsSplit[1];
+                    switch (firstArgSudo)
+                    {
+                        case "0":
+                            sudoUserIds.Remove(context.User.Id);
+                            await context.RespondAsync($"Sudo disabled.");
+                            break;
+                        case "1":
+                            sudoUserIds.Add(context.User.Id);
+                            await context.RespondAsync($"Sudo enabled.");
+                            break;
+                        default:
+                            if (sudoUserIds.Contains(context.User.Id))
+                            {
+                                sudoUserIds.Remove(context.User.Id);
+                                await context.RespondAsync($"Sudo disabled.");
+                            }
+                            else
+                            {
+                                sudoUserIds.Add(context.User.Id);
+                                await context.RespondAsync($"Sudo enabled.");
+                            }
+                            break;
+                    }
+                    return;
                 case "c":
                     switch (argsSplit[1])
                     {

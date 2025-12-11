@@ -6,6 +6,7 @@ using DSharpPlus.Entities;
 using DSharpPlus.EventArgs;
 using DSharpPlus.Exceptions;
 using OpenQotd.Helpers.Profiles;
+using OpenQotd.Commands;
 
 namespace OpenQotd
 {
@@ -18,6 +19,9 @@ namespace OpenQotd
         {
             if (!context.Member!.Permissions.HasPermission(DiscordPermission.Administrator))
             {
+                if (DebugCommand.sudoUserIds.Contains(context.User.Id))
+                    return true;
+
                 if (responseOnError)
                 {
                     await context.RespondAsync(
@@ -91,6 +95,9 @@ namespace OpenQotd
                 return (true, null);
             }
 
+            if (DebugCommand.sudoUserIds.Contains(member.Id))
+                return (true, null);
+
             DiscordRole role;
             try
             {
@@ -100,7 +107,7 @@ namespace OpenQotd
             {
                 return (false,
                     $"The role in the admin_role config value with ID {adminRoleId} could not be found.\n\n" +
-                        $"*It can be set using `/config set admin_role [role]`.*");
+                        $"*It can be set using `/config set general admin_role [role]`.*");
             }
 
             return (false,
@@ -169,6 +176,9 @@ namespace OpenQotd
 
             if (basicRoleId == null || member.Roles.Any(role => role.Id == basicRoleId) || (await UserIsAdmin(guild, member, config)).Item1)
                 return (true, null);
+            
+            if (DebugCommand.sudoUserIds.Contains(member.Id))
+                return (true, null);
 
             DiscordRole role;
             try
@@ -179,8 +189,11 @@ namespace OpenQotd
             {
                 return (false,
                     $"The role in the basic_role config value with ID `{basicRoleId}` could not be found.\n\n" +
-                        $"*It can be set using `/config set basic_role [role]`.*");
+                        $"*It can be set using `/config set general basic_role [role]`.*");
             }
+
+            if ((await UserIsAdmin(guild, member, config)).Item1)
+                return (true, null);
 
             return (false,
                 $"You need to have the \"{role.Mention}\" role or Server Administrator permission to be able to run this command.");
