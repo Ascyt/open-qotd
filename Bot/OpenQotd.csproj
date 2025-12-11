@@ -10,8 +10,8 @@
 
     <ItemGroup>
         <PackageReference Include="DotNetEnv" Version="3.1.1" />
-        <PackageReference Include="DSharpPlus" Version="5.0.0-nightly-02516" />
-        <PackageReference Include="DSharpPlus.Commands" Version="5.0.0-nightly-02516" />
+        <PackageReference Include="DSharpPlus" Version="5.0.0-nightly-02561" />
+        <PackageReference Include="DSharpPlus.Commands" Version="5.0.0-nightly-02561" />
         <PackageReference Include="DSharpPlus.Interactivity" Version="5.0.0-nightly-02516" />
         <PackageReference Include="Microsoft.EntityFrameworkCore" Version="9.0.9" />
         <PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="9.0.9">

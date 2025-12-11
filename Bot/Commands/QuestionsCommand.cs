@@ -1,8 +1,10 @@
 ﻿using DSharpPlus.Commands;
+using DSharpPlus.Commands.Processors.SlashCommands;
 using DSharpPlus.Entities;
 using Microsoft.EntityFrameworkCore;
 using OpenQotd.Database;
 using OpenQotd.Database.Entities;
+using OpenQotd.EventHandlers.Suggestions;
 using OpenQotd.Helpers;
 using OpenQotd.Helpers.Profiles;
 using System.ComponentModel;
@@ -87,9 +89,7 @@ namespace OpenQotd.Commands
 
         [Command("add")]
         [Description("Add a question.")]
-        public static async Task AddQuestionAsync(CommandContext context,
-            [Description("The question to add.")] string question,
-            [Description("The type of the question to add.")] QuestionType type)
+        public static async Task AddQuestionAsync(CommandContext context)
         {
             Config? config = await ProfileHelpers.TryGetSelectedOrDefaultConfigAsync(context);
             if (config is null || !await CommandRequirements.UserIsAdmin(context, config))
@@ -98,35 +98,7 @@ namespace OpenQotd.Commands
             if (!await CommandRequirements.IsWithinMaxQuestionsAmount(context, 1))
                 return;
 
-            ulong guildId = context.Guild!.Id;
-            ulong submittedByUserId = context.User.Id;
-
-            Question newQuestion;
-            newQuestion = new Question()
-            {
-                ConfigId = config.Id,
-                GuildId = guildId,
-                GuildDependentId = await Question.GetNextGuildDependentId(config),
-                Type = type,
-                Text = question,
-                SubmittedByUserId = submittedByUserId,
-                Timestamp = DateTime.UtcNow
-            };
-            if (!await Question.CheckQuestionValidity(newQuestion, context, config))
-                return;
-
-            using (AppDbContext dbContext = new())
-            {
-                await dbContext.Questions.AddAsync(newQuestion);
-                await dbContext.SaveChangesAsync();
-            }
-
-            string body = newQuestion.ToString(longVersion: true);
-
-			await context.RespondAsync(
-                GenericEmbeds.Success("Added Question", body)
-                );
-            await Logging.LogUserAction(context, config, "Added Question", message: body);
+            await (context as SlashCommandContext)!.RespondWithModalAsync(QuestionsEventHandlers.GetQuestionsAddModal(config));
         }
 
         [Command("addbulk")]
