@@ -30,7 +30,7 @@ namespace OpenQotd.Commands
         [Command("feedback")]
         [Description("Leave feedback or suggestions or report bugs for the developers of OpenQOTD.")]
         public static async Task FeedbackAsync(CommandContext context,
-            [Description("The feedback, suggestion or bug.")] string feedback)
+            [Description("The feedback, suggestion or bug for the OpenQOTD Discord Bot.")] string feedback)
         {
             if (Program.AppSettings.FeedbackBlockedUserIds.Contains(context.User.Id))
             {
