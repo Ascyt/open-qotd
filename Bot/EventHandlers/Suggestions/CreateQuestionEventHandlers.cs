@@ -11,37 +11,22 @@ using OpenQotd.Helpers.Profiles;
 
 namespace OpenQotd.EventHandlers.Suggestions
 {
-    public class CreateSuggestionEventHandlers
+    public class CreateQuestionEventHandlers
     {
-        public static async Task SuggestQotdButtonClicked(ComponentInteractionCreatedEventArgs args, int profileId)
-        {
-            Config? config = await ProfileHelpers.TryGetConfigAsync(args, profileId);
-            if (config is null || !await CommandRequirements.UserIsBasic(args, config))
-                return;
-
-            if (!config.EnableSuggestions)
-            {
-                await EventHandlers.RespondWithError(args, $"Suggestions are not enabled for this profile ({config.ProfileName}).");
-                return;
-            }
-
-            await args.Interaction.CreateResponseAsync(DiscordInteractionResponseType.Modal, GetQotdModal(config, args.Guild.Name));
-        }
-
         /// <summary>
-        /// Get the modal for suggesting a new QOTD.
+        /// Get the modal for adding a new question.
         /// </summary>
-        public static DiscordInteractionResponseBuilder GetQotdModal(Config config, string guildName)
+        public static DiscordInteractionResponseBuilder GetQuestionModal(Config config)
         {
             return new DiscordInteractionResponseBuilder()
-                .WithTitle($"Suggest a new {config.QotdShorthandText}!")
-                .WithCustomId($"suggest-qotd/{config.ProfileId}")
+                .WithTitle($"Add a new {config.QotdShorthandText}!")
+                .WithCustomId($"add-question/{config.ProfileId}")
                 .AddTextInputComponent(new DiscordTextInputComponent(
-                    label: "Contents", customId: "text", placeholder: $"This will require approval from the staff of \"{GeneralHelpers.TrimIfNecessary(guildName, 52)}\".", max_length: Program.AppSettings.QuestionTextMaxLength, required: true, style: DiscordTextInputStyle.Paragraph))
+                    label: "Contents", customId: "text", placeholder: "The primary text body of the question.", max_length: Program.AppSettings.QuestionTextMaxLength, required: true, style: DiscordTextInputStyle.Paragraph))
                 .AddTextInputComponent(new DiscordTextInputComponent(
                     label: "(optional) Additional Information", customId: "notes", placeholder: $"There will be a button for people to view this info under the sent {config.QotdShorthandText}.", max_length: Program.AppSettings.QuestionNotesMaxLength, required: false, style: DiscordTextInputStyle.Paragraph))
                 .AddTextInputComponent(new DiscordTextInputComponent(
-                    label: "(optional) Thumbnail (Image link)", customId: "thumbnail-url", placeholder: $"Will be shown alongside the {config.QotdShorthandText}.", max_length: Program.AppSettings.QuestionThumbnailImageUrlMaxLength, required: false, style: DiscordTextInputStyle.Short))
+                    label: "(optional) Thumbnail (Image link)", customId: "thumbnail-url", placeholder: "Will be shown alongside the QOTD.", max_length: Program.AppSettings.QuestionThumbnailImageUrlMaxLength, required: false, style: DiscordTextInputStyle.Short))
                 .AddTextInputComponent(new DiscordTextInputComponent(
                     label: "(optional) Staff Info", customId: "suggester-adminonly", placeholder: "This will only be visible to staff for reviewing the suggestion.", max_length: Program.AppSettings.QuestionSuggesterAdminInfoMaxLength, required: false, style: DiscordTextInputStyle.Paragraph));
         }
