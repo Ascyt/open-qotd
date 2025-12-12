@@ -130,8 +130,8 @@ namespace OpenQotd.Commands
             [Description("Set config values related to QOTD sending")]
             public static async Task SetQotdSendingAsync(CommandContext context,
                 [Description("The channel the QOTD should get sent in.")] DiscordChannel? Channel = null,
-                [Description("The UTC hour of the day the QOTDs should get sent (0-23).")] int? TimeHourUtc = null,
-                [Description("The UTC minute of the day the QOTDs should get sent (0-59).")] int? TimeMinuteUtc = null,
+                [Description("The hour of the day the QOTDs should get sent in UTC time (0-23).")] int? TimeHourUtc = null,
+                [Description("The minute of the day the QOTDs should get sent in UTC time (0-59).")] int? TimeMinuteUtc = null,
                 [Description("Specifies on which days the QOTDs should get sent (sends daily if unset).")] string? TimeDayCondition = null,
                 [Description("Whether to send a QOTD daily automatically, if disabled `/trigger` is needed (true by default).")] bool? EnableAutomaticQotd = null,
                 [Description("Whether to send a random preset when there is no Accepted QOTD available (true by default).")] bool? EnableAutomaticPresets = null,
