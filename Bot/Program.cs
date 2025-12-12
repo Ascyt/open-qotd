@@ -121,7 +121,8 @@ namespace OpenQotd
 
             builder.ConfigureEventHandlers(b => b
                 .HandleComponentInteractionCreated(EventHandlers.EventHandlers.ComponentInteractionCreated)
-                .HandleModalSubmitted(EventHandlers.EventHandlers.ModalSubmittedEvent));
+                .HandleModalSubmitted(EventHandlers.EventHandlers.ModalSubmittedEvent)
+                .HandleGuildCreated(EventHandlers.EventHandlers.GuildCreated));
 
             DiscordClient client = builder.Build();
             Client = client;

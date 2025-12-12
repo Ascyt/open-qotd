@@ -83,7 +83,7 @@ namespace OpenQotd.Commands
         {
             Config? config = For is null ? 
                 (await ProfileHelpers.TryGetSelectedOrDefaultConfigAsync(context.Guild!.Id, context.User.Id)).Item1 : 
-                (await ProfileHelpers.TryGetConfigAsync(context.Guild!.Id, For.Value)).Item1;
+                await ProfileHelpers.TryGetConfigAsync(context.Guild!.Id, For.Value);
 
             DiscordEmbed responseEmbed = await GetHelpEmbedAsync(config, context.Guild!, context.Member!);
 
@@ -162,7 +162,7 @@ namespace OpenQotd.Commands
                 $"{configValuesDescription}\n" +
                 $"\n" +
                 $"# Useful Links\n" +
-                $"- :heart: [Donate](https://ascyt.com/donate/) :heart:\n" +
+                $"- :heart: [Donate](https://ascyt.com/donate/) | [Vote](https://open-qotd.ascyt.com/vote) :heart:\n" +
                 $"- [Add OpenQOTD to your server!](https://open-qotd.ascyt.com/add)\n" +
                 $"- [Documentation & About](https://open-qotd.ascyt.com/)\n" +
                 $"- [Community & Support Server](https://open-qotd.ascyt.com/community)\n" +
