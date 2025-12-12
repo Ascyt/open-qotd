@@ -79,9 +79,9 @@ namespace OpenQotd.Commands
         public static async Task HelpAsync(CommandContext context,
             [Description("Which viewable OpenQOTD profile to view general information of.")][SlashAutoCompleteProvider<ViewableProfilesAutoCompleteProvider>] int? For=null)
         {
-            Config? config = For is null ? await ProfileHelpers.TryGetSelectedOrDefaultConfigAsync(context) : await ProfileHelpers.TryGetConfigAsync(context, For.Value);
-            if (config is null || !await CommandRequirements.UserIsBasic(context, config))
-                return;
+            Config? config = For is null ? 
+                (await ProfileHelpers.TryGetSelectedOrDefaultConfigAsync(context.Guild!.Id, context.User.Id)).Item1 : 
+                (await ProfileHelpers.TryGetConfigAsync(context.Guild!.Id, For.Value)).Item1;
 
             DiscordEmbed responseEmbed = await GetHelpEmbedAsync(config, context.Guild!, context.Member!);
 
@@ -97,27 +97,46 @@ namespace OpenQotd.Commands
             }
         }
 
-        public static async Task<DiscordEmbed> GetHelpEmbedAsync(Config config, DiscordGuild guild, DiscordMember member)
+        public static async Task<DiscordEmbed> GetHelpEmbedAsync(Config? config, DiscordGuild guild, DiscordMember member)
         {
-            string userRole = $"Basic {config.QotdShorthandText} User";
-            if (member.Permissions.HasPermission(DiscordPermission.Administrator))
-                userRole = "Full Server Administrator (incl. `/config` and `/profiles`)";
-            else if ((await CommandRequirements.UserIsAdmin(guild, member, config)).Item1)
-                userRole = $"{config.QotdShorthandText} Administrator (excl. `/config` and `/profiles`)";
+            if (config is not null) // if config is set, require basic perms
+            {
+                (bool userIsBasic, string? error) = await CommandRequirements.UserIsBasic(guild, member, config);
 
-            DateTime? nextQotdTime = await QotdSenderTimer.GetConfigNextSendTime(config.Id);
+                if (!userIsBasic)
+                    return GenericEmbeds.Error(error!);
+            }
 
-            string configValuesDescription = config == null ?
-                $"**:warning: Config not initialized**" :
-                $"- Is default profile: {config.IsDefaultProfile}\n" +
-                $"- {config.QotdShorthandText} title: *{config.QotdTitleText}*\n" +
-                $"- {config.QotdShorthandText} channel: <#{config.QotdChannelId}>\n" +
-                $"- {config.QotdShorthandText} time: {DSharpPlus.Formatter.Timestamp(DateTime.Today + new TimeSpan(config.QotdTimeHourUtc, config.QotdTimeMinuteUtc, 0), DSharpPlus.TimestampFormat.ShortTime)}\n" +
-                $"- {config.QotdShorthandText} day condition: {(string.IsNullOrWhiteSpace(config.QotdTimeDayCondition) ? "*daily*" : $"`{config.QotdTimeDayCondition}`")}\n" +
-                $"- Next {config.QotdShorthandText} will be sent at: {(nextQotdTime is null ? "*disabled*" : DSharpPlus.Formatter.Timestamp(nextQotdTime.Value, DSharpPlus.TimestampFormat.LongDateTime))}\n" +
-                $"- Suggestions enabled: **{config.EnableSuggestions}**\n" +
-                $"- Presets enabled: **{config.EnableQotdAutomaticPresets}**\n" +
-                $"- Your role: **{userRole}**";
+            string configValuesDescription;
+            if (config is not null) 
+            {
+                string userRole = $"Basic {config.QotdShorthandText} User";
+                if (member.Permissions.HasPermission(DiscordPermission.Administrator))
+                    userRole = "Full Server Administrator (incl. `/config` and `/profiles`)";
+                else if ((await CommandRequirements.UserIsAdmin(guild, member, config)).Item1)
+                    userRole = $"{config.QotdShorthandText} Administrator (excl. `/config` and `/profiles`)";
+
+                DateTime? nextQotdTime = await QotdSenderTimer.GetConfigNextSendTime(config.Id);
+
+                configValuesDescription = config == null ?
+                    $"**:warning: Config not initialized**" :
+                    $"- Is default profile: {config.IsDefaultProfile}\n" +
+                    $"- {config.QotdShorthandText} title: *{config.QotdTitleText}*\n" +
+                    $"- {config.QotdShorthandText} channel: <#{config.QotdChannelId}>\n" +
+                    $"- {config.QotdShorthandText} time: {DSharpPlus.Formatter.Timestamp(DateTime.Today + new TimeSpan(config.QotdTimeHourUtc, config.QotdTimeMinuteUtc, 0), DSharpPlus.TimestampFormat.ShortTime)}\n" +
+                    $"- {config.QotdShorthandText} day condition: {(string.IsNullOrWhiteSpace(config.QotdTimeDayCondition) ? "*daily*" : $"`{config.QotdTimeDayCondition}`")}\n" +
+                    $"- Next {config.QotdShorthandText} will be sent at: {(nextQotdTime is null ? "*disabled*" : DSharpPlus.Formatter.Timestamp(nextQotdTime.Value, DSharpPlus.TimestampFormat.LongDateTime))}\n" +
+                    $"- Suggestions enabled: **{config.EnableSuggestions}**\n" +
+                    $"- Presets enabled: **{config.EnableQotdAutomaticPresets}**\n" +
+                    $"- Your role: **{userRole}**";
+            }
+            else // no config initialized
+            {
+                configValuesDescription = "**:warning: The config has not been initialized yet. :warning:**\n" +
+                    "\n" +
+                    "Use `/config initialize` to initialize the config, and check out the [documentation](<https://open-qotd.ascyt.com/>) for full specifications.\n" +
+                    "If you are still having issues, please join the [Community & Support Server](<https://open-qotd.ascyt.com/community>) or send me a DM (<@417669404537520128>/`@ascyt`) for help.";
+            }
 
             return GenericEmbeds.Info(title: $"OpenQOTD v{Program.AppSettings.Version}", message:
                 $"# About\n" +
@@ -129,19 +148,19 @@ namespace OpenQotd.Commands
                 $"\n" +
                 $"I'm a young hobbyist developer, and, aside for the occasional donation, have not made a cent on this mostly solo project. " +
                 $"If you enjoy this bot and would like to help out, please consider supporting me with a small [Donation](<https://ascyt.com/donate>) for the countless hours I've spent working on it, I would appreciate it a ton :)*\n" +
-                $"\n" +
+                $"\n" + (config is not null ?
                 $"# Basic Commands\n" +
                 $"- `/qotd` or `/suggest`: Suggest a {config!.QotdShorthandText} to the current server if suggestions are enabled.\n" +
                 $"- `/leaderboard` or `/lb`: View a learderboard ranked on the amount of questions sent.\n" +
                 $"- `/topic`: Send a random already sent {config.QotdShorthandText} to the current channel, to revive a dead chat.\n" +
                 $"- `/sentquestions`: View all {config.QotdShorthandText}'s that have been sent.\n" +
                 $"- `/feedback`: Submit feedback, suggestions or bug reports to the developers of OpenQOTD.\n" +
-                $"\n" +
+                $"\n" : "") +
                 $"# Config & User Values\n" +
                 $"{configValuesDescription}\n" +
                 $"\n" +
                 $"# Useful Links\n" +
-                $"- :heart: [Donate](https://ascyt.com/donate/)\n" +
+                $"- :heart: [Donate](https://ascyt.com/donate/) :heart:\n" +
                 $"- [Add OpenQOTD to your server!](https://open-qotd.ascyt.com/add)\n" +
                 $"- [Documentation & About](https://open-qotd.ascyt.com/)\n" +
                 $"- [Community & Support Server](https://open-qotd.ascyt.com/community)\n" +
