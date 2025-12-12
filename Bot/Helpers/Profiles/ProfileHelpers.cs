@@ -155,7 +155,7 @@ namespace OpenQotd.Helpers.Profiles
             }
             catch (ConfigNotInitializedException)
             {
-                return (null, $"The QOTD bot configuration has not been initialized yet. Use `/config initialize` to initialize.");
+                return (null, $"The QOTD bot configuration has not been initialized yet. Use `/config initialize` to initialize it, or `/help` for help.");
             }
         }
 
@@ -211,7 +211,7 @@ namespace OpenQotd.Helpers.Profiles
             }
             catch (ConfigNotInitializedException)
             {
-                return (null, $"The QOTD bot configuration has not been initialized yet. Use `/config initialize` to initialize.");
+                return (null, $"The QOTD bot configuration has not been initialized yet. Use `/config initialize` to initialize it, or `/help` for help.");
             }
         }
 
@@ -270,7 +270,7 @@ namespace OpenQotd.Helpers.Profiles
             }
             catch (ConfigNotInitializedException)
             {
-                return (null, $"The QOTD bot configuration has not been initialized yet. Use `/config initialize` to initialize.");
+                return (null, $"The QOTD bot configuration has not been initialized yet. Use `/config initialize` to initialize, or `/help` for help.");
             }
         }
     }
