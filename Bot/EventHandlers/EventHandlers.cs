@@ -129,6 +129,11 @@ namespace OpenQotd.EventHandlers
             await RespondWithError(args, $"Unknown event: `{args.Interaction.Data.CustomId}`");
         }
 
+        public static async Task GuildCreated(DiscordClient client, GuildCreatedEventArgs args)
+        {
+            await OnGuildCreated.SendMessage(args);
+        }
+
         private static async Task<bool> HasExactlyNArguments(InteractionCreatedEventArgs args, string[] idArgs, int n)
         {
             if (idArgs.Length - 1 == n)
