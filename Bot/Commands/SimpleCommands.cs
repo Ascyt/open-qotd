@@ -48,7 +48,9 @@ namespace OpenQotd.Commands
             await Console.Out.WriteAsync(contents);
 
             DiscordEmbed responseEmbed = GenericEmbeds.Success("OpenQOTD feedback sent!",
-                    $"\"**{feedback}**\"");
+                    $"\"**{feedback}**\"\n" + 
+                    "\n" +
+                    "Thank you so much for helping to improve OpenQOTD! For any questions or follow-ups, please join the [Community & Support Server](<https://open-qotd.ascyt.com/community>) or DM <@417669404537520128>/`@ascyt`.");
 
             if (context is SlashCommandContext)
             {
