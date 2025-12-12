@@ -220,58 +220,33 @@ namespace OpenQotd.Helpers.Profiles
         /// Checks if the config has been initialized using `/config initialize` for the current guild and, if it has, returns the config.
         /// </summary>
         /// <remarks>
-        /// This also handles sending error messages, so it's recommended to end your function if it retuns false.
+        /// This does not send any error messages.
         /// </remarks>
         public static async Task<Config?> TryGetConfigAsync(CommandContext context, int profileId)
         {
-            (Config?, string?) result = await TryGetConfigAsync(context.Guild!.Id, profileId);
-
-            if (result.Item1 is null)
-            {
-                await context.RespondAsync(
-                    GenericEmbeds.Error(result.Item2!));
-            }
-
-            return result.Item1;
+            return await TryGetConfigAsync(context.Guild!.Id, profileId);
         }
         /// <summary>
         /// See <see cref="TryGetConfigAsync(CommandContext)"/>.
         /// </summary>
         public static async Task<Config?> TryGetConfigAsync(InteractionCreatedEventArgs args, int profileId)
         {
-            (Config?, string?) result = await TryGetConfigAsync(args.Interaction.Guild!.Id, profileId);
-
-            if (result.Item1 is null)
-            {
-                DiscordInteractionResponseBuilder response = new();
-                response.AddEmbed(
-                    GenericEmbeds.Error(result.Item2!));
-                response.IsEphemeral = true;
-
-                await args.Interaction.CreateResponseAsync(DiscordInteractionResponseType.ChannelMessageWithSource, response);
-            }
-
-            return result.Item1;
+            return await TryGetConfigAsync(args.Interaction.Guild!.Id, profileId);
         }
         /// <summary>
         /// See <see cref="TryGetConfigAsync(CommandContext)"/>.
         /// </summary>
         /// <returns>(config if initialized, error if not)</returns>
-        public static async Task<(Config?, string?)> TryGetConfigAsync(ulong guildId, int profileId)
+        public static async Task<Config?> TryGetConfigAsync(ulong guildId, int profileId)
         {
-            using AppDbContext dbContext = new();
-            try
-            {
-                Config? c = await dbContext.Configs
-                    .Where(c => c.GuildId == guildId && c.ProfileId == profileId)
-                    .FirstOrDefaultAsync();
+            if (profileId == 0)
+                return (await TryGetDefaultConfigAsync(guildId)).Item1;
 
-                return (c, null);
-            }
-            catch (ConfigNotInitializedException)
-            {
-                return (null, $"The QOTD bot configuration has not been initialized yet. Use `/config initialize` to initialize, or `/help` for help.");
-            }
+            using AppDbContext dbContext = new();
+
+            return await dbContext.Configs
+                .Where(c => c.GuildId == guildId && c.ProfileId == profileId)
+                .FirstOrDefaultAsync();
         }
     }
 }

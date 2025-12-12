@@ -96,7 +96,7 @@ namespace OpenQotd.EventHandlers
             if (config is null)
             {
                 config = await ProfileHelpers.TryGetConfigAsync(args, profileId);
-                if (config is null || !await CommandRequirements.UserIsBasic(args, config, member))
+                if (config is not null && !await CommandRequirements.UserIsBasic(args, config, member))
                     return;
             }
 
