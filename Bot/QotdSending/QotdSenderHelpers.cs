@@ -49,11 +49,6 @@ namespace OpenQotd.QotdSending
     internal class QotdSenderHelpers
     {
         /// <summary>
-        /// Used for selecting random questions and presets.
-        /// </summary>
-        private static readonly Random _random = new();
-
-        /// <summary>
         /// Selects a random accepted question from the database for the specified guild.
         /// </summary>
         public static async Task<Question?> GetRandomQotd(Config config)
@@ -69,7 +64,7 @@ namespace OpenQotd.QotdSending
             if (questions.Length == 0)
                 return null;
 
-            return questions[_random.Next(questions.Length)];
+            return questions[Random.Shared.Next(questions.Length)];
         }
         /// <summary>
         /// Selects a random preset index from the available presets that has not been marked as used.
@@ -93,7 +88,7 @@ namespace OpenQotd.QotdSending
             int timeToLive = 0x1_000_000;
             do
             {
-                index = _random.Next(Presets.Values.Length);
+                index = Random.Shared.Next(Presets.Values.Length);
                 timeToLive--;
             }
             while (isPresetUsed[index] && timeToLive > 0);

@@ -7,6 +7,7 @@ using OpenQotd.Helpers;
 using OpenQotd.Helpers.Profiles;
 using OpenQotd.QotdSending;
 using System.ComponentModel;
+using System.Threading.Tasks.Dataflow;
 
 namespace OpenQotd.Commands
 {
@@ -32,7 +33,12 @@ namespace OpenQotd.Commands
         public static async Task FeedbackAsync(CommandContext context,
             [Description("The feedback, suggestion or bug.")] string feedback)
         {
-            if (Program.AppSettings.FeedbackBlockedUserIds.Contains(context.User.Id))
+            bool isBlocked;
+            lock (Program.AppSettings.FeedbackBlockedUserIds) 
+            {
+                isBlocked = Program.AppSettings.FeedbackBlockedUserIds.Contains(context.User.Id);
+            }
+            if (isBlocked)
             {
                 await (context as SlashCommandContext)!
                     .RespondAsync(

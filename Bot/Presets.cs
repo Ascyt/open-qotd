@@ -49,11 +49,10 @@ namespace OpenQotd
         public static async Task LoadPresetsAsync()
         {
             Values = await File.ReadAllLinesAsync("presets.txt");
-            
-            Values = Values
+
+            Values = [..Values
                 .ToList()
-                .Where(v => !string.IsNullOrEmpty(v))
-                .ToArray();
+                .Where(v => !string.IsNullOrEmpty(v))];
         }
 
         /// <summary>

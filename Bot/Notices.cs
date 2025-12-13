@@ -1,4 +1,5 @@
-﻿using System.Text.Json;
+﻿using System.Collections.Concurrent;
+using System.Text.Json;
 using System.Text.Json.Serialization;
 
 namespace OpenQotd
@@ -47,11 +48,11 @@ namespace OpenQotd
             WriteIndented = true
         };
 
-        private static List<Notice>? _notices = null;
+        private static ConcurrentBag<Notice>? _notices = null;
         /// <summary>
         /// Get all notices, loading them from notices.json if not already loaded.
         /// </summary>
-        public static List<Notice> notices
+        public static ConcurrentBag<Notice> notices
         {
             get
             {
@@ -76,7 +77,7 @@ namespace OpenQotd
 
             string jsonData = await File.ReadAllTextAsync("notices.json");
 
-            _notices = JsonSerializer.Deserialize<List<Notice>>(jsonData);
+            _notices = [..JsonSerializer.Deserialize<List<Notice>>(jsonData)!];
         }
         /// <summary>
         /// Save the current notices to notices.json.
