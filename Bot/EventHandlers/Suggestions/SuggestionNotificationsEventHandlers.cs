@@ -76,7 +76,7 @@ namespace OpenQotd.EventHandlers.Suggestions
             if (suggestion is null)
                 return;
 
-            string reason = args.Values["reason"];
+            string? reason = ((TextInputModalSubmission)args.Values["reason"]).Value;
 
             await SuggestionsAcceptDenyHelpers.DenySuggestionAsync(suggestion, config, args, null, reason);
         }
