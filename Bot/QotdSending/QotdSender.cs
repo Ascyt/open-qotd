@@ -300,7 +300,8 @@ namespace OpenQotd.QotdSending
                             .Where(q => q.ConfigId == d.config.Id && q.Type == QuestionType.Sent)
                             .ExecuteUpdateAsync(q => q.SetProperty(q => q.Type, QuestionType.Accepted));
 
-                        question.Type = QuestionType.Sent; // keep the current question as Sent
+                        // Reload the question entity to ensure in-memory state matches the database
+                        await dbContext.Entry(question).ReloadAsync();
                     }
                     return;
                 case Config.AlterQuestionAfterSentOption.QuestionStaysAccepted:

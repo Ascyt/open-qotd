@@ -327,7 +327,7 @@ namespace OpenQotd.Commands
 		}
 
 		[Command("remove")]
-        [Description("Remove a question to stash or irreversably delete it if disabled.")]
+        [Description("Remove a question to stash or irreversibly delete it if disabled.")]
         public static async Task RemoveQuestionAsync(CommandContext context,
         [Description("The ID of the question.")] int questionId)
         {
@@ -371,7 +371,7 @@ namespace OpenQotd.Commands
                 await SuggestionsHelpers.TrySetSuggestionMessageToModifiedIfEnabledAsync(question, config, context.Guild!);
             }
 
-            string title = config.EnableDeletedToStash && question.Type != QuestionType.Stashed ? "Removed Question to Stash" : "Removed Question";
+            string title = config.EnableDeletedToStash && originalType != QuestionType.Stashed ? "Removed Question to Stash" : "Removed Question";
 
 			await context.RespondAsync(
                 GenericEmbeds.Success(title, body)
@@ -379,7 +379,7 @@ namespace OpenQotd.Commands
             await Logging.LogUserAction(context, config, title, body);
         }
 		[Command("removebulk")]
-		[Description("Remove all questions of a certain to stash or irreversably delete them if disabled.")]
+		[Description("Remove all questions of a certain type to stash or irreversibly delete them if disabled.")]
 		public static async Task RemoveQuestionsBulkAsync(CommandContext context,
 			[Description("The type of the questions to remove.")] QuestionType type)
         {

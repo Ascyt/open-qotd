@@ -34,7 +34,7 @@ namespace OpenQotd.Database.Entities
             /// </summary>
             QuestionToSent = 0,
             /// <summary>
-            /// The question gets the Sent type, and if there are no more Accepted questions, all Sent questions are reset to Available.
+            /// The question gets the Sent type, and if there are no more Accepted questions, all Sent questions are reset to Accepted.
             /// </summary>
             QuestionToSentAndResetIfEmpty = 1,
             /// <summary>

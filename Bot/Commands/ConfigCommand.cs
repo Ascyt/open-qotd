@@ -1,14 +1,12 @@
 ﻿using DSharpPlus.Commands;
 using DSharpPlus.Entities;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Storage.ValueConversion.Internal;
 using OpenQotd.Database;
 using OpenQotd.Database.Entities;
 using OpenQotd.Helpers;
 using OpenQotd.Helpers.Profiles;
 using OpenQotd.QotdSending;
 using System.ComponentModel;
-using System.Threading.Tasks;
 using static OpenQotd.Logging;
 
 namespace OpenQotd.Commands
