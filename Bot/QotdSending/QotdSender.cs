@@ -4,6 +4,7 @@ using OpenQotd.Helpers;
 using DSharpPlus.Entities;
 using DSharpPlus.Exceptions;
 using Microsoft.EntityFrameworkCore;
+using OpenQotd.Helpers.Suggestions;
 
 namespace OpenQotd.QotdSending
 {
@@ -242,9 +243,9 @@ namespace OpenQotd.QotdSending
 
                 if (foundQuestion != null)
                 {
-                    foundQuestion.Type = QuestionType.Sent;
-                    foundQuestion.SentNumber = sentQuestionsCount + 1;
-                    foundQuestion.SentTimestamp = DateTime.UtcNow;
+                    question.SentNumber = sentQuestionsCount + 1;
+                    question.SentTimestamp = DateTime.UtcNow;
+                    await AlterQuestionAfterSent(dbContext, d, foundQuestion);
                 }
 
                 await dbContext.SaveChangesAsync();
@@ -275,6 +276,50 @@ namespace OpenQotd.QotdSending
 
             await QotdSenderHelpers.PinMessageIfEnabled(d, sentMessage);
             await QotdSenderHelpers.CreateThreadIfEnabled(d, sentMessage, sentQuestionsCount);
+        }
+
+        private static async Task AlterQuestionAfterSent(AppDbContext dbContext, SendQotdData d, Question question)
+        {
+            Config.AlterQuestionAfterSentOption option = d.config.QotdAlterQuestionAfterSent;
+
+            switch (option)
+            {
+                case Config.AlterQuestionAfterSentOption.QuestionToSent:
+                default:
+                    question.Type = QuestionType.Sent;
+                    return;
+                case Config.AlterQuestionAfterSentOption.QuestionToSentAndResetIfEmpty:
+                    question.Type = QuestionType.Sent;
+
+                    if (!await dbContext.Questions
+                        .Where(q => q.ConfigId == d.config.Id && q.Id != question.Id)
+                        .AnyAsync(q => q.Type == QuestionType.Accepted))
+                    {
+                        await dbContext
+                            .Questions
+                            .Where(q => q.ConfigId == d.config.Id && q.Type == QuestionType.Sent)
+                            .ExecuteUpdateAsync(q => q.SetProperty(q => q.Type, QuestionType.Accepted));
+
+                        question.Type = QuestionType.Sent; // keep the current question as Sent
+                    }
+                    return;
+                case Config.AlterQuestionAfterSentOption.QuestionStaysAccepted:
+                    return;
+                case Config.AlterQuestionAfterSentOption.QuestionToSuggested:
+                    question.Type = QuestionType.Suggested;
+                    await SuggestionsHelpers.TryResetSuggestionMessageIfEnabledAsync(question, d.config, d.guild);
+                    return;
+                case Config.AlterQuestionAfterSentOption.RemoveQuestion:
+                    if (d.config.EnableDeletedToStash)
+                    {
+                        question.Type = QuestionType.Stashed;
+                    }
+                    else
+                    {
+                        dbContext.Questions.Remove(question);
+                    }
+                    return;
+            }
         }
 
         /// <summary>

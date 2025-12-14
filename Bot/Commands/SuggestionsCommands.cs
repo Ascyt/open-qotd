@@ -10,6 +10,7 @@ using System.ComponentModel;
 using System.Text;
 using OpenQotd.Helpers.Profiles;
 using DSharpPlus.Commands.Processors.SlashCommands;
+using OpenQotd.Helpers.Suggestions;
 
 namespace OpenQotd.Commands
 {
@@ -64,7 +65,7 @@ namespace OpenQotd.Commands
             if (question.Type != QuestionType.Suggested)
             {
                 await context.RespondAsync(
-                    GenericEmbeds.Error(title: "Mismatching Type", message: $"It's only possible to accept **Suggested** questions, the provided question is of type **{question.Type}**."));
+                    GenericEmbeds.Error(title: "Mismatching Type", message: $"It's only possible to accept {Question.TypeToStyledString(QuestionType.Suggested)} questions, the provided question is of type {Question.TypeToStyledString(question.Type)}."));
                 return;
             }
 
@@ -104,7 +105,7 @@ namespace OpenQotd.Commands
             if (question.Type != QuestionType.Suggested)
             {
                 await context.RespondAsync(
-                    GenericEmbeds.Error(title: "Mismatching Type", message: $"It's only possible to deny **Suggested** questions, the provided question is of type **{question.Type}**."));
+                    GenericEmbeds.Error(title: "Mismatching Type", message: $"It's only possible to deny {Question.TypeToStyledString(QuestionType.Suggested)} questions, the provided question is of type {Question.TypeToStyledString(question.Type)}."));
                 return;
             }
 
@@ -134,7 +135,7 @@ namespace OpenQotd.Commands
 
             foreach (Question question in questions)
             {
-                await SuggestionsAcceptDenyHelpers.AcceptSuggestionAsync(question, config, null, context, false);
+                await SuggestionsAcceptDenyHelpers.AcceptSuggestionAsync(question, config, null, context, logAndNotify:false);
 
                 await Task.Delay(100); // Prevent rate-limit
 
@@ -243,7 +244,7 @@ namespace OpenQotd.Commands
 
             foreach (Question question in questions)
             {
-                await SuggestionsAcceptDenyHelpers.DenySuggestionAsync(question, config, null, context, null, false);
+                await SuggestionsAcceptDenyHelpers.DenySuggestionAsync(question, config, null, context, null, logAndNotify:false);
 
                 await Task.Delay(1000); // Prevent rate-limit
 

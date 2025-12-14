@@ -6,50 +6,10 @@ using DSharpPlus.Exceptions;
 using OpenQotd.Database;
 using OpenQotd.Database.Entities;
 
-namespace OpenQotd.Helpers
+namespace OpenQotd.Helpers.Suggestions
 {
     public class SuggestionsAcceptDenyHelpers
     {
-        /// <summary>
-        /// Gets the sent suggestion message from the suggestions channel if it exists, otherwise returns null.
-        /// </summary>
-        public static async Task<DiscordMessage?> TryGetSuggestionMessage(Question question, Config config, DiscordGuild guild)
-        {
-            if (question.SuggestionMessageId is null || config.SuggestionsChannelId is null)
-                return null;
-
-            DiscordChannel? suggestionChannel;
-            try
-            {
-                suggestionChannel = await guild.GetChannelAsync(config.SuggestionsChannelId.Value);
-            }
-            catch (NotFoundException)
-            {
-                return null;
-            }
-
-            if (suggestionChannel is null)
-                return null;
-
-            DiscordMessage? suggestionMessage;
-
-            try
-            {
-                suggestionMessage = await suggestionChannel.GetMessageAsync(question.SuggestionMessageId.Value);
-            }
-            catch (NotFoundException)
-            {
-                return null;
-            }
-
-            return suggestionMessage;
-        }
-
-        private static string GetEmbedBody(Question question)
-            => $"\"{GeneralHelpers.Italicize(question.Text!)}\"\n" +
-                $"By: <@!{question.SubmittedByUserId}> (`{question.SubmittedByUserId}`)\n" +
-                $"ID: `{question.GuildDependentId}`";
-
         public static async Task AcceptSuggestionAsync(Question question, Config config, ComponentInteractionCreatedEventArgs? result, CommandContext? context, bool logAndNotify = true)
         {
             if (result is null && context is null)
@@ -60,7 +20,7 @@ namespace OpenQotd.Helpers
             DiscordUser user = context?.User ?? result!.User;
             DiscordGuild guild = context?.Guild ?? result!.Guild;
 
-            DiscordMessage? suggestionMessage = await TryGetSuggestionMessage(question, config, guild);
+            DiscordMessage? suggestionMessage = await SuggestionsHelpers.TryGetSuggestionMessage(question, config, guild);
 
             using (AppDbContext dbContext = new())
             {
@@ -87,13 +47,12 @@ namespace OpenQotd.Helpers
                 question = modifyQuestion;
             }
 
+            string embedBody = SuggestionsHelpers.GetSuggestionEmbedBody(question);
             if (suggestionMessage is not null)
             {
                 DiscordMessageBuilder messageBuilder = new();
 
                 messageBuilder.WithContent("");
-
-                string embedBody = GetEmbedBody(question);
 
                 DiscordEmbedBuilder editEmbed = GenericEmbeds.Custom($"{config.QotdShorthandText} Suggestion Accepted", embedBody +
                     $"\n\nAccepted by: {user.Mention}", color: "#20ff20");
@@ -116,6 +75,20 @@ namespace OpenQotd.Helpers
 
             if (!logAndNotify)
                 return;
+
+            DiscordEmbed responseEmbed = GenericEmbeds.Success($"Successfully Accepted {config.QotdShorthandText} Suggestion", embedBody);
+
+            if (result is not null)
+            {
+                DiscordInteractionResponseBuilder responseBuilder = new();
+                responseBuilder.AddEmbed(responseEmbed);
+                responseBuilder.AsEphemeral(true);
+                await result.Interaction.CreateResponseAsync(DiscordInteractionResponseType.ChannelMessageWithSource, responseBuilder);
+            }
+            if (context is not null)
+            {
+                await (context as SlashCommandContext)!.RespondAsync(responseEmbed, ephemeral: true);
+            }
 
             DiscordUser? suggester;
             try
@@ -158,7 +131,7 @@ namespace OpenQotd.Helpers
             DiscordUser user = context?.User ?? result!.Interaction.User;
             DiscordGuild guild = context?.Guild ?? result!.Interaction.Guild!;
 
-            DiscordMessage? suggestionMessage = await TryGetSuggestionMessage(question, config, guild);
+            DiscordMessage? suggestionMessage = await SuggestionsHelpers.TryGetSuggestionMessage(question, config, guild);
 
             using (AppDbContext dbContext = new())
             {
@@ -188,13 +161,12 @@ namespace OpenQotd.Helpers
                 await dbContext.SaveChangesAsync();
             }
 
+            string embedBody = SuggestionsHelpers.GetSuggestionEmbedBody(question);
             if (suggestionMessage is not null)
             {
                 DiscordMessageBuilder messageBuilder = new();
 
                 messageBuilder.WithContent("");
-
-                string embedBody = GetEmbedBody(question);
 
                 messageBuilder.AddEmbed(GenericEmbeds.Custom($"{config.QotdShorthandText} Suggestion Denied", embedBody +
                     $"\n\nDenied by: {user.Mention}{(!string.IsNullOrEmpty(reason) ? $"\nReason: \"**{reason}**\"" : "")}", color: "#ff2020"));
@@ -204,8 +176,11 @@ namespace OpenQotd.Helpers
                     await suggestionMessage.UnpinAsync();
             }
 
-            DiscordEmbed responseEmbed = GenericEmbeds.Success($"Successfully Denied {config.QotdShorthandText} Suggestion",
-                $"{(!string.IsNullOrEmpty(reason) ? $"\nReason: \"**{reason}**\"" : "")}");
+            if (!logAndNotify)
+                return;
+
+            DiscordEmbed responseEmbed = GenericEmbeds.Success($"Successfully Denied {config.QotdShorthandText} Suggestion", embedBody +
+                (!string.IsNullOrEmpty(reason) ? $"\n\nReason: \"**{reason}**\"" : ""));
 
             if (result is not null)
             {
@@ -218,9 +193,6 @@ namespace OpenQotd.Helpers
             {
                 await (context as SlashCommandContext)!.RespondAsync(responseEmbed, ephemeral: true);
             }
-
-            if (!logAndNotify)
-                return;
 
             DiscordUser? suggester;
             try

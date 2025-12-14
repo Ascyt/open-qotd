@@ -8,6 +8,7 @@ using OpenQotd.Database;
 using OpenQotd.Database.Entities;
 using OpenQotd.Helpers;
 using OpenQotd.Helpers.Profiles;
+using OpenQotd.Helpers.Suggestions;
 
 namespace OpenQotd.EventHandlers.Suggestions
 {
@@ -151,23 +152,7 @@ namespace OpenQotd.EventHandlers.Suggestions
                 }
                 return result;
             }
-
-            DiscordRole? pingRole = null;
-            if (config.SuggestionsPingRoleId is not null)
-            {
-                try
-                {
-                    pingRole = await guild.GetRoleAsync(config.SuggestionsPingRoleId.Value);
-                }
-                catch (NotFoundException)
-                {
-                    await channel.SendMessageAsync(
-                        GenericEmbeds.Warning("Suggestions ping role is set, but not found.\n\n" +
-                        "*It can be set using `/config set suggestions_ping_role [channel]`, or unset using `/config reset suggestions_ping_role`.*")
-                        );
-                }
-            }
-
+ 
             DiscordChannel suggestionsChannel;
             try
             {
@@ -181,50 +166,8 @@ namespace OpenQotd.EventHandlers.Suggestions
                     );
             }
 
-            DiscordMessageBuilder messageBuilder = new();
-
-            AddPingIfAvailable(messageBuilder, pingRole);
-
-            string embedBody = $"**Contents:**\n" +
-                $"\"{GeneralHelpers.Italicize(newQuestion.Text!)}\"\n" +
-                $"\n" +
-                $"By: {user.Mention} (`{user.Id}`)\n" +
-                $"ID: `{newQuestion.GuildDependentId}`" +
-                (newQuestion.ThumbnailImageUrl is not null ? $"\nIncludes a thumbnail image (if it's not visible in this message, it means that the fetching for it failed)." : null);
-
-            DiscordEmbedBuilder availableEmbed = GenericEmbeds.Custom(title: $"A new {config.QotdShorthandText} Suggestion is available!", message: embedBody,
-                color: "#f0b132");
-
-            if (newQuestion.ThumbnailImageUrl is not null)
-            {
-                availableEmbed.WithThumbnail(newQuestion.ThumbnailImageUrl);
-            }
-
-            messageBuilder.AddEmbed(availableEmbed);
-
-            if (newQuestion.Notes is not null)
-            {
-                messageBuilder.AddEmbed(
-                    GenericEmbeds.Info(title: "Additional Information", message: GeneralHelpers.Italicize(newQuestion.Notes))
-                    .WithFooter("Written by the suggester, visible to everyone.")
-                    );
-            }
-
-            if (newQuestion.SuggesterAdminOnlyInfo is not null)
-            {
-                messageBuilder.AddEmbed(
-                    GenericEmbeds.Info(title: "Staff Note", message: GeneralHelpers.Italicize(newQuestion.SuggesterAdminOnlyInfo))
-                    .WithFooter("Written by the suggester, only visible to staff.")
-                    );
-            }
-
-            messageBuilder.AddActionRowComponent(
-                new DiscordButtonComponent(DiscordButtonStyle.Success, $"suggestions-accept/{config.ProfileId}/{newQuestion.GuildDependentId}", "Accept"),
-                new DiscordButtonComponent(DiscordButtonStyle.Danger, $"suggestions-deny/{config.ProfileId}/{newQuestion.GuildDependentId}", "Deny")
-            );
-
             DiscordMessage message = await suggestionsChannel.SendMessageAsync(
-                    messageBuilder
+                    SuggestionsHelpers.GetSuggestionNotificationMessageBuilder(newQuestion, config, guild, pingIsHighlight:false)
                 );
 
             if (config.EnableSuggestionsPinMessage)
@@ -245,14 +188,6 @@ namespace OpenQotd.EventHandlers.Suggestions
             }
 
             return result;
-        }
-        private static void AddPingIfAvailable(DiscordMessageBuilder messageBuilder, DiscordRole? pingRole)
-        {
-            if (pingRole is not null)
-            {
-                messageBuilder.WithContent(pingRole.Mention);
-                messageBuilder.WithAllowedMention(new RoleMention(pingRole));
-            }
         }
     }
 }

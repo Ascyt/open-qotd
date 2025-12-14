@@ -11,9 +11,44 @@ namespace OpenQotd.Database.Entities
         /// </summary>
         public enum NoticeLevel
         {
-            None = 0,
-            Important = 1,
-            All = 2
+            /// <summary>
+            /// No notices will be sent at all.
+            /// </summary>
+            None = 0, 
+            /// <summary>
+            /// Only important notices (e.g. maintenance) will be sent.
+            /// </summary>
+            Important = 1, 
+            /// <summary>
+            /// All notices (including maintenance, new features, etc.) will be sent.
+            /// </summary>
+            All = 2 
+        }
+        /// <summary>
+        /// What to do with a question after it has been sent as a QOTD.
+        /// </summary>
+        public enum AlterQuestionAfterSentOption
+        {
+            /// <summary>
+            /// The question gets the Sent type.
+            /// </summary>
+            QuestionToSent = 0,
+            /// <summary>
+            /// The question gets the Sent type, and if there are no more Accepted questions, all Sent questions are reset to Available.
+            /// </summary>
+            QuestionToSentAndResetIfEmpty = 1,
+            /// <summary>
+            /// The question remains Accepted and can thus be sent again in the future.
+            /// </summary>
+            QuestionStaysAccepted = 2,
+            /// <summary>
+            /// The question gets the Suggested type again.
+            /// </summary>
+            QuestionToSuggested = 3,
+            /// <summary>
+            /// The question gets the Stashed type if <see cref="EnableDeletedToStash"/> is true, otherwise it is permanently deleted.
+            /// </summary>
+            RemoveQuestion = 4
         }
 
         public int Id { get; set; }
@@ -137,6 +172,11 @@ namespace OpenQotd.Database.Entities
         public string? QotdTimeDayCondition { get; set; } = null;
 
         /// <summary>
+        /// What to do with a question after it has been sent as a QOTD.
+        /// </summary>
+        public AlterQuestionAfterSentOption QotdAlterQuestionAfterSent { get; set; } = AlterQuestionAfterSentOption.QuestionToSent;
+
+        /// <summary>
         /// The title of the QOTD message. If null the default is used which is "Question Of The Day"
         /// </summary>
         public string? QotdTitle { get; set; } = null;
@@ -245,6 +285,7 @@ namespace OpenQotd.Database.Entities
                 $"- time_hour_utc: **{QotdTimeHourUtc}**\n" +
                 $"- time_minute_utc: **{QotdTimeMinuteUtc}**\n" +
                 $"- time_day_condition: {(QotdTimeDayCondition is null ? "*daily*" : $"`{QotdTimeDayCondition}`")}\n" +
+                $"- alter_question_after_sent: **{QotdAlterQuestionAfterSent}**\n" +
                 $"- enable_automatic_qotd: **{EnableAutomaticQotd}**\n" +
                 $"- enable_automatic_presets: **{EnableQotdAutomaticPresets}**\n" +
                 $"- enable_last_available_warn: **{EnableQotdLastAvailableWarn}**\n" +

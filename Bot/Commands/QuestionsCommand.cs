@@ -7,6 +7,7 @@ using OpenQotd.Database.Entities;
 using OpenQotd.EventHandlers.Suggestions;
 using OpenQotd.Helpers;
 using OpenQotd.Helpers.Profiles;
+using OpenQotd.Helpers.Suggestions;
 using System.ComponentModel;
 using System.Text;
 
@@ -197,6 +198,16 @@ namespace OpenQotd.Commands
                 await dbContext.SaveChangesAsync();
             }
 
+            if (type == QuestionType.Suggested)
+            {
+                // Send suggestion notification messages
+                foreach (Question question in questions)
+                {
+                    await SuggestionsHelpers.TryResetSuggestionMessageIfEnabledAsync(question, config, context.Guild!);
+                    await Task.Delay(100); // Prevent rate-limit
+                }
+            }
+
             string body = $"Added {lines.Length} question{(lines.Length == 1 ? "" : "s")} ({Question.TypeToStyledString(type)}).";
             await context.RespondAsync(
                 GenericEmbeds.Success("Added Bulk Questions", body)
@@ -218,6 +229,7 @@ namespace OpenQotd.Commands
 
             Question? question;
             string body;
+            QuestionType fromType;
             using (AppDbContext dbContext = new())
             {
                 question = await dbContext.Questions.Where(q => q.ConfigId == config.Id && q.GuildDependentId == questionId).FirstOrDefaultAsync();
@@ -228,14 +240,25 @@ namespace OpenQotd.Commands
                         GenericEmbeds.Error(title: "Question Not Found", message: $"The question with ID `{questionId}` could not be found."));
                     return;
                 }
-
-                body = $"\n> {Question.TypeToStyledString(question.Type)} → {Question.TypeToStyledString(type)}";
+                fromType = question.Type;
+                body = $"\n> {Question.TypeToStyledString(fromType)} → {Question.TypeToStyledString(type)}";
 
                 question.Type = type;
 
                 body = question.ToString() + body;
 
                 await dbContext.SaveChangesAsync();
+            }
+
+            if (fromType == QuestionType.Suggested && type != QuestionType.Suggested)
+            {
+                // Set suggestion message to modified state
+                await SuggestionsHelpers.TrySetSuggestionMessageToModifiedIfEnabledAsync(question, config, context.Guild!);
+            }
+            else if (fromType != QuestionType.Suggested && type == QuestionType.Suggested)
+            {
+                // Send suggestion notification message
+                await SuggestionsHelpers.TryResetSuggestionMessageIfEnabledAsync(question, config, context.Guild!);
             }
 
             await context.RespondAsync(
@@ -275,6 +298,26 @@ namespace OpenQotd.Commands
 
 				await dbContext.SaveChangesAsync();
 			}
+            
+            if (fromType == QuestionType.Suggested && toType != QuestionType.Suggested)
+            {
+                foreach (Question question in questions)
+                {
+                    // Set suggestion message to modified state
+                    await SuggestionsHelpers.TrySetSuggestionMessageToModifiedIfEnabledAsync(question, config, context.Guild!);
+                    await Task.Delay(100); // Prevent rate-limit
+                }
+            }
+            else if (fromType != QuestionType.Suggested && toType == QuestionType.Suggested)
+            {
+                foreach (Question question in questions)
+                {
+                    // Send suggestion notification message
+                    await SuggestionsHelpers.TryResetSuggestionMessageIfEnabledAsync(question, config, context.Guild!);
+                    await Task.Delay(100); // Prevent rate-limit
+                }
+            }
+
 			string body = $"Changed {questions.Count} question{(questions.Count == 1 ? "" : "s")} from {Question.TypeToStyledString(fromType)} to {Question.TypeToStyledString(toType)}.";
 
 			await context.RespondAsync(
@@ -283,6 +326,58 @@ namespace OpenQotd.Commands
 			await Logging.LogUserAction(context, config, "Set Bulk Question Types", message: body);
 		}
 
+		[Command("remove")]
+        [Description("Remove a question to stash or irreversably delete it if disabled.")]
+        public static async Task RemoveQuestionAsync(CommandContext context,
+        [Description("The ID of the question.")] int questionId)
+        {
+            Config? config = await ProfileHelpers.TryGetSelectedOrDefaultConfigAsync(context);
+            if (config is null || !await CommandRequirements.UserIsAdmin(context, config))
+                return;
+
+            ulong guildId = context.Guild!.Id;
+
+            Question? question;
+            string body;
+            QuestionType originalType;
+            using (AppDbContext dbContext = new())
+            {
+                question = await dbContext.Questions.Where(q => q.ConfigId == config.Id && q.GuildDependentId == questionId).FirstOrDefaultAsync();
+
+                if (question == null)
+                {
+                    await context.RespondAsync(
+                        GenericEmbeds.Error(title:"Question Not Found", message:$"The question with ID `{questionId}` could not be found."));
+                    return;
+                }
+                originalType = question.Type;
+
+                body = question.ToString();
+
+                if (config.EnableDeletedToStash && question.Type != QuestionType.Stashed)
+                {
+                    question.Type = QuestionType.Stashed;
+				}
+                else
+                {
+                    dbContext.Questions.Remove(question);
+                }
+                await dbContext.SaveChangesAsync();
+            }
+
+            if (originalType == QuestionType.Suggested)
+            {
+                // Set suggestion message to modified state
+                await SuggestionsHelpers.TrySetSuggestionMessageToModifiedIfEnabledAsync(question, config, context.Guild!);
+            }
+
+            string title = config.EnableDeletedToStash && question.Type != QuestionType.Stashed ? "Removed Question to Stash" : "Removed Question";
+
+			await context.RespondAsync(
+                GenericEmbeds.Success(title, body)
+                );
+            await Logging.LogUserAction(context, config, title, body);
+        }
 		[Command("removebulk")]
 		[Description("Remove all questions of a certain to stash or irreversably delete them if disabled.")]
 		public static async Task RemoveQuestionsBulkAsync(CommandContext context,
@@ -293,9 +388,16 @@ namespace OpenQotd.Commands
                 return;
 
 			List<Question>? questions;
+            Dictionary<int, QuestionType> originalTypes;
 			using (AppDbContext dbContext = new())
 			{
 				questions = await dbContext.Questions.Where(q => q.ConfigId == config.Id && q.Type == type).ToListAsync();
+
+                originalTypes = new(questions.Count);
+                foreach (Question question in questions)
+                {
+                    originalTypes.Add(question.GuildDependentId, question.Type);
+                }
 
 				if (config.EnableDeletedToStash && type != QuestionType.Stashed) 
 				{
@@ -311,6 +413,17 @@ namespace OpenQotd.Commands
 
                 await dbContext.SaveChangesAsync();
 			}
+
+            foreach (Question question in questions)
+            {
+                if (originalTypes[question.GuildDependentId] == QuestionType.Suggested)
+                {
+                    // Set suggestion message to modified state
+                    await SuggestionsHelpers.TrySetSuggestionMessageToModifiedIfEnabledAsync(question, config, context.Guild!);
+                    await Task.Delay(100); // Prevent rate-limit
+                }
+            }
+
 			string body = $"Removed {questions.Count} question{(questions.Count == 1 ? "" : "s")} of type {Question.TypeToStyledString(type)}.";
 
 			string title = config.EnableDeletedToStash && type != QuestionType.Stashed ? "Removed Bulk Questions to Stash" : "Removed Bulk Questions";
@@ -320,6 +433,7 @@ namespace OpenQotd.Commands
 				);
 			await Logging.LogUserAction(context, config, title, message: body);
 		}
+
         [Command("clearstash")]
         [Description("Remove all questions of Stashed type.")]
         public static async Task ClearStashAsync(CommandContext context)
@@ -347,50 +461,6 @@ namespace OpenQotd.Commands
 				);
 			await Logging.LogUserAction(context, config, title, body);
 		}
-
-		[Command("remove")]
-        [Description("Remove a question to stash or irreversably delete it if disabled.")]
-        public static async Task RemoveQuestionAsync(CommandContext context,
-        [Description("The ID of the question.")] int questionId)
-        {
-            Config? config = await ProfileHelpers.TryGetSelectedOrDefaultConfigAsync(context);
-            if (config is null || !await CommandRequirements.UserIsAdmin(context, config))
-                return;
-
-            ulong guildId = context.Guild!.Id;
-
-            Question? question;
-            string body;
-            using (AppDbContext dbContext = new())
-            {
-                question = await dbContext.Questions.Where(q => q.ConfigId == config.Id && q.GuildDependentId == questionId).FirstOrDefaultAsync();
-
-                if (question == null)
-                {
-                    await context.RespondAsync(
-                        GenericEmbeds.Error(title:"Question Not Found", message:$"The question with ID `{questionId}` could not be found."));
-                    return;
-                }
-                body = question.ToString();
-
-                if (config.EnableDeletedToStash && question.Type != QuestionType.Stashed)
-                {
-                    question.Type = QuestionType.Stashed;
-				}
-                else
-                {
-                    dbContext.Questions.Remove(question);
-                }
-                await dbContext.SaveChangesAsync();
-            }
-
-            string title = config.EnableDeletedToStash && question.Type != QuestionType.Stashed ? "Removed Question to Stash" : "Removed Question";
-
-			await context.RespondAsync(
-                GenericEmbeds.Success(title, body)
-                );
-            await Logging.LogUserAction(context, config, title, body);
-        }
 
         [Command("list")]
         [Description("List all questions.")]

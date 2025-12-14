@@ -7,6 +7,7 @@ using DSharpPlus.Entities;
 using DSharpPlus.EventArgs;
 using Microsoft.EntityFrameworkCore;
 using OpenQotd.Helpers.Profiles;
+using OpenQotd.Helpers.Suggestions;
 
 namespace OpenQotd.EventHandlers.Suggestions
 {
