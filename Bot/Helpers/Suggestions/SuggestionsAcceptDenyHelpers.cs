@@ -47,13 +47,12 @@ namespace OpenQotd.Helpers.Suggestions
                 question = modifyQuestion;
             }
 
+            string embedBody = SuggestionsHelpers.GetSuggestionEmbedBody(question);
             if (suggestionMessage is not null)
             {
                 DiscordMessageBuilder messageBuilder = new();
 
                 messageBuilder.WithContent("");
-
-                string embedBody = SuggestionsHelpers.GetSuggestionEmbedBody(question);
 
                 DiscordEmbedBuilder editEmbed = GenericEmbeds.Custom($"{config.QotdShorthandText} Suggestion Accepted", embedBody +
                     $"\n\nAccepted by: {user.Mention}", color: "#20ff20");
@@ -76,6 +75,20 @@ namespace OpenQotd.Helpers.Suggestions
 
             if (!logAndNotify)
                 return;
+
+            DiscordEmbed responseEmbed = GenericEmbeds.Success($"Successfully Accepted {config.QotdShorthandText} Suggestion", embedBody);
+
+            if (result is not null)
+            {
+                DiscordInteractionResponseBuilder responseBuilder = new();
+                responseBuilder.AddEmbed(responseEmbed);
+                responseBuilder.AsEphemeral(true);
+                await result.Interaction.CreateResponseAsync(DiscordInteractionResponseType.ChannelMessageWithSource, responseBuilder);
+            }
+            if (context is not null)
+            {
+                await (context as SlashCommandContext)!.RespondAsync(responseEmbed, ephemeral: true);
+            }
 
             DiscordUser? suggester;
             try
@@ -148,13 +161,12 @@ namespace OpenQotd.Helpers.Suggestions
                 await dbContext.SaveChangesAsync();
             }
 
+            string embedBody = SuggestionsHelpers.GetSuggestionEmbedBody(question);
             if (suggestionMessage is not null)
             {
                 DiscordMessageBuilder messageBuilder = new();
 
                 messageBuilder.WithContent("");
-
-                string embedBody = SuggestionsHelpers.GetSuggestionEmbedBody(question);
 
                 messageBuilder.AddEmbed(GenericEmbeds.Custom($"{config.QotdShorthandText} Suggestion Denied", embedBody +
                     $"\n\nDenied by: {user.Mention}{(!string.IsNullOrEmpty(reason) ? $"\nReason: \"**{reason}**\"" : "")}", color: "#ff2020"));
@@ -164,8 +176,11 @@ namespace OpenQotd.Helpers.Suggestions
                     await suggestionMessage.UnpinAsync();
             }
 
-            DiscordEmbed responseEmbed = GenericEmbeds.Success($"Successfully Denied {config.QotdShorthandText} Suggestion",
-                $"{(!string.IsNullOrEmpty(reason) ? $"\nReason: \"**{reason}**\"" : "")}");
+            if (!logAndNotify)
+                return;
+
+            DiscordEmbed responseEmbed = GenericEmbeds.Success($"Successfully Denied {config.QotdShorthandText} Suggestion", embedBody +
+                (!string.IsNullOrEmpty(reason) ? $"\n\nReason: \"**{reason}**\"" : ""));
 
             if (result is not null)
             {
@@ -178,9 +193,6 @@ namespace OpenQotd.Helpers.Suggestions
             {
                 await (context as SlashCommandContext)!.RespondAsync(responseEmbed, ephemeral: true);
             }
-
-            if (!logAndNotify)
-                return;
 
             DiscordUser? suggester;
             try

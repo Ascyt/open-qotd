@@ -4,6 +4,7 @@ using OpenQotd.Helpers;
 using DSharpPlus.Entities;
 using DSharpPlus.Exceptions;
 using Microsoft.EntityFrameworkCore;
+using OpenQotd.Helpers.Suggestions;
 
 namespace OpenQotd.QotdSending
 {
@@ -290,9 +291,9 @@ namespace OpenQotd.QotdSending
                 case Config.AlterQuestionAfterSentOption.QuestionToSentAndResetIfEmpty:
                     question.Type = QuestionType.Sent;
 
-                    if (await dbContext.Questions
-                        .Where(q => q.ConfigId == d.config.Id)
-                        .AllAsync(q => q.Type == QuestionType.Sent))
+                    if (!await dbContext.Questions
+                        .Where(q => q.ConfigId == d.config.Id && q.Id != question.Id)
+                        .AnyAsync(q => q.Type == QuestionType.Accepted))
                     {
                         await dbContext
                             .Questions
@@ -306,7 +307,7 @@ namespace OpenQotd.QotdSending
                     return;
                 case Config.AlterQuestionAfterSentOption.QuestionToSuggested:
                     question.Type = QuestionType.Suggested;
-                    // TODO: Re-enable suggestion message
+                    await SuggestionsHelpers.TryResetSuggestionMessageIfEnabledAsync(question, d.config, d.guild);
                     return;
                 case Config.AlterQuestionAfterSentOption.RemoveQuestion:
                     if (d.config.EnableDeletedToStash)
