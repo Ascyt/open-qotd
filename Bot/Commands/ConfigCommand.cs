@@ -61,12 +61,15 @@ namespace OpenQotd.Commands
 
                 if (existingConfig != null)
                 {
-                    dbContext.Remove(existingConfig);
-                    await dbContext.SaveChangesAsync();
+                    dbContext.Entry(existingConfig).State = EntityState.Detached; 
+                    config.Id = existingConfig.Id;
+                    dbContext.Configs.Update(config);
                     reInitialized = true;
                 }
-
-                await dbContext.Configs.AddAsync(config);
+                else 
+                {
+                    await dbContext.Configs.AddAsync(config);
+                }
                 await dbContext.SaveChangesAsync();
             }
             string configString = config.ToString();
