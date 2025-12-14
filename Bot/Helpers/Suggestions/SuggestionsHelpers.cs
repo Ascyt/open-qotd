@@ -52,28 +52,79 @@ namespace OpenQotd.Helpers.Suggestions
                 $"By: <@!{question.SubmittedByUserId}> (`{question.SubmittedByUserId}`)\n" +
                 $"ID: `{question.GuildDependentId}`";
 
-        
-        private static void AddPingIfAvailable(DiscordMessageBuilder messageBuilder, ulong? pingRoleId)
+        /// <summary>
+        /// Adds a ping to the message builder if the ping role ID is available.
+        /// </summary>
+        /// <param name="asHighlight">If enabled, the ping role is only used to highlight the message and not cause an actual ping.</param>
+        private static void AddPingIfAvailable(DiscordMessageBuilder messageBuilder, ulong? pingRoleId, bool asHighlight)
         {
             if (pingRoleId is null)
                 return;
 
-            messageBuilder.WithContent($"<@&{pingRoleId}>");
-            messageBuilder.WithAllowedMention(new RoleMention(pingRoleId.Value));
+            if (asHighlight)
+            {
+                messageBuilder.WithContent($"-# <@&{pingRoleId}>");
+            }
+            else 
+            {
+                messageBuilder.WithContent($"<@&{pingRoleId}>");
+                messageBuilder.WithAllowedMention(new RoleMention(pingRoleId.Value));
+            }
         }
 
+        /// <summary>
+        /// Resets the suggestion message belonging to the question to the notification state or tries to create it if it doesn't exist.
+        /// </summary>
+        /// <remarks>
+        /// Should be used after setting a suggestion's content back to "suggested" state or creating a new message with that content.
+        /// </remarks>
         public static async Task TryResetSuggestionMessage(Question question, Config config, DiscordGuild guild)
         {
-            DiscordMessage? suggestionMessage = await TryGetSuggestionMessage(question, config, guild); 
-            if (suggestionMessage is null)
+            if (question.SuggestionMessageId is null || config.SuggestionsChannelId is null)
                 return;
+   
+            DiscordChannel? suggestionChannel;
+            try
+            {
+                suggestionChannel = await guild.GetChannelAsync(config.SuggestionsChannelId.Value);
+            }
+            catch (NotFoundException)
+            {
+                return;
+            }
 
-            DiscordMessageBuilder messageBuilder = await GetSuggestionNotificationMessageBuilder(question, config, guild);
+            if (suggestionChannel is null)
+                return;
+                
+            DiscordMessage? suggestionMessage;
+            try
+            {
+                suggestionMessage = await suggestionChannel.GetMessageAsync(question.SuggestionMessageId.Value);
+            }
+            catch (NotFoundException)
+            {
+                suggestionMessage = null;
+            }
 
-            await suggestionMessage.ModifyAsync(messageBuilder);
+            DiscordMessageBuilder messageBuilder = await GetSuggestionNotificationMessageBuilder(question, config, guild, pingIsHighlight:true);
+            if (suggestionMessage is null)
+            {
+                suggestionMessage = await suggestionChannel.SendMessageAsync(messageBuilder);
+            }
+            else 
+            {
+                await suggestionMessage.ModifyAsync(messageBuilder);
+            }
             if (config.EnableSuggestionsPinMessage)
                 await suggestionMessage.PinAsync();
         }
+
+        /// <summary>
+        /// Sets the suggestion message belonging to the question to the modified state.
+        /// </summary>
+        /// <remarks>
+        /// Should be used when a question's type is changed from "Suggested" to something else without accepting or denying it.
+        /// </remarks>
         public static async Task TrySetSuggestionMessageToModified(Question question, Config config, DiscordGuild guild)
         {
             DiscordMessage? suggestionMessage = await TryGetSuggestionMessage(question, config, guild);
@@ -99,13 +150,13 @@ namespace OpenQotd.Helpers.Suggestions
                 await suggestionMessage.UnpinAsync();  
         }
 
-        public static async Task<DiscordMessageBuilder> GetSuggestionNotificationMessageBuilder(Question question, Config config, DiscordGuild guild)
+        public static async Task<DiscordMessageBuilder> GetSuggestionNotificationMessageBuilder(Question question, Config config, DiscordGuild guild, bool pingIsHighlight)
         {
             DiscordMessageBuilder messageBuilder = new();
 
             if (config.SuggestionsPingRoleId.HasValue)
             {
-                AddPingIfAvailable(messageBuilder, config.SuggestionsPingRoleId);
+                AddPingIfAvailable(messageBuilder, config.SuggestionsPingRoleId, pingIsHighlight);
             }
 
             DiscordEmbedBuilder embed = GenericEmbeds.Custom(

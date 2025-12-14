@@ -167,7 +167,7 @@ namespace OpenQotd.EventHandlers.Suggestions
             }
 
             DiscordMessage message = await suggestionsChannel.SendMessageAsync(
-                    await SuggestionsHelpers.GetSuggestionNotificationMessageBuilder(newQuestion, config, guild)
+                    await SuggestionsHelpers.GetSuggestionNotificationMessageBuilder(newQuestion, config, guild, pingIsHighlight:false)
                 );
 
             if (config.EnableSuggestionsPinMessage)
