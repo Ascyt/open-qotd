@@ -63,13 +63,14 @@ namespace OpenQotd.Helpers.Suggestions
 
             if (asHighlight)
             {
-                messageBuilder.WithContent($"-# <@&{pingRoleId}>");
+                messageBuilder.WithContent($"-# <@&{pingRoleId}> (message highlight)");
             }
             else 
             {
                 messageBuilder.WithContent($"<@&{pingRoleId}>");
-                messageBuilder.WithAllowedMention(new RoleMention(pingRoleId.Value));
             }
+
+            messageBuilder.WithAllowedMention(new RoleMention(pingRoleId.Value));
         }
 
         /// <summary>
@@ -78,9 +79,9 @@ namespace OpenQotd.Helpers.Suggestions
         /// <remarks>
         /// Should be used after setting a suggestion's content back to "suggested" state or creating a new message with that content.
         /// </remarks>
-        public static async Task TryResetSuggestionMessage(Question question, Config config, DiscordGuild guild)
+        public static async Task TryResetSuggestionMessageIfEnabledAsync(Question question, Config config, DiscordGuild guild)
         {
-            if (question.SuggestionMessageId is null || config.SuggestionsChannelId is null)
+            if (!config.EnableSuggestions || config.SuggestionsChannelId is null)
                 return;
    
             DiscordChannel? suggestionChannel;
@@ -96,23 +97,42 @@ namespace OpenQotd.Helpers.Suggestions
             if (suggestionChannel is null)
                 return;
                 
-            DiscordMessage? suggestionMessage;
-            try
+            DiscordMessage? suggestionMessage = null;
+            if (question.SuggestionMessageId is not null) 
             {
-                suggestionMessage = await suggestionChannel.GetMessageAsync(question.SuggestionMessageId.Value);
-            }
-            catch (NotFoundException)
-            {
-                suggestionMessage = null;
+                try
+                {
+                    suggestionMessage = await suggestionChannel.GetMessageAsync(question.SuggestionMessageId.Value);
+                }
+                catch (NotFoundException)
+                {
+                    suggestionMessage = null;
+                }
             }
 
-            DiscordMessageBuilder messageBuilder = await GetSuggestionNotificationMessageBuilder(question, config, guild, pingIsHighlight:true);
             if (suggestionMessage is null)
             {
+                // Send a new notification message
+                DiscordMessageBuilder messageBuilder = GetSuggestionNotificationMessageBuilder(question, config, guild, pingIsHighlight:true, skipAddingPing:true);
                 suggestionMessage = await suggestionChannel.SendMessageAsync(messageBuilder);
+
+                AppDbContext dbContext = new();
+                Question? updateQuestion = await dbContext.Questions.FindAsync(question.Id);
+
+                if (updateQuestion != null)
+                {
+                    updateQuestion.SuggestionMessageId = suggestionMessage.Id;
+                    await dbContext.SaveChangesAsync();
+                }
+
+                // Now, edit to add allowed mentions (to highlight the message without pinging)
+                DiscordMessageBuilder allowedMentionsBuilder = GetSuggestionNotificationMessageBuilder(question, config, guild, pingIsHighlight:true, skipAddingPing:false);
+                await suggestionMessage.ModifyAsync(allowedMentionsBuilder);
             }
             else 
             {
+                // Modify existing message
+                DiscordMessageBuilder messageBuilder = GetSuggestionNotificationMessageBuilder(question, config, guild, pingIsHighlight:true);
                 await suggestionMessage.ModifyAsync(messageBuilder);
             }
             if (config.EnableSuggestionsPinMessage)
@@ -125,8 +145,11 @@ namespace OpenQotd.Helpers.Suggestions
         /// <remarks>
         /// Should be used when a question's type is changed from "Suggested" to something else without accepting or denying it.
         /// </remarks>
-        public static async Task TrySetSuggestionMessageToModified(Question question, Config config, DiscordGuild guild)
+        public static async Task TrySetSuggestionMessageToModifiedIfEnabledAsync(Question question, Config config, DiscordGuild guild)
         {
+            if (!config.EnableSuggestions)
+                return;
+
             DiscordMessage? suggestionMessage = await TryGetSuggestionMessage(question, config, guild);
             if (suggestionMessage is null)
                 return;
@@ -137,7 +160,7 @@ namespace OpenQotd.Helpers.Suggestions
                 title: $"{config.QotdShorthandText} Suggestion Modified", 
                 message: GetSuggestionEmbedBody(question) + 
                     "\n\n*This suggestion has been modified by staff without being accepted or denied.*",
-                color: "#775718ff");
+                color: "#4e3a11");
     
             if (question.ThumbnailImageUrl is not null)
             {
@@ -150,11 +173,11 @@ namespace OpenQotd.Helpers.Suggestions
                 await suggestionMessage.UnpinAsync();  
         }
 
-        public static async Task<DiscordMessageBuilder> GetSuggestionNotificationMessageBuilder(Question question, Config config, DiscordGuild guild, bool pingIsHighlight)
+        public static DiscordMessageBuilder GetSuggestionNotificationMessageBuilder(Question question, Config config, DiscordGuild guild, bool pingIsHighlight, bool skipAddingPing = false)
         {
             DiscordMessageBuilder messageBuilder = new();
 
-            if (config.SuggestionsPingRoleId.HasValue)
+            if (config.SuggestionsPingRoleId.HasValue && !skipAddingPing)
             {
                 AddPingIfAvailable(messageBuilder, config.SuggestionsPingRoleId, pingIsHighlight);
             }

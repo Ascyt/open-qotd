@@ -10,6 +10,7 @@ using System.ComponentModel;
 using System.Text;
 using OpenQotd.Helpers.Profiles;
 using DSharpPlus.Commands.Processors.SlashCommands;
+using OpenQotd.Helpers.Suggestions;
 
 namespace OpenQotd.Commands
 {

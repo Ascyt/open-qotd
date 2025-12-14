@@ -8,6 +8,7 @@ using OpenQotd.Database;
 using OpenQotd.Database.Entities;
 using OpenQotd.Helpers;
 using OpenQotd.Helpers.Profiles;
+using OpenQotd.Helpers.Suggestions;
 
 namespace OpenQotd.EventHandlers.Suggestions
 {
@@ -98,6 +99,12 @@ namespace OpenQotd.EventHandlers.Suggestions
             {
                 await dbContext.Questions.AddAsync(newQuestion);
                 await dbContext.SaveChangesAsync();
+            }
+
+            if (type == QuestionType.Suggested) 
+            {
+                // Send suggestion notification message
+                await SuggestionsHelpers.TryResetSuggestionMessageIfEnabledAsync(newQuestion, config, args.Interaction.Guild!);
             }
 
             string body = newQuestion.ToString(longVersion: true);
