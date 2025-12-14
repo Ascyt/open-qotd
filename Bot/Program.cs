@@ -124,6 +124,12 @@ namespace OpenQotd
                 .HandleModalSubmitted(EventHandlers.EventHandlers.ModalSubmittedEvent)
                 .HandleGuildCreated(EventHandlers.EventHandlers.GuildCreated));
 
+            builder.ConfigureExtraFeatures(b =>
+            {
+                b.LogUnknownEvents = false;
+                b.LogUnknownAuditlogs = false;
+            });
+
             DiscordClient client = builder.Build();
             Client = client;
 
