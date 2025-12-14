@@ -136,6 +136,7 @@ namespace OpenQotd.Commands
                 [Description("The hour of the day the QOTDs should get sent in UTC time (0-23).")] int? TimeHourUtc = null,
                 [Description("The minute of the day the QOTDs should get sent in UTC time (0-59).")] int? TimeMinuteUtc = null,
                 [Description("Specifies on which days the QOTDs should get sent (sends daily if unset).")] string? TimeDayCondition = null,
+                [Description("Specifies how a question should get altered after being sent as QOTD.")] Config.AlterQuestionAfterSentOption? AlterQuestionAfterSent = null,
                 [Description("Whether to send a QOTD daily automatically, if disabled `/trigger` is needed (true by default).")] bool? EnableAutomaticQotd = null,
                 [Description("Whether to send a random preset when there is no Accepted QOTD available (true by default).")] bool? EnableAutomaticPresets = null,
                 [Description("Whether to send a warning embed when the sent QOTD is the last available (true by default).")] bool? EnableLastAvailableWarn = null,
@@ -145,6 +146,7 @@ namespace OpenQotd.Commands
                 QotdTimeHourUtc: TimeHourUtc,
                 QotdTimeMinuteUtc: TimeMinuteUtc,
                 QotdTimeDayCondition: TimeDayCondition,
+                QotdAlterQuestionAfterSent: AlterQuestionAfterSent,
                 EnableAutomaticQotd: EnableAutomaticQotd,
                 EnableQotdAutomaticPresets: EnableAutomaticPresets,
                 EnableQotdLastAvailableWarn: EnableLastAvailableWarn,
@@ -198,6 +200,7 @@ namespace OpenQotd.Commands
             int? QotdTimeHourUtc = null,
             int? QotdTimeMinuteUtc = null,
             string? QotdTimeDayCondition = null,
+            Config.AlterQuestionAfterSentOption? QotdAlterQuestionAfterSent = null,
             string? QotdEmbedColorHex = null,
             DiscordRole? QotdPingRole = null,
             string? QotdTitle = null,
@@ -253,11 +256,8 @@ namespace OpenQotd.Commands
             {
                 // Without extra retrieval config changes don't get saved
                 config = await dbContext.Configs
-                    .FindAsync(config.Id);
-
-                if (config is null)
-                    throw new Exception("Config not found");
-
+                    .FindAsync(config.Id) ?? throw new Exception("Config not found");
+                
                 if (QotdTimeMinuteUtc is not null || QotdTimeHourUtc is not null)
                 {
                     int currentDay = DateTime.UtcNow.Day;
@@ -312,6 +312,8 @@ namespace OpenQotd.Commands
                     config.QotdTimeDayCondition = QotdTimeDayCondition;
                     config.QotdTimeDayConditionLastChangedTimestamp = DateTime.UtcNow;
                 }
+                if (QotdAlterQuestionAfterSent is not null)
+                    config.QotdAlterQuestionAfterSent = QotdAlterQuestionAfterSent.Value;
                 if (QotdPingRole is not null)
                     config.QotdPingRoleId = QotdPingRole.Id; 
                 if (EnableSuggestions is not null)
