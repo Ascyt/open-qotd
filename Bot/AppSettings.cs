@@ -16,6 +16,11 @@
         public bool EnableDbMigrationMode { get; set; } = false;
 
         /// <summary>
+        /// The bot's user ID.
+        /// </summary>
+        public ulong BotId { get; set; }
+
+        /// <summary>
         /// The postgres database connection string to use, excluding its password. 
         /// </summary>
         /// <remarks>
