@@ -36,7 +36,6 @@ namespace OpenQotd.Helpers.Profiles
                         .ThenByDescending(c => c.Id) // Then by ID (newer profiles first)
                         .ToArrayAsync();
             }
-            int selectedProfileId = await ProfileHelpers.GetSelectedOrDefaultProfileIdAsync(guildId, member.Id);
 
             Dictionary<int, string> viewableProfiles = [];
 
