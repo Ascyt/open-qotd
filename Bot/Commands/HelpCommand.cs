@@ -29,6 +29,29 @@ namespace OpenQotd.Commands
             DiscordEmbed responseEmbed = await GetHelpEmbedAsync(config, context.Guild!, context.Member!);
             messageBuilder.AddEmbed(responseEmbed);
 
+            messageBuilder.AddActionRowComponent(
+                new DiscordLinkButtonComponent(
+                    url: "https://discord.com/oauth2/authorize?client_id=1275472589375930418",
+                    label: "Add To Server",
+                    emoji: new DiscordComponentEmoji("💠")
+                ),
+                new DiscordLinkButtonComponent(
+                    url: "https://open-qotd.ascyt.com/documentation",
+                    label: "Documentation",
+                    emoji: new DiscordComponentEmoji("🧾")
+                ),
+                new DiscordLinkButtonComponent(
+                    url: "https://discord.com/invite/85TtrwuKn8",
+                    label: "Support Server",
+                    emoji: new DiscordComponentEmoji("💬")
+                ),
+                new DiscordLinkButtonComponent(
+                    url: "https://ascyt.com/donate",
+                    label: "Donate",
+                    emoji: new DiscordComponentEmoji("❤️")
+                )
+            );
+
             await slashCommandContext.FollowupAsync(messageBuilder);
         }
 

@@ -29,12 +29,12 @@ namespace OpenQotd.EventHandlers
                 ),
                 new DiscordLinkButtonComponent(
                     url: "https://open-qotd.ascyt.com/documentation",
-                    label: "Docs",
+                    label: "Documentation",
                     emoji: new DiscordComponentEmoji("🧾")
                 ),
                 new DiscordLinkButtonComponent(
-                    url: "https://open-qotd.ascyt.com/community",
-                    label: "Support",
+                    url: "https://discord.com/invite/85TtrwuKn8",
+                    label: "Support Server",
                     emoji: new DiscordComponentEmoji("💬")
                 ),
                 new DiscordLinkButtonComponent(
