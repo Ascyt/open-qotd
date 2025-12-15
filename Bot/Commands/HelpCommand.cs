@@ -125,7 +125,7 @@ namespace OpenQotd.Commands
                 $"\n" + (config is not null ?
                 $"# Basic Commands\n" +
                 $"- `/qotd` or `/suggest`: Suggest a {config!.QotdShorthandText} to the current server if suggestions are enabled.\n" +
-                $"- `/leaderboard` or `/lb`: View a learderboard ranked on the amount of questions sent.\n" +
+                $"- `/leaderboard` or `/lb`: View a leaderboard ranked on the amount of questions sent.\n" +
                 $"- `/topic`: Send a random already sent {config.QotdShorthandText} to the current channel, to revive a dead chat.\n" +
                 $"- `/sentquestions`: View all {config.QotdShorthandText}'s that have been sent.\n" +
                 $"- `/feedback`: Submit feedback, suggestions or bug reports to the developers of OpenQOTD.\n" +
