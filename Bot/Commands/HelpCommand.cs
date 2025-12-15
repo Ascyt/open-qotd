@@ -25,7 +25,29 @@ namespace OpenQotd.Commands
 
             await slashCommandContext.DeferResponseAsync(ephemeral: true);
 
-            await slashCommandContext.FollowupAsync(await GetHelpMessageAsync(config, context.Guild!, context.Member!));
+            DiscordMessageBuilder messageBuilder = await GetHelpMessageAsync(config, context.Guild!, context.Member!);
+
+            if (For is null) 
+            {
+                Dictionary<int, string> viewableProfiles = await ViewableProfilesAutoCompleteProvider.GetViewableProfilesAsync(context, null);
+                if (viewableProfiles.Count > 1)
+                {
+                    messageBuilder.AddActionRowComponent(
+                        new DiscordSelectComponent(
+                            "help-select-profile",
+                            "Select Profile...",
+                            viewableProfiles
+                                .Select(kv => new DiscordSelectComponentOption(
+                                    label: kv.Value,
+                                    value: kv.Key.ToString(),
+                                    isDefault: config is not null && config.ProfileId == kv.Key
+                            ))
+                        )
+                    );
+                }
+            }
+
+            await slashCommandContext.FollowupAsync(messageBuilder);
         }
 
         public static async Task<DiscordMessageBuilder> GetHelpMessageAsync(Config? config, DiscordGuild guild, DiscordMember member)
