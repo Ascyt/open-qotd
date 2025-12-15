@@ -21,18 +21,15 @@ namespace OpenQotd.Commands
                 (await ProfileHelpers.TryGetSelectedOrDefaultConfigAsync(context.Guild!.Id, context.User.Id)).Item1 : 
                 await ProfileHelpers.TryGetConfigAsync(context.Guild!.Id, For.Value);
 
+            SlashCommandContext slashCommandContext = (context as SlashCommandContext)!;
+
+            await slashCommandContext.DeferResponseAsync(ephemeral: true);
+
+            DiscordMessageBuilder messageBuilder = new();
             DiscordEmbed responseEmbed = await GetHelpEmbedAsync(config, context.Guild!, context.Member!);
+            messageBuilder.AddEmbed(responseEmbed);
 
-            if (context is SlashCommandContext)
-            {
-                SlashCommandContext slashCommandcontext = (context as SlashCommandContext)!;
-
-                await slashCommandcontext.RespondAsync(responseEmbed, ephemeral: true);
-            }
-            else
-            {
-                await context.RespondAsync(responseEmbed);
-            }
+            await slashCommandContext.FollowupAsync(messageBuilder);
         }
 
         public static async Task<DiscordEmbed> GetHelpEmbedAsync(Config? config, DiscordGuild guild, DiscordMember member)

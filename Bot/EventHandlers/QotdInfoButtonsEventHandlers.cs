@@ -101,7 +101,7 @@ namespace OpenQotd.EventHandlers
             }
 
             await args.Interaction.CreateResponseAsync(editMessage ? DiscordInteractionResponseType.UpdateMessage : DiscordInteractionResponseType.ChannelMessageWithSource, new DiscordInteractionResponseBuilder()
-                .AddEmbed(await SimpleCommands.GetHelpEmbedAsync(config, args.Guild, member)).AsEphemeral());
+                .AddEmbed(await HelpCommand.GetHelpEmbedAsync(config, args.Guild, member)).AsEphemeral());
         }
 
         /// <summary>
