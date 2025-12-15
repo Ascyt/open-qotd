@@ -12,17 +12,17 @@ namespace OpenQotd.Helpers.Profiles
     {
         public async ValueTask<IEnumerable<DiscordAutoCompleteChoice>> AutoCompleteAsync(AutoCompleteContext context)
         {
-            Dictionary<int, string> switchableFilteredProfiles = await GetSuggestableProfilesAsync(context, context.UserInput);
+            Dictionary<int, string> suggestableFilteredProfiles = await GetSuggestableProfilesAsync(context.Guild!, context.Member!, context.UserInput);
 
-            return switchableFilteredProfiles
+            return suggestableFilteredProfiles
                 .Take(25) // Max 25 choices allowed by Discord API
                 .Select(kv => new DiscordAutoCompleteChoice(kv.Value, kv.Key));
         }
 
-        public static async Task<Dictionary<int, string>> GetSuggestableProfilesAsync(AbstractContext context, string? filter)
+        public static async Task<Dictionary<int, string>> GetSuggestableProfilesAsync(DiscordGuild guild, DiscordMember member, string? filter)
         {
-            bool hasAdmin = context.Member!.Permissions.HasPermission(DiscordPermission.Administrator);
-            ulong guildId = context.Guild!.Id;
+            bool hasAdmin = member.Permissions.HasPermission(DiscordPermission.Administrator);
+            ulong guildId = guild.Id;
 
             Config[] configs;
             string defaultQotdTitle = Program.AppSettings.ConfigQotdTitleDefault;
@@ -46,7 +46,7 @@ namespace OpenQotd.Helpers.Profiles
             }
             else
             {
-                HashSet<ulong> userRoles = [.. context.Member!.Roles.Select(r => r.Id)];
+                HashSet<ulong> userRoles = [.. member.Roles.Select(r => r.Id)];
                 foreach (Config config in configs)
                 {
                     bool hasBasicRole = config.BasicRoleId is null || userRoles.Contains(config.BasicRoleId.Value);

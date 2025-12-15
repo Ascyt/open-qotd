@@ -12,17 +12,17 @@ namespace OpenQotd.Helpers.Profiles
     {
         public async ValueTask<IEnumerable<DiscordAutoCompleteChoice>> AutoCompleteAsync(AutoCompleteContext context)
         {
-            Dictionary<int, string> viewableFilteredProfiles = await GetViewableProfilesAsync(context, context.UserInput);
+            Dictionary<int, string> viewableFilteredProfiles = await GetViewableProfilesAsync(context.Guild!, context.Member!, context.UserInput);
 
             return viewableFilteredProfiles
                 .Take(25) // Max 25 choices allowed by Discord API
                 .Select(kv => new DiscordAutoCompleteChoice(kv.Value, kv.Key));
         }
 
-        public static async Task<Dictionary<int, string>> GetViewableProfilesAsync(AbstractContext context, string? filter)
+        public static async Task<Dictionary<int, string>> GetViewableProfilesAsync(DiscordGuild guild, DiscordMember member, string? filter)
         {
-            bool hasAdmin = context.Member!.Permissions.HasPermission(DiscordPermission.Administrator);
-            ulong guildId = context.Guild!.Id;
+            bool hasAdmin = member.Permissions.HasPermission(DiscordPermission.Administrator);
+            ulong guildId = guild.Id;
 
             Config[] configs; 
             string defaultQotdTitle = Program.AppSettings.ConfigQotdTitleDefault;
@@ -36,7 +36,7 @@ namespace OpenQotd.Helpers.Profiles
                         .ThenByDescending(c => c.Id) // Then by ID (newer profiles first)
                         .ToArrayAsync();
             }
-            int selectedProfileId = await ProfileHelpers.GetSelectedOrDefaultProfileIdAsync(guildId, context.User.Id);
+            int selectedProfileId = await ProfileHelpers.GetSelectedOrDefaultProfileIdAsync(guildId, member.Id);
 
             Dictionary<int, string> viewableProfiles = [];
 
@@ -47,7 +47,7 @@ namespace OpenQotd.Helpers.Profiles
             }
             else
             {
-                HashSet<ulong> userRoles = [.. context.Member!.Roles.Select(r => r.Id)];
+                HashSet<ulong> userRoles = [.. member.Roles.Select(r => r.Id)];
                 foreach (Config config in configs)
                 {
                     bool hasBasicRole = config.BasicRoleId is null || userRoles.Contains(config.BasicRoleId.Value);

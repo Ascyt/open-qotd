@@ -2,6 +2,7 @@
 using DSharpPlus.Commands.Processors.SlashCommands;
 using DSharpPlus.Commands.Processors.SlashCommands.ArgumentModifiers;
 using DSharpPlus.Entities;
+using DSharpPlus.EventArgs;
 using OpenQotd.Database.Entities;
 using OpenQotd.Helpers;
 using OpenQotd.Helpers.Profiles;
@@ -17,37 +18,54 @@ namespace OpenQotd.Commands
         public static async Task HelpAsync(CommandContext context,
             [Description("Which viewable OpenQOTD profile to view general information of.")][SlashAutoCompleteProvider<ViewableProfilesAutoCompleteProvider>] int? For=null)
         {
-            Config? config = For is null ? 
-                (await ProfileHelpers.TryGetSelectedOrDefaultConfigAsync(context.Guild!.Id, context.User.Id)).Item1 : 
-                await ProfileHelpers.TryGetConfigAsync(context.Guild!.Id, For.Value);
-
             SlashCommandContext slashCommandContext = (context as SlashCommandContext)!;
-
             await slashCommandContext.DeferResponseAsync(ephemeral: true);
 
-            DiscordMessageBuilder messageBuilder = await GetHelpMessageAsync(config, context.Guild!, context.Member!);
+            await slashCommandContext.FollowupAsync(await GetHelpMessageWithProfileSelectAsync(context.Guild!, context.Member!, For));
+        }
 
-            if (For is null) 
+        public static async Task<DiscordMessageBuilder> GetHelpMessageWithProfileSelectAsync(DiscordGuild guild, DiscordMember member, int? profileId)
+        {
+            Config? config = profileId is null ? 
+                (await ProfileHelpers.TryGetSelectedOrDefaultConfigAsync(guild.Id, member.Id)).Item1 : 
+                await ProfileHelpers.TryGetConfigAsync(guild.Id, profileId.Value);
+
+            DiscordMessageBuilder messageBuilder = await GetHelpMessageAsync(config, guild, member);
+
+            Dictionary<int, string> viewableProfiles = await ViewableProfilesAutoCompleteProvider.GetViewableProfilesAsync(guild, member, null);
+            if (viewableProfiles.Count > 1)
             {
-                Dictionary<int, string> viewableProfiles = await ViewableProfilesAutoCompleteProvider.GetViewableProfilesAsync(context, null);
-                if (viewableProfiles.Count > 1)
-                {
-                    messageBuilder.AddActionRowComponent(
-                        new DiscordSelectComponent(
-                            "help-select-profile",
-                            "Select Profile...",
-                            viewableProfiles
-                                .Select(kv => new DiscordSelectComponentOption(
-                                    label: kv.Value,
-                                    value: kv.Key.ToString(),
-                                    isDefault: config is not null && config.ProfileId == kv.Key
-                            ))
-                        )
-                    );
-                }
+                messageBuilder.AddActionRowComponent(
+                    new DiscordSelectComponent(
+                        "help-select-profile",
+                        "Select Profile...",
+                        viewableProfiles
+                            .Select(kv => new DiscordSelectComponentOption(
+                                label: kv.Value,
+                                value: kv.Key.ToString(),
+                                isDefault: config is not null && config.ProfileId == kv.Key
+                        ))
+                    )
+                );
             }
 
-            await slashCommandContext.FollowupAsync(messageBuilder);
+            return messageBuilder;
+        }
+
+        public static async Task OnProfileSelectChanged(ComponentInteractionCreatedEventArgs args)
+        {
+            int selectedProfileId = int.Parse(args.Values[0]);
+
+            Config? config = await ProfileHelpers.TryGetConfigAsync(args, selectedProfileId);
+            if (config is null || !await CommandRequirements.UserIsBasic(args, config))
+                return;
+
+            DiscordMember member = await args.Guild.GetMemberAsync(args.User.Id);
+
+            DiscordMessageBuilder messageBuilder = await GetHelpMessageWithProfileSelectAsync(args.Interaction.Guild!, member, selectedProfileId);
+
+            await args.Interaction.CreateResponseAsync(DiscordInteractionResponseType.UpdateMessage,
+                new DiscordInteractionResponseBuilder(messageBuilder).AsEphemeral());
         }
 
         public static async Task<DiscordMessageBuilder> GetHelpMessageAsync(Config? config, DiscordGuild guild, DiscordMember member)
