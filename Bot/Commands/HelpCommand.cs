@@ -25,44 +25,21 @@ namespace OpenQotd.Commands
 
             await slashCommandContext.DeferResponseAsync(ephemeral: true);
 
-            DiscordMessageBuilder messageBuilder = new();
-            DiscordEmbed responseEmbed = await GetHelpEmbedAsync(config, context.Guild!, context.Member!);
-            messageBuilder.AddEmbed(responseEmbed);
-
-            messageBuilder.AddActionRowComponent(
-                new DiscordLinkButtonComponent(
-                    url: "https://discord.com/oauth2/authorize?client_id=1275472589375930418",
-                    label: "Add To Server",
-                    emoji: new DiscordComponentEmoji("💠")
-                ),
-                new DiscordLinkButtonComponent(
-                    url: "https://open-qotd.ascyt.com/documentation",
-                    label: "Documentation",
-                    emoji: new DiscordComponentEmoji("🧾")
-                ),
-                new DiscordLinkButtonComponent(
-                    url: "https://discord.com/invite/85TtrwuKn8",
-                    label: "Support Server",
-                    emoji: new DiscordComponentEmoji("💬")
-                ),
-                new DiscordLinkButtonComponent(
-                    url: "https://ascyt.com/donate",
-                    label: "Donate",
-                    emoji: new DiscordComponentEmoji("❤️")
-                )
-            );
-
-            await slashCommandContext.FollowupAsync(messageBuilder);
+            await slashCommandContext.FollowupAsync(await GetHelpMessageAsync(config, context.Guild!, context.Member!));
         }
 
-        public static async Task<DiscordEmbed> GetHelpEmbedAsync(Config? config, DiscordGuild guild, DiscordMember member)
+        public static async Task<DiscordMessageBuilder> GetHelpMessageAsync(Config? config, DiscordGuild guild, DiscordMember member)
         {
+            DiscordMessageBuilder messageBuilder = new();
             if (config is not null) // if config is set, require basic perms
             {
                 (bool userIsBasic, string? error) = await CommandRequirements.UserIsBasic(guild, member, config);
 
-                if (!userIsBasic)
-                    return GenericEmbeds.Error(error!);
+                if (!userIsBasic) 
+                {
+                    messageBuilder.AddEmbed(GenericEmbeds.Error(error!));
+                    return messageBuilder;
+                }
             }
 
             string configValuesDescription;
@@ -96,7 +73,7 @@ namespace OpenQotd.Commands
                     "If you are still having issues, please join the [Community & Support Server](<https://open-qotd.ascyt.com/community>) or send me a DM (<@417669404537520128>/`@ascyt`) for help.";
             }
 
-            return GenericEmbeds.Info(title: $"OpenQOTD v{Program.AppSettings.Version}", message:
+            messageBuilder.AddEmbed(GenericEmbeds.Info(title: $"OpenQOTD v{Program.AppSettings.Version}", message:
                 $"# About\n" +
                 $"*OpenQOTD is a free and open-source bot that allows user-suggested, staff-added, or preset messages to be sent at regular intervals. " +
                 $"It was originally meant to only be a \"Question Of The Day\"-bot, however it has evolved to allow for much more than that, with many more features planned.\n" +
@@ -128,7 +105,32 @@ namespace OpenQotd.Commands
                 $"\n" +
                 $"- [Terms of Service](https://open-qotd.ascyt.com/terms-of-service)\n" +
                 $"- [Privacy Policy](https://open-qotd.ascyt.com/privacy-policy)\n"
-                );
+                ));
+
+            messageBuilder.AddActionRowComponent(
+                new DiscordLinkButtonComponent(
+                    url: "https://discord.com/oauth2/authorize?client_id=1275472589375930418",
+                    label: "Add To Server",
+                    emoji: new DiscordComponentEmoji("💠")
+                ),
+                new DiscordLinkButtonComponent(
+                    url: "https://open-qotd.ascyt.com/documentation",
+                    label: "Documentation",
+                    emoji: new DiscordComponentEmoji("🧾")
+                ),
+                new DiscordLinkButtonComponent(
+                    url: "https://discord.com/invite/85TtrwuKn8",
+                    label: "Support Server",
+                    emoji: new DiscordComponentEmoji("💬")
+                ),
+                new DiscordLinkButtonComponent(
+                    url: "https://ascyt.com/donate",
+                    label: "Donate",
+                    emoji: new DiscordComponentEmoji("❤️")
+                )
+            );
+
+            return messageBuilder;
         }
     }
 }
