@@ -5,10 +5,7 @@ using DSharpPlus.Entities;
 using System.ComponentModel;
 using Microsoft.EntityFrameworkCore;
 using Newtonsoft.Json;
-using System.Text;
-using DSharpPlus.Interactivity.Extensions;
 using OpenQotd.Helpers;
-using DSharpPlus.Interactivity;
 using DSharpPlus.Commands.Processors.SlashCommands;
 
 namespace OpenQotd.Commands
@@ -21,7 +18,12 @@ namespace OpenQotd.Commands
         [Description("Debug command that can only be executed by developers of OpenQOTD.")]
         public static async Task DebugAsync(CommandContext context, [Description("Debug arguments")] string args)
         {
-            if (!Program.AppSettings.DebugAllowedUserIds.Contains(context.User.Id))
+            bool isAllowed;
+            lock (Program.AppSettings.DebugAllowedUserIds)
+            {
+                isAllowed = Program.AppSettings.DebugAllowedUserIds.Contains(context.User.Id);
+            }
+            if (!isAllowed)
             {
                 await (context as SlashCommandContext)!.RespondAsync(
                     GenericEmbeds.Error("This command can only be executed by developers of OpenQOTD."),

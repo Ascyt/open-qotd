@@ -2,7 +2,6 @@
 {
     public class AppSettings
     {
-
         /// <summary>
         /// The current version of the bot, which vaguely follows <a href="https://semver.org/">Semantic Versioning</a>.
         /// </summary>
@@ -15,6 +14,11 @@
         /// This is needed to apply database migrations, as for some reason .NET starts the program upon running any database migration command.
         /// </remarks>
         public bool EnableDbMigrationMode { get; set; } = false;
+
+        /// <summary>
+        /// The bot's user ID.
+        /// </summary>
+        public ulong BotId { get; set; }
 
         /// <summary>
         /// The postgres database connection string to use, excluding its password. 

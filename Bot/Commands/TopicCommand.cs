@@ -15,8 +15,6 @@ namespace OpenQotd.Commands
 {
     public class TopicCommand
     {
-        private static readonly Random _random = new();
-
         [Command("topic")]
         [Description("Sends a random Sent QOTD to the current channel.")]
         public static async Task TopicAsync(CommandContext context,
@@ -125,7 +123,7 @@ namespace OpenQotd.Commands
             if (includePresets)
             {
                 int totalQuestionCount = questions.Length + Presets.Values.Length;
-                if (_random.Next(totalQuestionCount) >= questions.Length)
+                if (Random.Shared.Next(totalQuestionCount) >= questions.Length)
                 {
                     usePresets = true;
                 }
@@ -134,7 +132,7 @@ namespace OpenQotd.Commands
             DiscordEmbed embed;
             if (!usePresets)
             {
-                Question question = questions[_random.Next(questions.Length)];
+                Question question = questions[Random.Shared.Next(questions.Length)];
 
                 embed = GenericEmbeds.Info(
                     title: question.Text!,
@@ -143,7 +141,7 @@ namespace OpenQotd.Commands
             }
             else
             {
-                int presetId = _random.Next(Presets.Values.Length);
+                int presetId = Random.Shared.Next(Presets.Values.Length);
                 string preset = Presets.Values[presetId];
 
                 embed = GenericEmbeds.Info(
