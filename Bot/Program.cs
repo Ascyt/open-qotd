@@ -93,6 +93,7 @@ namespace OpenQotd
                         typeof(DebugCommand),
                         typeof(LeaderboardCommand),
                         typeof(TopicCommand),
+                        typeof(HelpCommand),
                         typeof(SimpleCommands),
                         /*typeof(MyQuestionsCommand)*/]);
 
