@@ -80,6 +80,13 @@ namespace OpenQotd.EventHandlers
                     await QotdInfoButtonsEventHandlers.ShowQotdInfoButtonClicked(args, int.Parse(idArgs[1]), int.Parse(idArgs[2]), editMessage);
                     return;
 
+                case "help-select-profile":
+                    if (!await HasExactlyNArguments(args, idArgs, 0))
+                        return;
+
+                    await HelpCommand.OnProfileSelectChanged(args);
+                    return;
+
                 case "forward":
                 case "backward":
                 case "first":

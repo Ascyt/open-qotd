@@ -12,17 +12,17 @@ namespace OpenQotd.Helpers.Profiles
     {
         public async ValueTask<IEnumerable<DiscordAutoCompleteChoice>> AutoCompleteAsync(AutoCompleteContext context)
         {
-            Dictionary<int, string> switchableFilteredProfiles = await GetSwitchableProfilesAsync(context, context.UserInput);
+            Dictionary<int, string> switchableFilteredProfiles = await GetSwitchableProfilesAsync(context.Guild!, context.Member!, context.UserInput);
 
             return switchableFilteredProfiles
                 .Take(25) // Max 25 choices allowed by Discord API
                 .Select(kv => new DiscordAutoCompleteChoice(kv.Value, kv.Key));
         }
 
-        public static async Task<Dictionary<int, string>> GetSwitchableProfilesAsync(AbstractContext context, string? filter)
+        public static async Task<Dictionary<int, string>> GetSwitchableProfilesAsync(DiscordGuild guild, DiscordMember member, string? filter)
         {
-            bool hasAdmin = context.Member!.Permissions.HasPermission(DiscordPermission.Administrator);
-            ulong guildId = context.Guild!.Id;
+            bool hasAdmin = member.Permissions.HasPermission(DiscordPermission.Administrator);
+            ulong guildId = guild.Id;
 
             Config[] configs;
             using (AppDbContext dbContext = new())
@@ -35,7 +35,7 @@ namespace OpenQotd.Helpers.Profiles
                         .ThenByDescending(c => c.Id) // Then by ID (newer profiles first)
                         .ToArrayAsync();
             }
-            int selectedProfileId = await ProfileHelpers.GetSelectedOrDefaultProfileIdAsync(guildId, context.User.Id);
+            int selectedProfileId = await ProfileHelpers.GetSelectedOrDefaultProfileIdAsync(guildId, member.Id);
 
             Dictionary<int, string> switchableProfiles = [];
 
@@ -47,7 +47,7 @@ namespace OpenQotd.Helpers.Profiles
             }
             else
             {
-                HashSet<ulong> userRoles = [.. context.Member!.Roles.Select(r => r.Id)];
+                HashSet<ulong> userRoles = [.. member.Roles.Select(r => r.Id)];
                 foreach (Config config in configs)
                 {
                     if (config.ProfileId == selectedProfileId)
