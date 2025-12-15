@@ -93,8 +93,7 @@ namespace OpenQotd.Commands
 
                 DateTime? nextQotdTime = await QotdSenderTimer.GetConfigNextSendTime(config.Id);
 
-                configValuesDescription = config == null ?
-                    $"**:warning: Config not initialized**" :
+                configValuesDescription =
                     $"- Is default profile: {config.IsDefaultProfile}\n" +
                     $"- {config.QotdShorthandText} title: *{config.QotdTitleText}*\n" +
                     $"- {config.QotdShorthandText} channel: <#{config.QotdChannelId}>\n" +
