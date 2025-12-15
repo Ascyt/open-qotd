@@ -129,6 +129,17 @@
                                     Using <code>/help</code>, you can check when the next QOTD is scheduled to be sent.
                                 </li>
                                 <li class="mb-2">
+                                    <code>alter_question_after_sent<span class="default-value">QuestionToSent</span></code>: Specifies what happens to a question after it has been sent as a QOTD.<br />
+                                    The following options are available:
+                                    <ul>
+                                        <li><code>QuestionToSent</code>: The question's type is set to <span class="question-type sent">Sent</span>, making it unavailable for future QOTDs and show up in basic commands. This is the default option, and it is recommended to keep it at this option if you don't have a specific reason to change it.</li>
+                                        <li><code>QuestionToSentAndResetIfEmpty</code>: The same as <code>QuestionToSent</code>, but changes all questions of type <span class="question-type sent">Sent</span> to <span class="question-type accepted">Accepted</span> if, after sending, there are no questions of type <span class="question-type accepted">Accepted</span> available, making them able to be sent again. This excludes the question that was just sent.</li>
+                                        <li><code>QuestionStaysAccepted</code>: The question's type remains <span class="question-type accepted">Accepted</span>, making it immediatelly available for future QOTDs again.</li>
+                                        <li><code>QuestionToSuggested</code>: The question's type is set to <span class="question-type suggested">Suggested</span>, allowing it to be accepted/denied again using <code>/suggestions</code> or the buttons of the suggestion message, as if it was a new suggestion.</li>
+                                        <li><code>RemoveQuestion</code>: The question's type is set to <span class="question-type stashed">Stashed</span> if <code>enable_deleted_to_stash</code> is enabled, otherwise it is permanently deleted upon being sent.</li>
+                                    </ul>
+                                </li>
+                                <li class="mb-2">
                                     <code>enable_automatic_qotd<span class="default-value">true</span></code>: 
                                     If enabled, a QOTD is sent automatically every day at the set time.<br />
                                     If this variable is set to <code>false</code>, the QOTD has to be triggered manually using <code>/trigger</code>.
