@@ -500,29 +500,21 @@ namespace OpenQotd.Commands
                             .ThenByDescending(q => q.Id);
                     }
 
-                    // Get the total number of questions
                     int totalElements = await sqlQuery
                         .CountAsync();
-
-                    // Calculate the total number of pages
-                    int totalPages = (int)Math.Ceiling(totalElements / (double)itemsPerPage);
 
                     Question[] currentPageQuestions = await sqlQuery
                         .Skip((page - 1) * itemsPerPage)
                         .Take(itemsPerPage)
                         .ToArrayAsync();
 
-                    PageInfo<Question> pageInfo = new()
+                    return new PageInfo<Question>()
                     {
                         Elements = currentPageQuestions,
                         CurrentPage = page,
                         ElementsPerPage = itemsPerPage,
-                        TotalElementsCount = totalElements,
-                        TotalPagesCount = totalPages,
+                        TotalElementsCount = totalElements
                     };
-
-                    // Fetch the questions for the current page
-                    return pageInfo;
                 });
         }
 
@@ -543,33 +535,24 @@ namespace OpenQotd.Commands
                 {
                     using AppDbContext dbContext = new();
 
-                    // Build the base query
                     IQueryable<Question> sqlQuery = dbContext.Questions
                         .Where(q => q.ConfigId == config.Id && (type == null || q.Type == type))
                         .Where(q => EF.Functions.Like(q.Text, $"%{query}%"));
 
-                    // Get the total number of questions
                     int totalQuestions = await sqlQuery.CountAsync();
 
-                    // Calculate the total number of pages
-                    int totalPages = (int)Math.Ceiling(totalQuestions / (double)itemsPerPage);
-
-                    // Fetch the questions for the current page
                     Question[] questions = await sqlQuery
                         .Skip((page - 1) * itemsPerPage)
                         .Take(itemsPerPage)
                         .ToArrayAsync();
 
-                    PageInfo<Question> pageInfo = new()
+                    return new PageInfo<Question>()
                     {
                         Elements = questions,
                         CurrentPage = page,
                         ElementsPerPage = itemsPerPage,
                         TotalElementsCount = totalQuestions,
-                        TotalPagesCount = totalPages,
                     };
-
-                    return pageInfo;
                 });
         }
     }

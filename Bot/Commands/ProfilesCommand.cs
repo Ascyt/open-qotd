@@ -76,8 +76,6 @@ namespace OpenQotd.Commands
                 {
                     int totalElements = viewableConfigs.Count;
 
-                    int totalPages = (int)Math.Ceiling(totalElements / (double)itemsPerPage);
-
                     KeyValuePair<Config, ViewableProfileType>[] elementsInPage = [.. viewableConfigs
                         .Skip((page - 1) * itemsPerPage)
                         .Take(itemsPerPage)];
@@ -87,8 +85,7 @@ namespace OpenQotd.Commands
                         Elements = elementsInPage,
                         CurrentPage = page,
                         ElementsPerPage = itemsPerPage,
-                        TotalElementsCount = totalElements,
-                        TotalPagesCount = totalPages,
+                        TotalElementsCount = totalElements
                     };
 
                     return Task.FromResult(pageInfo);

@@ -45,8 +45,6 @@ namespace OpenQotd.Commands
                 {
                     int totalPresets = guildDependentPresets.Count;
 
-                    int totalPages = (int)Math.Ceiling(totalPresets / (double)itemsPerPage);
-
                     Presets.GuildDependentPreset[] presetsInPage = [.. guildDependentPresets
                         .Skip((page - 1) * itemsPerPage)
                         .Take(itemsPerPage)];
@@ -56,8 +54,7 @@ namespace OpenQotd.Commands
                         Elements = presetsInPage,
                         CurrentPage = page,
                         ElementsPerPage = itemsPerPage,
-                        TotalElementsCount = totalPresets,
-                        TotalPagesCount = totalPages,
+                        TotalElementsCount = totalPresets
                     };
 
                     return Task.FromResult(pageInfo);

@@ -77,15 +77,12 @@ namespace OpenQotd.Commands
 
                     int totalEntries = sortedEntries.Count;
 
-                    int totalPages = (int)Math.Ceiling(totalEntries / (double)itemsPerPage);
-
                     PageInfo<LeaderboardEntry> pageInfo = new()
                     {
                         Elements = filteredEntries,
                         CurrentPage = page,
                         ElementsPerPage = itemsPerPage,
-                        TotalElementsCount = totalEntries,
-                        TotalPagesCount = totalPages,
+                        TotalElementsCount = totalEntries
                     };
 
                     return Task.FromResult(pageInfo);
