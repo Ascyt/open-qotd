@@ -50,12 +50,12 @@ namespace OpenQotd.Core.Questions.Commands
             if (fromType == QuestionType.Suggested && type != QuestionType.Suggested)
             {
                 // Set suggestion message to modified state
-                await Helpers.Suggestions.General.TrySetSuggestionMessageToModifiedIfEnabledAsync(question, config, context.Guild!);
+                await Suggestions.Helpers.General.TrySetSuggestionMessageToModifiedIfEnabledAsync(question, config, context.Guild!);
             }
             else if (fromType != QuestionType.Suggested && type == QuestionType.Suggested)
             {
                 // Send suggestion notification message
-                await Helpers.Suggestions.General.TryResetSuggestionMessageIfEnabledAsync(question, config, context.Guild!);
+                await Suggestions.Helpers.General.TryResetSuggestionMessageIfEnabledAsync(question, config, context.Guild!);
             }
 
             await context.RespondAsync(

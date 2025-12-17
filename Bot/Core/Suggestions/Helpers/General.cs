@@ -2,9 +2,10 @@
 using DSharpPlus.Exceptions;
 using OpenQotd.Core.Configs.Entities;
 using OpenQotd.Core.Database;
+using OpenQotd.Core.Helpers;
 using OpenQotd.Core.Questions.Entities;
 
-namespace OpenQotd.Core.Helpers.Suggestions
+namespace OpenQotd.Core.Suggestions.Helpers
 {
     public class General
     {
@@ -45,7 +46,7 @@ namespace OpenQotd.Core.Helpers.Suggestions
 
         public static string GetSuggestionEmbedBody(Question question)
             => $"**Contents:**\n" +
-                $"\"{Helpers.General.Italicize(question.Text!)}\"\n" +
+                $"\"{Core.Helpers.General.Italicize(question.Text!)}\"\n" +
                 $"\n" +
                 $"By: <@!{question.SubmittedByUserId}> (`{question.SubmittedByUserId}`)\n" +
                 $"ID: `{question.GuildDependentId}`";
@@ -196,7 +197,7 @@ namespace OpenQotd.Core.Helpers.Suggestions
             if (question.Notes is not null)
             {
                 messageBuilder.AddEmbed(
-                    GenericEmbeds.Info(title: "Additional Information", message: Helpers.General.Italicize(question.Notes))
+                    GenericEmbeds.Info(title: "Additional Information", message: Core.Helpers.General.Italicize(question.Notes))
                     .WithFooter("Written by the suggester, visible to everyone.")
                     );
             }
@@ -204,7 +205,7 @@ namespace OpenQotd.Core.Helpers.Suggestions
             if (question.SuggesterAdminOnlyInfo is not null)
             {
                 messageBuilder.AddEmbed(
-                    GenericEmbeds.Info(title: "Staff Note", message: Helpers.General.Italicize(question.SuggesterAdminOnlyInfo))
+                    GenericEmbeds.Info(title: "Staff Note", message: Core.Helpers.General.Italicize(question.SuggesterAdminOnlyInfo))
                     .WithFooter("Written by the suggester, only visible to staff.")
                     );
             }

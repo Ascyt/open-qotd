@@ -44,7 +44,7 @@ namespace OpenQotd.Core.Suggestions.Commands
                 return;
             }
 
-            await Core.Helpers.Suggestions.AcceptDeny.AcceptSuggestionAsync(question, config, null, context);
+            await Suggestions.Helpers.AcceptDeny.AcceptSuggestionAsync(question, config, null, context);
 
             await context.RespondAsync(
                 GenericEmbeds.Success("Suggestion Accepted", $"Successfully accepted suggestion with ID `{question.GuildDependentId}`"));

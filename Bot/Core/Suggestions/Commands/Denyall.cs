@@ -37,7 +37,7 @@ namespace OpenQotd.Core.Suggestions.Commands
 
             foreach (Question question in questions)
             {
-                await Core.Helpers.Suggestions.AcceptDeny.DenySuggestionAsync(question, config, null, context, null, logAndNotify:false);
+                await Suggestions.Helpers.AcceptDeny.DenySuggestionAsync(question, config, null, context, null, logAndNotify:false);
 
                 await Task.Delay(1000); // Prevent rate-limit
 
@@ -66,7 +66,7 @@ namespace OpenQotd.Core.Suggestions.Commands
                     {
                         userSendMessage.AddEmbed(GenericEmbeds.Custom($"{context.Guild!.Name}: {config.QotdShorthandText} Suggestion Denied",
                                 $"Your {config.QotdShorthandText} Suggestion:\n" +
-                                $"\"{Core.Helpers.General.Italicize(pair.Value[0].Text!)}\"\n\n" +
+                                $"\"{General.Italicize(pair.Value[0].Text!)}\"\n\n" +
                                 $"Has been :x: **DENIED** :x:.",
                                 color: "#ff2020"
                             ).WithFooter($"Server ID: {context.Guild!.Id}"));
@@ -84,7 +84,7 @@ namespace OpenQotd.Core.Suggestions.Commands
                                 break;
                             }
 
-                            sb.AppendLine($"> - \"*{Core.Helpers.General.TrimIfNecessary(question.Text!, 64)}*\"");
+                            sb.AppendLine($"> - \"*{General.TrimIfNecessary(question.Text!, 64)}*\"");
                             index++;
                         }
 

@@ -37,7 +37,7 @@ namespace OpenQotd.Core.Suggestions.Commands
 
             foreach (Question question in questions)
             {
-                await Core.Helpers.Suggestions.AcceptDeny.AcceptSuggestionAsync(question, config, null, context, logAndNotify:false);
+                await Suggestions.Helpers.AcceptDeny.AcceptSuggestionAsync(question, config, null, context, logAndNotify:false);
 
                 await Task.Delay(100); // Prevent rate-limit
 
@@ -66,7 +66,7 @@ namespace OpenQotd.Core.Suggestions.Commands
                     {
                         userSendMessage.AddEmbed(GenericEmbeds.Custom($"{context.Guild!.Name}: {config.QotdShorthandText} Suggestion Accepted",
                                 $"Your {config.QotdShorthandText} Suggestion:\n" +
-                                $"\"{Core.Helpers.General.Italicize(pair.Value[0].Text!)}\"\n\n" +
+                                $"\"{General.Italicize(pair.Value[0].Text!)}\"\n\n" +
                                 $"Has been :white_check_mark: **ACCEPTED** :white_check_mark:!\n" +
                                 $"It is now qualified to appear as **{config.QotdTitleText}** in {context.Guild!.Name}!",
                                 color: "#20ff20"
@@ -85,7 +85,7 @@ namespace OpenQotd.Core.Suggestions.Commands
                                 break;
                             }
 
-                            sb.AppendLine($"> - \"*{Core.Helpers.General.TrimIfNecessary(question.Text!, 64)}*\"");
+                            sb.AppendLine($"> - \"*{General.TrimIfNecessary(question.Text!, 64)}*\"");
                             index++;
                         }
 

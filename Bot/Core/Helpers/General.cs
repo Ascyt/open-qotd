@@ -54,18 +54,6 @@ namespace OpenQotd.Core.Helpers
         }
 
         /// <summary>
-        /// Get the modal for denying a suggestion with reason input.
-        /// </summary>
-        public static DiscordModalBuilder GetSuggestionDenyModal(Config config, Question question)
-        {
-            return new DiscordModalBuilder()
-                .WithTitle($"Denial of \"{TrimIfNecessary(question.Text!, 32)}\"")
-                .WithCustomId($"suggestions-deny/{config.ProfileId}/{question.GuildDependentId}")
-                .AddTextInput(label: "Denial Reason", input: new DiscordTextInputComponent(
-                    customId: "reason", placeholder: "Add an optional denial reason that will be sent to the user.", max_length: 1024, required: false, style: DiscordTextInputStyle.Paragraph));
-        }
-
-        /// <summary>
         /// Trim text if it exceeds maxLength or upon the first new-line character, adding an ellipsis if so.
         /// </summary>
         public static string TrimIfNecessary(string text, int maxLength)

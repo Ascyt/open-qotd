@@ -45,7 +45,7 @@ namespace OpenQotd.Core.Suggestions.Commands
                 return;
             }
 
-            await (context as SlashCommandContext)!.RespondWithModalAsync(Core.Helpers.General.GetSuggestionDenyModal(config, question));
+            await (context as SlashCommandContext)!.RespondWithModalAsync(Suggestions.Helpers.AcceptDeny.GetSuggestionDenyModal(config, question));
         }
     }
 }

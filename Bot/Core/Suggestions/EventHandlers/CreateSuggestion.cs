@@ -1,28 +1,25 @@
-﻿using DSharpPlus;
-using DSharpPlus.Entities;
+﻿using DSharpPlus.Entities;
 using DSharpPlus.EventArgs;
 using DSharpPlus.Exceptions;
 using Microsoft.EntityFrameworkCore;
-using OpenQotd.Commands;
-using OpenQotd.Database;
-using OpenQotd.Database.Entities;
-using OpenQotd.Helpers;
-using OpenQotd.Helpers.Profiles;
-using OpenQotd.Helpers.Suggestions;
+using OpenQotd.Core.Configs.Entities;
+using OpenQotd.Core.Database;
+using OpenQotd.Core.Helpers;
+using OpenQotd.Core.Questions.Entities;
 
-namespace OpenQotd.EventHandlers.Suggestions
+namespace OpenQotd.Core.Suggestions.EventHandlers
 {
-    public class CreateSuggestionEventHandlers
+    public class CreateSuggestion
     {
         public static async Task SuggestQotdButtonClicked(ComponentInteractionCreatedEventArgs args, int profileId)
         {
-            Config? config = await ProfileHelpers.TryGetConfigAsync(args, profileId);
-            if (config is null || !await CommandRequirements.UserIsBasic(args, config))
+            Config? config = await Profiles.Api.TryGetConfigAsync(args, profileId);
+            if (config is null || !await Permissions.Api.Basic.UserIsBasic(args, config))
                 return;
 
             if (!config.EnableSuggestions)
             {
-                await EventHandlers.RespondWithError(args, $"Suggestions are not enabled for this profile ({config.ProfileName}).");
+                await Core.EventHandlers.Helpers.General.RespondWithError(args, $"Suggestions are not enabled for this profile ({config.ProfileName}).");
                 return;
             }
 
@@ -38,7 +35,7 @@ namespace OpenQotd.EventHandlers.Suggestions
                 .WithTitle($"Suggest a new {config.QotdShorthandText}!")
                 .WithCustomId($"suggest-qotd/{config.ProfileId}")
                 .AddTextInput(label: "Contents", input: new DiscordTextInputComponent(
-                    customId: "text", placeholder: $"This will require approval from the staff of \"{GeneralHelpers.TrimIfNecessary(guildName, 52)}\".", max_length: Program.AppSettings.QuestionTextMaxLength, required: true, style: DiscordTextInputStyle.Paragraph))
+                    customId: "text", placeholder: $"This will require approval from the staff of \"{General.TrimIfNecessary(guildName, 52)}\".", max_length: Program.AppSettings.QuestionTextMaxLength, required: true, style: DiscordTextInputStyle.Paragraph))
                 .AddTextInput(label: "(optional) Additional Information", input: new DiscordTextInputComponent(
                     customId: "notes", placeholder: $"There will be a button for people to view this info under the sent {config.QotdShorthandText}.", max_length: Program.AppSettings.QuestionNotesMaxLength, required: false, style: DiscordTextInputStyle.Paragraph))
                 .AddTextInput(label: "(optional) Thumbnail (Image link)", input: new DiscordTextInputComponent(
@@ -49,8 +46,8 @@ namespace OpenQotd.EventHandlers.Suggestions
 
         public static async Task SuggestQotdModalSubmitted(ModalSubmittedEventArgs args, int profileId)
         {
-            Config? config = await ProfileHelpers.TryGetConfigAsync(args, profileId);
-            if (config is null || !await CommandRequirements.UserIsBasic(args, config))
+            Config? config = await Profiles.Api.TryGetConfigAsync(args, profileId);
+            if (config is null || !await Permissions.Api.Basic.UserIsBasic(args, config))
                 return;
 
             using (AppDbContext dbContext = new())
@@ -131,7 +128,7 @@ namespace OpenQotd.EventHandlers.Suggestions
 
             (bool, DiscordEmbedBuilder) result = (true, GenericEmbeds.Success($"{config.QotdShorthandText} Suggested!",
                     $"Your **{config.QotdTitleText}** suggestion:\n" +
-                    $"\"{GeneralHelpers.Italicize(newQuestion.Text!)}\"\n" +
+                    $"\"{General.Italicize(newQuestion.Text!)}\"\n" +
                     $"\n" +
                     $"Has successfully been suggested!\n" +
                     $"You will be notified when it gets accepted or denied."));
@@ -139,7 +136,7 @@ namespace OpenQotd.EventHandlers.Suggestions
             if (newQuestion.ThumbnailImageUrl is not null)
                 result.Item2.WithThumbnail(newQuestion.ThumbnailImageUrl);
 
-            await Logging.LogUserAction(channel, user, config,
+            await Logging.Api.LogUserAction(channel, user, config,
                 title: $"Suggested {config.QotdShorthandText}",
                 message: $"\"**{newQuestion.Text}**\"\nID: `{newQuestion.GuildDependentId}`");
 
@@ -167,7 +164,7 @@ namespace OpenQotd.EventHandlers.Suggestions
             }
 
             DiscordMessage message = await suggestionsChannel.SendMessageAsync(
-                    SuggestionsHelpers.GetSuggestionNotificationMessageBuilder(newQuestion, config, guild, pingIsHighlight:false)
+                    Helpers.General.GetSuggestionNotificationMessageBuilder(newQuestion, config, guild, pingIsHighlight:false)
                 );
 
             if (config.EnableSuggestionsPinMessage)

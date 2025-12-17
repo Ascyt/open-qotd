@@ -1,4 +1,4 @@
-﻿namespace OpenQotd.Exceptions
+﻿namespace OpenQotd.Core.Exceptions
 {
     /// <summary>
     /// The base exception type for all bot-related exceptions.

@@ -68,7 +68,7 @@ namespace OpenQotd.Core.Questions.Commands
                             );
                     }
 
-                    await EventHandlers.ErrorEventHandlers.SendCommandErroredMessage(ex, context, "An error occurred while trying to fetch the file contents.", additionalEmbeds);
+                    await Core.EventHandlers.Error.SendCommandErroredMessage(ex, context, "An error occurred while trying to fetch the file contents.", additionalEmbeds);
                     return;
                 }
             }
@@ -112,7 +112,7 @@ namespace OpenQotd.Core.Questions.Commands
                 // Send suggestion notification messages
                 foreach (Question question in questions)
                 {
-                    await Helpers.Suggestions.General.TryResetSuggestionMessageIfEnabledAsync(question, config, context.Guild!);
+                    await Suggestions.Helpers.General.TryResetSuggestionMessageIfEnabledAsync(question, config, context.Guild!);
                     await Task.Delay(100); // Prevent rate-limit
                 }
             }

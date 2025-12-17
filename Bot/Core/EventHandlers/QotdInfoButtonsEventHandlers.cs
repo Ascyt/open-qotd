@@ -1,17 +1,14 @@
-﻿using DSharpPlus;
-using DSharpPlus.Entities;
+﻿using DSharpPlus.Entities;
 using DSharpPlus.EventArgs;
-using DSharpPlus.Interactivity;
-using DSharpPlus.Interactivity.Extensions;
 using Microsoft.EntityFrameworkCore;
-using OpenQotd.Commands;
-using OpenQotd.Database;
-using OpenQotd.Database.Entities;
-using OpenQotd.Helpers;
-using OpenQotd.Helpers.Profiles;
+using OpenQotd.Core.Configs.Entities;
+using OpenQotd.Core.Database;
+using OpenQotd.Core.Helpers;
+using OpenQotd.Core.Questions.Entities;
+using OpenQotd.Core.UncategorizedCommands;
 using Sprache;
 
-namespace OpenQotd.EventHandlers
+namespace OpenQotd.Core.EventHandlers
 {
     /// <summary>
     /// Includes event handlers for show-qotd-notes and show-general-info.
@@ -23,8 +20,8 @@ namespace OpenQotd.EventHandlers
         /// </summary>
         public static async Task ShowQotdNotesButtonClicked(ComponentInteractionCreatedEventArgs args, int profileId, int questionGuildDependentId)
         {
-            Config? config = await ProfileHelpers.TryGetConfigAsync(args, profileId);
-            if (config is null || !await CommandRequirements.UserIsBasic(args, config))
+            Config? config = await Profiles.Api.TryGetConfigAsync(args, profileId);
+            if (config is null || !await Permissions.Api.Basic.UserIsBasic(args, config))
                 return;
 
             Question? question;
@@ -36,13 +33,13 @@ namespace OpenQotd.EventHandlers
             }
             if (question is null)
             {
-                await EventHandlers.RespondWithError(args, $"Question with ID `{questionGuildDependentId}` for profile \"{config.ProfileName}\" not found.");
+                await Helpers.General.RespondWithError(args, $"Question with ID `{questionGuildDependentId}` for profile \"{config.ProfileName}\" not found.");
                 return;
             }
 
             if (question.Notes is null)
             {
-                await EventHandlers.RespondWithError(args, "This question does not have any submittor-written additional notes.");
+                await Helpers.General.RespondWithError(args, "This question does not have any submittor-written additional notes.");
                 return;
             }
 
@@ -61,12 +58,12 @@ namespace OpenQotd.EventHandlers
         {
             DiscordMember member = await args.Guild.GetMemberAsync(args.User.Id);
 
-            Config? config = await ProfileHelpers.TryGetConfigAsync(args, profileId);
-            if (config is null || !await CommandRequirements.UserIsBasic(args, config, member: member))
+            Config? config = await Profiles.Api.TryGetConfigAsync(args, profileId);
+            if (config is null || !await Permissions.Api.Basic.UserIsBasic(args, config, member: member))
                 return;
 
             // If this is a response to a question and the user is an admin, show the prompt.
-            if (questionGuildDependentId != -1 && await CommandRequirements.UserIsAdmin(args, config, responseOnError:false))
+            if (questionGuildDependentId != -1 && await Permissions.Api.Admin.UserIsAdmin(args, config, responseOnError:false))
             {
                 DiscordInteractionResponseBuilder promptMessage = new();
                 promptMessage.AddEmbed(GenericEmbeds.Info(title: "Choose An Option",
@@ -95,8 +92,8 @@ namespace OpenQotd.EventHandlers
 
             if (config is null)
             {
-                config = await ProfileHelpers.TryGetConfigAsync(args, profileId);
-                if (config is not null && !await CommandRequirements.UserIsBasic(args, config, member))
+                config = await Profiles.Api.TryGetConfigAsync(args, profileId);
+                if (config is not null && !await Permissions.Api.Basic.UserIsBasic(args, config, member))
                     return;
             }
 
@@ -111,8 +108,8 @@ namespace OpenQotd.EventHandlers
         /// </summary>
         public static async Task ShowQotdInfoButtonClicked(ComponentInteractionCreatedEventArgs args, int profileId, int questionGuildDependentId, bool editMessage)
         {
-            Config? config = await ProfileHelpers.TryGetConfigAsync(args, profileId);
-            if (config is null || !await CommandRequirements.UserIsBasic(args, config))
+            Config? config = await Profiles.Api.TryGetConfigAsync(args, profileId);
+            if (config is null || !await Permissions.Api.Basic.UserIsBasic(args, config))
                 return;
 
             Question? question;
@@ -124,12 +121,12 @@ namespace OpenQotd.EventHandlers
             }
             if (question is null)
             {
-                await EventHandlers.RespondWithError(args, $"Question with ID `{questionGuildDependentId}` for profile \"{config.ProfileName}\" not found.");
+                await Helpers.General.RespondWithError(args, $"Question with ID `{questionGuildDependentId}` for profile \"{config.ProfileName}\" not found.");
                 return;
             }
 
             await args.Interaction.CreateResponseAsync(editMessage ? DiscordInteractionResponseType.UpdateMessage : DiscordInteractionResponseType.ChannelMessageWithSource, 
-                new DiscordInteractionResponseBuilder(QuestionsCommand.GetQuestionsViewResponse(config, question)).AsEphemeral());
+                new DiscordInteractionResponseBuilder(Questions.Commands.QuestionsCommand.GetQuestionsViewResponse(config, question)).AsEphemeral());
         }
     }
 }

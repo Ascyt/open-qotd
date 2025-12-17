@@ -1,11 +1,11 @@
 ﻿using DSharpPlus.Commands;
 using DSharpPlus.Commands.EventArgs;
 using DSharpPlus.Entities;
-using OpenQotd.Helpers;
+using OpenQotd.Core.Helpers;
 
-namespace OpenQotd.EventHandlers
+namespace OpenQotd.Core.EventHandlers
 {
-    public class ErrorEventHandlers
+    public class Error
     {
         /// <summary>
         /// Replies with an error message to the command context when a command errors.

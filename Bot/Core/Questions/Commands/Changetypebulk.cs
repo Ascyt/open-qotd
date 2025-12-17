@@ -47,7 +47,7 @@ namespace OpenQotd.Core.Questions.Commands
                 foreach (Question question in questions)
                 {
                     // Set suggestion message to modified state
-                    await Helpers.Suggestions.General.TrySetSuggestionMessageToModifiedIfEnabledAsync(question, config, context.Guild!);
+                    await Suggestions.Helpers.General.TrySetSuggestionMessageToModifiedIfEnabledAsync(question, config, context.Guild!);
                     await Task.Delay(100); // Prevent rate-limit
                 }
             }
@@ -56,7 +56,7 @@ namespace OpenQotd.Core.Questions.Commands
                 foreach (Question question in questions)
                 {
                     // Send suggestion notification message
-                    await Helpers.Suggestions.General.TryResetSuggestionMessageIfEnabledAsync(question, config, context.Guild!);
+                    await Suggestions.Helpers.General.TryResetSuggestionMessageIfEnabledAsync(question, config, context.Guild!);
                     await Task.Delay(100); // Prevent rate-limit
                 }
             }

@@ -5,9 +5,10 @@ using DSharpPlus.EventArgs;
 using DSharpPlus.Exceptions;
 using OpenQotd.Core.Configs.Entities;
 using OpenQotd.Core.Database;
+using OpenQotd.Core.Helpers;
 using OpenQotd.Core.Questions.Entities;
 
-namespace OpenQotd.Core.Helpers.Suggestions
+namespace OpenQotd.Core.Suggestions.Helpers
 {
     public class AcceptDeny
     {
@@ -229,6 +230,19 @@ namespace OpenQotd.Core.Helpers.Suggestions
                 await Logging.Api.LogUserAction(suggestionMessage!.Channel!, user, config, logTitle, logBody);
             else
                 await Logging.Api.LogUserAction(context, config, logTitle, logBody);
+        }
+
+        
+        /// <summary>
+        /// Get the modal for denying a suggestion with reason input.
+        /// </summary>
+        public static DiscordModalBuilder GetSuggestionDenyModal(Config config, Question question)
+        {
+            return new DiscordModalBuilder()
+                .WithTitle($"Denial of \"{Core.Helpers.General.TrimIfNecessary(question.Text!, 32)}\"")
+                .WithCustomId($"suggestions-deny/{config.ProfileId}/{question.GuildDependentId}")
+                .AddTextInput(label: "Denial Reason", input: new DiscordTextInputComponent(
+                    customId: "reason", placeholder: "Add an optional denial reason that will be sent to the user.", max_length: 1024, required: false, style: DiscordTextInputStyle.Paragraph));
         }
     }
 }

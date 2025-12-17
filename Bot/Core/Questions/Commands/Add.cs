@@ -22,7 +22,7 @@ namespace OpenQotd.Core.Questions.Commands
             if (!await Api.IsWithinMaxQuestionsAmount(context, 1))
                 return;
 
-            await (context as SlashCommandContext)!.RespondWithModalAsync(QuestionsEventHandlers.GetQuestionsAddModal(config));
+            await (context as SlashCommandContext)!.RespondWithModalAsync(EventHandlers.General.GetQuestionsAddModal(config));
         }
     }
 }

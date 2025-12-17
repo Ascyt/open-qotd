@@ -1,13 +1,17 @@
 ﻿using DSharpPlus;
 using DSharpPlus.Entities;
 using DSharpPlus.EventArgs;
-using OpenQotd.EventHandlers.Suggestions;
-using OpenQotd.Helpers;
+using OpenQotd.Core.Helpers;
 
-namespace OpenQotd.EventHandlers
+namespace OpenQotd.Core.EventHandlers
 {
-    public class OnGuildCreated
+    public class GuildCreatedEntry
     {
+        public static async Task GuildCreated(DiscordClient client, GuildCreatedEventArgs args)
+        {
+            await SendMessage(args);
+        }
+
         public static async Task SendMessage(GuildCreatedEventArgs args)
         {
             DiscordChannel? systemChannel = await args.Guild.GetSystemChannelAsync();

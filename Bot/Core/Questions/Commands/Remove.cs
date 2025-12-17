@@ -54,7 +54,7 @@ namespace OpenQotd.Core.Questions.Commands
             if (originalType == QuestionType.Suggested)
             {
                 // Set suggestion message to modified state
-                await Helpers.Suggestions.General.TrySetSuggestionMessageToModifiedIfEnabledAsync(question, config, context.Guild!);
+                await Suggestions.Helpers.General.TrySetSuggestionMessageToModifiedIfEnabledAsync(question, config, context.Guild!);
             }
 
             string title = config.EnableDeletedToStash && originalType != QuestionType.Stashed ? "Removed Question to Stash" : "Removed Question";

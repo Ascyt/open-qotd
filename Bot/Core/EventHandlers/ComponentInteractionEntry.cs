@@ -1,18 +1,10 @@
 ﻿using DSharpPlus;
-using DSharpPlus.Entities;
 using DSharpPlus.EventArgs;
-using DSharpPlus.Exceptions;
-using Microsoft.EntityFrameworkCore;
-using OpenQotd.Commands;
-using OpenQotd.Database;
-using OpenQotd.Database.Entities;
-using OpenQotd.EventHandlers.Suggestions;
-using OpenQotd.Helpers;
-using OpenQotd.Helpers.Profiles;
+using OpenQotd.Core.UncategorizedCommands;
 
-namespace OpenQotd.EventHandlers
+namespace OpenQotd.Core.EventHandlers
 {
-    public class EventHandlers
+    public class ComponentInteractionEntry
     {
         public static async Task ComponentInteractionCreated(DiscordClient client, ComponentInteractionCreatedEventArgs args)
         {
@@ -20,7 +12,7 @@ namespace OpenQotd.EventHandlers
 
             if (idArgs.Length == 0)
             {
-                await RespondWithError(args, "Interaction ID is empty");
+                await Helpers.General.RespondWithError(args, "Interaction ID is empty");
                 return;
             }
 
@@ -37,51 +29,51 @@ namespace OpenQotd.EventHandlers
             switch (idArgs[0])
             {
                 case "suggestions-accept":
-                    if (!await HasExactlyNArguments(args, idArgs, 2))
+                    if (!await Helpers.General.HasExactlyNArguments(args, idArgs, 2))
                         return;
 
                     await SuggestionNotificationsEventHandlers.SuggestionsAcceptButtonClicked(args, int.Parse(idArgs[1]), int.Parse(idArgs[2]));
                     return;
                 case "suggestions-deny":
-                    if (!await HasExactlyNArguments(args, idArgs, 2))
+                    if (!await Helpers.General.HasExactlyNArguments(args, idArgs, 2))
                         return;
 
                     await SuggestionNotificationsEventHandlers.SuggestionsDenyButtonClicked(args, int.Parse(idArgs[1]), int.Parse(idArgs[2]));
                     return;
                 case "suggest-qotd":
-                    if (!await HasExactlyNArguments(args, idArgs, 1))
+                    if (!await Helpers.General.HasExactlyNArguments(args, idArgs, 1))
                         return;
 
                     await CreateSuggestionEventHandlers.SuggestQotdButtonClicked(args, int.Parse(idArgs[1]));
                     return;
 
                 case "show-qotd-notes":
-                    if (!await HasExactlyNArguments(args, idArgs, 2))
+                    if (!await Helpers.General.HasExactlyNArguments(args, idArgs, 2))
                         return;
                     await QotdInfoButtonsEventHandlers.ShowQotdNotesButtonClicked(args, int.Parse(idArgs[1]), int.Parse(idArgs[2]));
                     return;
 
                 case "show-general-info":
-                    if (!await HasExactlyNArguments(args, idArgs, 2))
+                    if (!await Helpers.General.HasExactlyNArguments(args, idArgs, 2))
                         return;
                     await QotdInfoButtonsEventHandlers.ShowGeneralInfoButtonClicked(args, int.Parse(idArgs[1]), int.Parse(idArgs[2]));
                     return;
 
                 case "show-general-info-no-prompt":
-                    if (!await HasExactlyNArguments(args, idArgs, 1))
+                    if (!await Helpers.General.HasExactlyNArguments(args, idArgs, 1))
                         return;
                     await QotdInfoButtonsEventHandlers.ShowGeneralInfoNoPromptButtonClicked(args, int.Parse(idArgs[1]), editMessage);
                     return;
 
                 case "show-qotd-info":
-                    if (!await HasExactlyNArguments(args, idArgs, 2))
+                    if (!await Helpers.General.HasExactlyNArguments(args, idArgs, 2))
                         return;
 
                     await QotdInfoButtonsEventHandlers.ShowQotdInfoButtonClicked(args, int.Parse(idArgs[1]), int.Parse(idArgs[2]), editMessage);
                     return;
 
                 case "help-select-profile":
-                    if (!await HasExactlyNArguments(args, idArgs, 0))
+                    if (!await Helpers.General.HasExactlyNArguments(args, idArgs, 0))
                         return;
 
                     await Help.OnProfileSelectChanged(args);
@@ -139,24 +131,6 @@ namespace OpenQotd.EventHandlers
         public static async Task GuildCreated(DiscordClient client, GuildCreatedEventArgs args)
         {
             await OnGuildCreated.SendMessage(args);
-        }
-
-        private static async Task<bool> HasExactlyNArguments(InteractionCreatedEventArgs args, string[] idArgs, int n)
-        {
-            if (idArgs.Length - 1 == n)
-                return true;
-
-            await RespondWithError(args, $"Component ID for `{idArgs[0]}` must have exactly {n} arguments (provided is {idArgs.Length - 1}).");
-            return false;
-        }
-
-        public static async Task RespondWithError(InteractionCreatedEventArgs args, string message, string? title=null)
-        {
-            DiscordEmbed errorEmbed = GenericEmbeds.Error(title: title ?? "Error", message: message);
-
-            await args.Interaction.CreateResponseAsync(DiscordInteractionResponseType.ChannelMessageWithSource, new DiscordInteractionResponseBuilder()
-                .AddEmbed(errorEmbed)
-                .AsEphemeral());
         }
     }
 }

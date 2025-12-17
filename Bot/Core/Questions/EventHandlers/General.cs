@@ -1,18 +1,15 @@
 ﻿using DSharpPlus;
 using DSharpPlus.Entities;
 using DSharpPlus.EventArgs;
-using DSharpPlus.Exceptions;
 using Microsoft.EntityFrameworkCore;
-using OpenQotd.Commands;
-using OpenQotd.Database;
-using OpenQotd.Database.Entities;
-using OpenQotd.Helpers;
-using OpenQotd.Helpers.Profiles;
-using OpenQotd.Helpers.Suggestions;
+using OpenQotd.Core.Configs.Entities;
+using OpenQotd.Core.Database;
+using OpenQotd.Core.Helpers;
+using OpenQotd.Core.Questions.Entities;
 
-namespace OpenQotd.EventHandlers.Suggestions
+namespace OpenQotd.Core.Questions.EventHandlers
 {
-    public class QuestionsEventHandlers
+    public class General
     {
         /// <summary>
         /// Get the modal for adding a new question.
@@ -43,8 +40,8 @@ namespace OpenQotd.EventHandlers.Suggestions
 
         public static async Task QuestionsAddModalSubmitted(ModalSubmittedEventArgs args, int profileId)
         {
-            Config? config = await ProfileHelpers.TryGetConfigAsync(args, profileId);
-            if (config is null || !await CommandRequirements.UserIsAdmin(args, config))
+            Config? config = await Profiles.Api.TryGetConfigAsync(args, profileId);
+            if (config is null || !await Permissions.Api.Admin.UserIsAdmin(args, config))
                 return;
 
             using (AppDbContext dbContext = new())
@@ -104,7 +101,7 @@ namespace OpenQotd.EventHandlers.Suggestions
             if (type == QuestionType.Suggested) 
             {
                 // Send suggestion notification message
-                await SuggestionsHelpers.TryResetSuggestionMessageIfEnabledAsync(newQuestion, config, args.Interaction.Guild!);
+                await Suggestions.Helpers.General.TryResetSuggestionMessageIfEnabledAsync(newQuestion, config, args.Interaction.Guild!);
             }
 
             string body = newQuestion.ToString(longVersion: true);
@@ -112,7 +109,7 @@ namespace OpenQotd.EventHandlers.Suggestions
 			await args.Interaction.CreateResponseAsync(DiscordInteractionResponseType.ChannelMessageWithSource, new DiscordInteractionResponseBuilder()
                  .AddEmbed(GenericEmbeds.Success("Added Question", body))
                 );
-            await Logging.LogUserAction(args.Interaction.Channel, args.Interaction.User, config, "Added Question", message: body);
+            await Logging.Api.LogUserAction(args.Interaction.Channel, args.Interaction.User, config, "Added Question", message: body);
         }
     }
 }
