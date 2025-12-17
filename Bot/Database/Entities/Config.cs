@@ -271,7 +271,7 @@ namespace OpenQotd.Database.Entities
         /// <summary>
         /// The next available guild-dependent ID for questions in this config/profile.
         /// </summary>
-        public int NextGuildDependentId { get; set; } 
+        public int NextGuildDependentId { get; set; } = 1;
 
         // 
         // -------------------------------- References --------------------------------

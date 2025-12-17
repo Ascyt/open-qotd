@@ -178,17 +178,14 @@ namespace OpenQotd.Database.Entities
         public static async Task<int> GetNextGuildDependentId(Config config)
         {
             using AppDbContext dbContext = new();
-            try
-            {
-                return await dbContext.Questions
-                    .Where(q => q.ConfigId == config.Id)
-                    .Select(q => q.GuildDependentId)
-                    .MaxAsync() + 1;
-            }
-            catch (InvalidOperationException)
-            {
-                return 1; // No questions yet for this config
-            }
+
+            int nextId = config.NextGuildDependentId;
+
+            dbContext.Attach(config);
+            config.NextGuildDependentId++;
+            await dbContext.SaveChangesAsync();
+            
+            return nextId;
         }
 
         /// <summary>
