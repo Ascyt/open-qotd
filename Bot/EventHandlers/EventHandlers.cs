@@ -84,7 +84,7 @@ namespace OpenQotd.EventHandlers
                     if (!await HasExactlyNArguments(args, idArgs, 0))
                         return;
 
-                    await HelpCommand.OnProfileSelectChanged(args);
+                    await Help.OnProfileSelectChanged(args);
                     return;
 
                 case "forward":

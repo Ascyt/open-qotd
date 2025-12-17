@@ -100,7 +100,7 @@ namespace OpenQotd.EventHandlers
                     return;
             }
 
-            DiscordMessageBuilder messageBuilder = await HelpCommand.GetHelpMessageAsync(config, args.Guild, member);
+            DiscordMessageBuilder messageBuilder = await Help.GetHelpMessageAsync(config, args.Guild, member);
 
             await args.Interaction.CreateResponseAsync(editMessage ? DiscordInteractionResponseType.UpdateMessage : DiscordInteractionResponseType.ChannelMessageWithSource, 
                 new DiscordInteractionResponseBuilder(messageBuilder).AsEphemeral());

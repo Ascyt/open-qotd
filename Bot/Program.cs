@@ -90,10 +90,10 @@ namespace OpenQotd
                         typeof(SuggestionsCommands),
                         typeof(PresetsCommand),
                         typeof(TriggerCommand),
-                        typeof(DebugCommand),
-                        typeof(LeaderboardCommand),
+                        typeof(Debug),
+                        typeof(Leaderboard),
                         typeof(TopicCommand),
-                        typeof(HelpCommand),
+                        typeof(Help),
                         typeof(SimpleCommands),
                         /*typeof(MyQuestionsCommand)*/]);
 
@@ -147,7 +147,7 @@ namespace OpenQotd
 
             // Start the background loops for sending QOTDs and switching activities.
             _ = Task.Run(() => QotdSenderTimer.FetchLoopAsync(cts.Token));
-            _ = Task.Run(() => ActivitySwitcherTimer.ActivitySwitchLoopAsync(cts.Token));
+            _ = Task.Run(() => ActivitySwitcher.Timer.ActivitySwitchLoopAsync(cts.Token));
 
             // And now we wait infinitely so that our bot actually stays connected.
             await Task.Delay(-1);
