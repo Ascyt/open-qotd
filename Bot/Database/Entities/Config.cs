@@ -268,6 +268,17 @@ namespace OpenQotd.Database.Entities
         /// </remarks>
         public ulong? LastQotdMessageId { get; set; }
 
+        /// <summary>
+        /// The next available guild-dependent ID for questions in this config/profile.
+        /// </summary>
+        public int NextGuildDependentId { get; set; } 
+
+        // 
+        // -------------------------------- References --------------------------------
+        //
+        public ICollection<Question>? Questions { get; set; }
+        public ICollection<Pool>? Pools { get; set; }
+
         public override string ToString()
         {
             return

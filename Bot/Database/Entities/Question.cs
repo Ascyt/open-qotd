@@ -3,6 +3,7 @@ using DSharpPlus.Commands;
 using Microsoft.EntityFrameworkCore;
 using System.ComponentModel.DataAnnotations;
 using DSharpPlus.Entities;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace OpenQotd.Database.Entities
 {
@@ -49,7 +50,10 @@ namespace OpenQotd.Database.Entities
     public class Question
     {
         public int Id { get; set; }
+
+        [ForeignKey("Config")]
         public int ConfigId { get; set; }
+        public Config? Config { get; set; }
 
         /// <summary>
         /// For convenience, could otherwise be fetched from a join using <see cref="ConfigId"/>
@@ -130,6 +134,11 @@ namespace OpenQotd.Database.Entities
         /// Used to edit and unpin the message when the question is accepted/denied.
         /// </remarks>
         public ulong? SuggestionMessageId { get; set; }
+
+
+        // References
+
+        public ICollection<PoolEntry>? PoolEntries { get; set; }
 
         /// <summary>
         /// Gets the emoji associated with a given QuestionType.
