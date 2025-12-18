@@ -8,7 +8,7 @@ using System.ComponentModel;
 
 namespace OpenQotd.Core.Presets.Commands
 {
-    public sealed partial class Presets
+    public sealed partial class PresetsCommand
     {
         [Command("list")]
         [Description("List all presets.")]
@@ -31,19 +31,19 @@ namespace OpenQotd.Core.Presets.Commands
                 presetSents = [.. await dbContext.PresetSents
                         .Where(p => p.ConfigId == config.Id).ToListAsync()];
             }
-            List<Commands.Presets.GuildDependentPreset> guildDependentPresets = Commands.Presets.GetPresetsAsGuildDependent(presetSents);
+            List<Api.GuildDependentPreset> guildDependentPresets = Api.GetPresetsAsGuildDependent(presetSents);
 
             int itemsPerPage = Program.AppSettings.ListMessageItemsPerPage;
             await ListMessages.SendNew(context, page, $"{(type != null ? $"{type} " : "")}Presets List",
-                Task<PageInfo<Commands.Presets.GuildDependentPreset>> (int page) =>
+                Task<PageInfo<Api.GuildDependentPreset>> (int page) =>
                 {
                     int totalPresets = guildDependentPresets.Count;
 
-                    Commands.Presets.GuildDependentPreset[] presetsInPage = [.. guildDependentPresets
+                    Api.GuildDependentPreset[] presetsInPage = [.. guildDependentPresets
                         .Skip((page - 1) * itemsPerPage)
                         .Take(itemsPerPage)];
 
-                    PageInfo<Commands.Presets.GuildDependentPreset> pageInfo = new()
+                    PageInfo<Api.GuildDependentPreset> pageInfo = new()
                     {
                         Elements = presetsInPage,
                         CurrentPage = page,
@@ -55,7 +55,7 @@ namespace OpenQotd.Core.Presets.Commands
                 }, ListPresetToString);
         }
 
-        private static string ListPresetToString(Commands.Presets.GuildDependentPreset preset, int rank)
+        private static string ListPresetToString(Api.GuildDependentPreset preset, int rank)
             => preset.ToString();
     }
 }

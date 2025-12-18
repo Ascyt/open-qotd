@@ -6,7 +6,7 @@ using System.ComponentModel;
 
 namespace OpenQotd.Core.Configs.Commands
 {
-    public sealed partial class Commands
+    public sealed partial class ConfigCommand
     {
         [Command("get")]
         [Description("Get all config values")]

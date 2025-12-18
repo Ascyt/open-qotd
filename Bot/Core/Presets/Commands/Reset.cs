@@ -9,7 +9,7 @@ using System.ComponentModel;
 
 namespace OpenQotd.Core.Presets.Commands
 {
-    public sealed partial class Presets
+    public sealed partial class PresetsCommand
     {
         [Command("reset")]
         [Description("Reset the active state of all presets, making them all QOTD-sendable again.")]

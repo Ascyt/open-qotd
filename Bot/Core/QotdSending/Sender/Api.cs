@@ -1,24 +1,25 @@
-﻿using OpenQotd.Database;
-using OpenQotd.Database.Entities;
-using OpenQotd.Helpers;
-using DSharpPlus.Entities;
+﻿using DSharpPlus.Entities;
 using DSharpPlus.Exceptions;
 using Microsoft.EntityFrameworkCore;
-using OpenQotd.Helpers.Suggestions;
+using OpenQotd.Core.Configs.Entities;
+using OpenQotd.Core.Database;
+using OpenQotd.Core.Helpers;
+using OpenQotd.Core.Presets.Entities;
+using OpenQotd.Core.Questions.Entities;
 
-namespace OpenQotd.QotdSending
+namespace OpenQotd.Core.QotdSending.Sender
 {
     /// <summary>
     /// Sends QOTD messages to guilds based on their configuration and available questions.
     /// </summary>
-    public class QotdSender
+    public class Api
     {
         /// <summary>
         /// Fetches the guild by ID and tries to send the next QOTD.
         /// </summary>
         /// <returns>Whether or not the guild was found.</returns>
         /// <exception cref="QotdSendException"></exception>
-        public static async Task<bool> FetchGuildAndSendNextQotdAsync(Config config, Notices.Notice? latestAvailableNotice)
+        public static async Task<bool> FetchGuildAndSendNextQotdAsync(Config config, Notices.Api.Notice? latestAvailableNotice)
         {
             DiscordGuild guild;
             try
@@ -50,15 +51,15 @@ namespace OpenQotd.QotdSending
         /// Sends the next QOTD to the specified guild.
         /// </summary>
         /// <exception cref="QotdSendException"></exception>
-        public static async Task SendNextQotdAsync(DiscordGuild guild, Config config, Notices.Notice? latestAvaliableNotice)
+        public static async Task SendNextQotdAsync(DiscordGuild guild, Config config, Notices.Api.Notice? latestAvaliableNotice)
         {
-            await SendQotdAsync(guild, config, await QotdSenderHelpers.GetRandomQotd(config), latestAvaliableNotice);
+            await SendQotdAsync(guild, config, await Helpers.GetRandomQotd(config), latestAvaliableNotice);
         }
 
         /// <summary>
         /// Sends the specified QOTD or a preset/unavailable message if null.
         /// </summary>
-        public static async Task SendQotdAsync(DiscordGuild guild, Config config, Question? question, Notices.Notice? latestAvailableNotice)
+        public static async Task SendQotdAsync(DiscordGuild guild, Config config, Question? question, Notices.Api.Notice? latestAvailableNotice)
         {
             // Fetch the config and update the last sent timestamp
             DateTime? previousLastSentTimestamp;
@@ -104,7 +105,7 @@ namespace OpenQotd.QotdSending
                         .ToListAsync();
                 }
 
-                if (presetSents.Count < Presets.Values.Length)
+                if (presetSents.Count < Presets.Api.Presets.Length)
                 {
                     await SendQotdPresetAsync(sendQotdData, presetSents);
                     return;
@@ -130,7 +131,7 @@ namespace OpenQotd.QotdSending
                 GenericEmbeds.Custom(title: $"No {d.QotdShorthand} Available", message: $"There is currently no {d.QotdTitle}" +
                 $"{(d.config.EnableQotdAutomaticPresets ? " or Preset question" : "")} available." +
                 (d.config.EnableSuggestions ? $"\n\n*Suggest some using `{d.SuggestCommand}`!*" : ""), color: "#dc5051"));
-            QotdSenderHelpers.AddButtonsIfEnabled(d.config, question, messageBuilder);
+            Helpers.AddButtonsIfEnabled(d.config, question, messageBuilder);
 
             await qotdChannel.SendMessageAsync(messageBuilder);
             await SendNoticeIfAvailable(d);
@@ -143,12 +144,12 @@ namespace OpenQotd.QotdSending
         {
             DiscordChannel qotdChannel = await d.GetQotdChannelAsync();
 
-            int presetIndex = QotdSenderHelpers.GetRandomPreset(presetSents);
-            int presetsAvailable = Presets.Values.Length - presetSents.Count;
+            int presetIndex = Helpers.GetRandomPreset(presetSents);
+            int presetsAvailable = Presets.Api.Presets.Length - presetSents.Count;
 
             DiscordEmbedBuilder presetEmbed = 
                 GenericEmbeds.Custom($"{d.QotdTitle}",
-                $"{Presets.Values[presetIndex]}" + (d.config.EnableQotdShowCredit ? (
+                $"{Presets.Api.Presets[presetIndex]}" + (d.config.EnableQotdShowCredit ? (
                     $"\n\n" +
                     $"*Preset Question*") : ""
                     ),
@@ -160,9 +161,9 @@ namespace OpenQotd.QotdSending
 
             DiscordMessageBuilder messageBuilder = new();
             messageBuilder.AddEmbed(presetEmbed);
-            await QotdSenderHelpers.AddPingRoleIfEnabledAndExistent(d, messageBuilder);
+            await Helpers.AddPingRoleIfEnabledAndExistent(d, messageBuilder);
 
-            QotdSenderHelpers.AddButtonsIfEnabled(d.config, null, messageBuilder);
+            Helpers.AddButtonsIfEnabled(d.config, null, messageBuilder);
 
             DiscordMessage sentMessage = await qotdChannel.SendMessageAsync(messageBuilder);
 
@@ -182,8 +183,8 @@ namespace OpenQotd.QotdSending
             }
 
             await SendNoticeIfAvailable(d);
-            await QotdSenderHelpers.PinMessageIfEnabled(d, sentMessage);
-            await QotdSenderHelpers.CreateThreadIfEnabled(d, sentMessage, null);
+            await Helpers.PinMessageIfEnabled(d, sentMessage);
+            await Helpers.CreateThreadIfEnabled(d, sentMessage, null);
         }
         /// <summary>
         /// Send a custom QOTD question to the specified guild.
@@ -192,9 +193,9 @@ namespace OpenQotd.QotdSending
         {
             DiscordMessageBuilder messageBuilder = new();
 
-            await QotdSenderHelpers.AddPingRoleIfEnabledAndExistent(d, messageBuilder); 
+            await Helpers.AddPingRoleIfEnabledAndExistent(d, messageBuilder); 
 
-            QotdSenderHelpers.AddButtonsIfEnabled(d.config, question, messageBuilder);
+            Helpers.AddButtonsIfEnabled(d.config, question, messageBuilder);
 
             int acceptedQuestionsCount;
             int sentQuestionsCount;
@@ -261,7 +262,7 @@ namespace OpenQotd.QotdSending
                 {
                     presetsSent = await dbContext.PresetSents.Where(ps => ps.ConfigId == d.config.Id).CountAsync();
                 }
-                int presetsLeft = Presets.Values.Length - presetsSent;
+                int presetsLeft = Presets.Api.Presets.Length - presetsSent;
 
                 // TODO: Enable once #65 is added
                 lastQuestionWarning.AddEmbed(
@@ -274,8 +275,8 @@ namespace OpenQotd.QotdSending
 
             await SendNoticeIfAvailable(d);
 
-            await QotdSenderHelpers.PinMessageIfEnabled(d, sentMessage);
-            await QotdSenderHelpers.CreateThreadIfEnabled(d, sentMessage, sentQuestionsCount);
+            await Helpers.PinMessageIfEnabled(d, sentMessage);
+            await Helpers.CreateThreadIfEnabled(d, sentMessage, sentQuestionsCount);
         }
 
         private static async Task AlterQuestionAfterSent(AppDbContext dbContext, SendQotdData d, Question question)
@@ -308,7 +309,7 @@ namespace OpenQotd.QotdSending
                     return;
                 case Config.AlterQuestionAfterSentOption.QuestionToSuggested:
                     question.Type = QuestionType.Suggested;
-                    await SuggestionsHelpers.TryResetSuggestionMessageIfEnabledAsync(question, d.config, d.guild);
+                    await Suggestions.Helpers.General.TryResetSuggestionMessageIfEnabledAsync(question, d.config, d.guild);
                     return;
                 case Config.AlterQuestionAfterSentOption.RemoveQuestion:
                     if (d.config.EnableDeletedToStash)
@@ -346,7 +347,7 @@ namespace OpenQotd.QotdSending
         /// <summary>
         /// Sends a specified notice to the specified channel.
         /// </summary>
-        private static async Task SendNotice(DiscordChannel qotdChannel, Notices.Notice notice)
+        private static async Task SendNotice(DiscordChannel qotdChannel, Notices.Api.Notice notice)
         {
             DiscordMessageBuilder noticeMessageBuilder = new();
             DiscordEmbedBuilder noticeEmbed = GenericEmbeds.Custom(

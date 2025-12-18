@@ -5,12 +5,11 @@ using DSharpPlus.Entities;
 using DSharpPlus.EventArgs;
 using OpenQotd.Core.Configs.Entities;
 using OpenQotd.Core.Helpers;
-using OpenQotd.QotdSending;
 using System.ComponentModel;
 
 namespace OpenQotd.Core.UncategorizedCommands
 {
-    public sealed class Help
+    public sealed class HelpCommand
     {
         [Command("help")]
         [Description("Print general information about OpenQOTD")]
@@ -90,7 +89,7 @@ namespace OpenQotd.Core.UncategorizedCommands
                 else if ((await Permissions.Api.Admin.UserIsAdmin(guild, member, config)).Item1)
                     userRole = $"{config.QotdShorthandText} Administrator (excl. `/config` and `/profiles`)";
 
-                DateTime? nextQotdTime = await QotdSenderTimer.GetConfigNextSendTime(config.Id);
+                DateTime? nextQotdTime = await QotdSending.Timer.Api.GetConfigNextSendTime(config.Id);
 
                 configValuesDescription =
                     $"- Is default profile: {config.IsDefaultProfile}\n" +

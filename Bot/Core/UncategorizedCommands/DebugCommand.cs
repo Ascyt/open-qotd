@@ -11,7 +11,7 @@ using OpenQotd.Core.Questions.Entities;
 
 namespace OpenQotd.Core.UncategorizedCommands
 {
-    public sealed class Debug
+    public sealed class DebugCommand
     {
         public static readonly HashSet<ulong> sudoUserIds = [];
 
@@ -267,7 +267,7 @@ namespace OpenQotd.Core.UncategorizedCommands
                     }
                     if (argsSplit[1] == "reload" || argsSplit[1] == "load")
                     {
-                        await Notices.LoadNoticesAsync();
+                        await Notices.Api.LoadNoticesAsync();
                         await context.RespondAsync("Successfully reloaded notices.");
                         return;
                     }
@@ -276,11 +276,11 @@ namespace OpenQotd.Core.UncategorizedCommands
 
                     DiscordMessage message = await context.Channel.GetMessageAsync(messageId);
 
-                    Notices.Notice newNotice = new() { Date = DateTime.Parse(date), NoticeText = message.Content, IsImportant = isImportant };
+                    Notices.Api.Notice newNotice = new() { Date = DateTime.Parse(date), NoticeText = message.Content, IsImportant = isImportant };
 
-                    Notices.notices.Add(newNotice);
+                    Notices.Api.notices.Add(newNotice);
 
-                    await Notices.SaveNoticesAsync();
+                    await Notices.Api.SaveNoticesAsync();
 
                     await context.RespondAsync("Successfully added new notice.");
                     return;

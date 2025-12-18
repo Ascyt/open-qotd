@@ -30,8 +30,8 @@ namespace OpenQotd.Core.ActivitySwitcher
 
         public static async Task SwitchToRandomActivityAsync()
         {
-            int presetIndex = _random.Next(Presets.Values.Length);
-            string activity = Presets.Values[presetIndex];
+            int presetIndex = _random.Next(Presets.Api.Presets.Length);
+            string activity = Presets.Api.Presets[presetIndex];
 
             if (activity == _lastActivity)
             {

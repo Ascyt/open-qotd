@@ -3,7 +3,7 @@
 namespace OpenQotd.Core.Presets.Commands
 {
     [Command("presets")]
-    public sealed partial class Presets
+    public sealed partial class PresetsCommand
     {
         public enum PresetsType
         {

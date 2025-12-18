@@ -1,12 +1,14 @@
-﻿using OpenQotd.Database.Entities;
-using OpenQotd.Database;
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
 using DSharpPlus.Entities;
 using DSharpPlus.Exceptions;
-using OpenQotd.Helpers;
-using OpenQotd.Exceptions;
+using OpenQotd.Core.Configs.Entities;
+using OpenQotd.Core.Exceptions;
+using OpenQotd.Core.Questions.Entities;
+using OpenQotd.Core.Database;
+using OpenQotd.Core.Presets.Entities;
+using OpenQotd.Core.Helpers;
 
-namespace OpenQotd.QotdSending
+namespace OpenQotd.Core.QotdSending.Sender
 {
     /// <summary>
     /// Data required to send a QOTD to a guild.
@@ -17,7 +19,7 @@ namespace OpenQotd.QotdSending
         public DiscordGuild guild;
 
         public DateTime? previousLastSentTimestamp;
-        public Notices.Notice? latestAvailableNotice;
+        public Notices.Api.Notice? latestAvailableNotice;
 
         public readonly string QotdTitle => config.QotdTitleText;
         public readonly string QotdShorthand => config.QotdShorthandText;
@@ -46,7 +48,7 @@ namespace OpenQotd.QotdSending
     /// <summary>
     /// Provides helper methods for managing and sending QOTD messages.
     /// </summary>
-    internal class QotdSenderHelpers
+    internal class Helpers
     {
         /// <summary>
         /// Selects a random accepted question from the database for the specified guild.
@@ -78,7 +80,7 @@ namespace OpenQotd.QotdSending
         /// <exception cref="Exception">Thrown if the method fails to find an unused preset within a reasonable number of attempts.</exception>
         public static int GetRandomPreset(List<PresetSent> presetSents)
         {
-            bool[] isPresetUsed = new bool[Presets.Values.Length];
+            bool[] isPresetUsed = new bool[Presets.Api.Presets.Length];
             foreach (PresetSent ps in presetSents)
             {
                 isPresetUsed[ps.PresetIndex] = true;
@@ -88,7 +90,7 @@ namespace OpenQotd.QotdSending
             int timeToLive = 0x1_000_000;
             do
             {
-                index = Random.Shared.Next(Presets.Values.Length);
+                index = Random.Shared.Next(Presets.Api.Presets.Length);
                 timeToLive--;
             }
             while (isPresetUsed[index] && timeToLive > 0);

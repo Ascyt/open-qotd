@@ -51,7 +51,7 @@ namespace OpenQotd.Core.Questions.Commands
                 if (originalTypes[question.GuildDependentId] == QuestionType.Suggested)
                 {
                     // Set suggestion message to modified state
-                    await Helpers.Suggestions.General.TrySetSuggestionMessageToModifiedIfEnabledAsync(question, config, context.Guild!);
+                    await Suggestions.Helpers.General.TrySetSuggestionMessageToModifiedIfEnabledAsync(question, config, context.Guild!);
                     await Task.Delay(100); // Prevent rate-limit
                 }
             }

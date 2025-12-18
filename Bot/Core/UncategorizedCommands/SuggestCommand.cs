@@ -3,7 +3,6 @@ using DSharpPlus.Commands.Processors.SlashCommands;
 using DSharpPlus.Entities;
 using System.ComponentModel;
 using DSharpPlus.Commands.Processors.SlashCommands.ArgumentModifiers;
-using OpenQotd.EventHandlers.Suggestions;
 using OpenQotd.Core.Configs.Entities;
 using OpenQotd.Core.Helpers;
 
@@ -32,7 +31,7 @@ namespace OpenQotd.Core.UncategorizedCommands
                 return;
             }
 
-            DiscordModalBuilder modal = CreateSuggestionEventHandlers.GetQotdModal(config, context.Guild!.Name);
+            DiscordModalBuilder modal = Suggestions.EventHandlers.CreateSuggestion.GetQotdModal(config, context.Guild!.Name);
 
             await (context as SlashCommandContext)!.RespondWithModalAsync(modal);
         }

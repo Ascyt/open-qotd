@@ -2,7 +2,7 @@
 using System.Text.Json;
 using System.Text.Json.Serialization;
 
-namespace OpenQotd
+namespace OpenQotd.Notices
 {
     /// <summary>
     /// Notices are messages that are written by developers and added under sent QOTDs as embeds.
@@ -10,7 +10,7 @@ namespace OpenQotd
     /// <remarks>
     /// They are stored in `notices.json`.
     /// </remarks>
-    public static class Notices
+    public static class Api
     {
         /// <summary>
         /// Represents a notice message with a date, text and importance flag.

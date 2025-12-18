@@ -1,8 +1,6 @@
 ﻿using DSharpPlus.Commands;
 using DSharpPlus.Entities;
 using DSharpPlus.Exceptions;
-using OpenQotd.Core.Configs.Entities;
-using OpenQotd.Core.Questions.Entities;
 
 namespace OpenQotd.Core.Helpers
 {

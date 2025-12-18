@@ -18,7 +18,7 @@ namespace OpenQotd.Core.UncategorizedCommands
         [Command("topic")]
         [Description("Sends a random Sent QOTD to the current channel.")]
         public static async Task TopicAsync(CommandContext context,
-            [Description("Which OpenQOTD profile to take the topic from.")][SlashAutoCompleteProvider<ViewableProfilesAutoCompleteProvider>] int from,
+            [Description("Which OpenQOTD profile to take the topic from.")][SlashAutoCompleteProvider<Profiles.AutoCompleteProviders.ViewableProfiles>] int from,
             [Description("Includes all Preset questions if enabled in the config.")] bool includePresets=true)
         {
             int profileId = from;
@@ -122,7 +122,7 @@ namespace OpenQotd.Core.UncategorizedCommands
 
             if (includePresets)
             {
-                int totalQuestionCount = questions.Length + Presets.Values.Length;
+                int totalQuestionCount = questions.Length + Presets.Api.Presets.Length;
                 if (Random.Shared.Next(totalQuestionCount) >= questions.Length)
                 {
                     usePresets = true;
@@ -141,8 +141,8 @@ namespace OpenQotd.Core.UncategorizedCommands
             }
             else
             {
-                int presetId = Random.Shared.Next(Presets.Values.Length);
-                string preset = Presets.Values[presetId];
+                int presetId = Random.Shared.Next(Presets.Api.Presets.Length);
+                string preset = Presets.Api.Presets[presetId];
 
                 embed = GenericEmbeds.Info(
                     title: preset,

@@ -1,8 +1,6 @@
-using OpenQotd.Database.Entities;
-
-namespace OpenQotd.QotdSending
+namespace OpenQotd.Core.QotdSending.Timer
 {
-    public class QotdSenderTimeCalculations
+    public class TimeCalculations
     {
         public static DateTime GetNextSendTime(
             DateTime? lastSentTimestamp,
@@ -142,7 +140,7 @@ namespace OpenQotd.QotdSending
                         int month = today.Month;
                         int dim = DateTime.DaysInMonth(year, month);
 
-                        // Try current month — snap requested day to last day if it exceeds month length
+                        // Try current month ï¿½ snap requested day to last day if it exceeds month length
                         foreach (int d in allowedDaysOfMonth)
                         {
                             if (d < 1) continue;
@@ -157,7 +155,7 @@ namespace OpenQotd.QotdSending
                             );
                         }
 
-                        // Try next 12 months — snap to last day per month as needed
+                        // Try next 12 months ï¿½ snap to last day per month as needed
                         for (int offset = 1; offset <= 12; offset++)
                         {
                             int m = month + offset;

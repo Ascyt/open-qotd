@@ -7,7 +7,6 @@ using Microsoft.EntityFrameworkCore;
 using OpenQotd.Core.Configs.Entities;
 using OpenQotd.Core.Database;
 using OpenQotd.Core.Helpers;
-using OpenQotd.QotdSending;
 using System.ComponentModel;
 
 namespace OpenQotd.Core.Profiles.Commands
@@ -95,7 +94,7 @@ namespace OpenQotd.Core.Profiles.Commands
                 await dbContext.SaveChangesAsync();
             }
 
-            QotdSenderTimer.ConfigIdsToRemoveFromCache.Add(config.Id);
+            QotdSending.Timer.Api.ConfigIdsToRemoveFromCache.Add(config.Id);
 
             await sentMessage.ModifyAsync(new DiscordMessageBuilder()
                 .AddEmbed(GenericEmbeds.Success("Profile Deleted", $"The **{config.ProfileName}** profile has been successfully deleted.")));

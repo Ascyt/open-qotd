@@ -1,6 +1,6 @@
-﻿using OpenQotd.Database.Entities;
+﻿using OpenQotd.Core.Presets.Entities;
 
-namespace OpenQotd
+namespace OpenQotd.Core.Presets
 {
     /// <summary>
     /// Presets are predefined questions that can be sent as QOTDs. 
@@ -9,7 +9,7 @@ namespace OpenQotd
     /// Questions of type <see cref="QuestionType.Accepted"/> always take priority over presets when sending QOTDs. <br />
     /// Presets are stored in the `presets.txt` file, with one question per line.
     /// </remarks>
-    public static class Presets
+    public static class Api
     {
         /// <summary>
         /// Represents a preset question along with its ID and whether it has been sent in a certain guild.
@@ -29,7 +29,7 @@ namespace OpenQotd
             /// <summary>
             /// The text of the preset question.
             /// </summary>
-            public string Text { get => Values[Id]; }
+            public string Text { get => Presets[Id]; }
 
             public override string ToString()
                 => $"{(IsSent ? ":no_entry_sign:" : ":white_check_mark:")} \"**{Text}**\" (ID: `{Id}`)";
@@ -41,16 +41,16 @@ namespace OpenQotd
         /// <remarks>
         /// The index of each question in this array serves as its unique ID.
         /// </remarks>
-        public static string[] Values { get; private set; } = null!;
+        public static string[] Presets { get; private set; } = null!;
 
         /// <summary>
         /// Load all presets from the `presets.txt` file.
         /// </summary>
         public static async Task LoadPresetsAsync()
         {
-            Values = await File.ReadAllLinesAsync("presets.txt");
+            Presets = await File.ReadAllLinesAsync("presets.txt");
 
-            Values = [..Values
+            Presets = [..Presets
                 .ToList()
                 .Where(v => !string.IsNullOrEmpty(v))];
         }
@@ -62,7 +62,7 @@ namespace OpenQotd
         {
             List<GuildDependentPreset> output = [];
 
-            for (int i = 0; i < Values.Length; i++)
+            for (int i = 0; i < Presets.Length; i++)
             {
                 output.Add(new GuildDependentPreset(i, presetSents.Any(ps => ps.PresetIndex == i)));
             }

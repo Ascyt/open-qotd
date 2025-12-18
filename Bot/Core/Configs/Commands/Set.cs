@@ -5,7 +5,7 @@ using System.ComponentModel;
 
 namespace OpenQotd.Core.Configs.Commands
 {
-    public sealed partial class Commands
+    public sealed partial class ConfigCommand
     {
         [Command("set")]
         public sealed class ConfigSetCommand

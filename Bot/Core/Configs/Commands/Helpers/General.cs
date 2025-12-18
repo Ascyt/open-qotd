@@ -3,7 +3,6 @@ using DSharpPlus.Entities;
 using OpenQotd.Core.Configs.Entities;
 using OpenQotd.Core.Database;
 using OpenQotd.Core.Helpers;
-using OpenQotd.QotdSending;
 
 namespace OpenQotd.Core.Configs.Commands.Helpers
 {
@@ -151,7 +150,7 @@ namespace OpenQotd.Core.Configs.Commands.Helpers
                 await dbContext.SaveChangesAsync();   
             }
 
-            QotdSenderTimer.ConfigIdsToRecache.Add(config.Id);
+            QotdSending.Timer.Api.ConfigIdsToRecache.Add(config.Id);
 
             string configString = config.ToString();
 

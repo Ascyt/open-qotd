@@ -8,7 +8,7 @@ using System.ComponentModel;
 
 namespace OpenQotd.Core.Presets.Commands
 {
-    public sealed partial class Presets
+    public sealed partial class PresetsCommand
     {
         [Command("setactive")]
         [Description("Set whether a preset is enabled to be sent as QOTD or not.")]
@@ -25,9 +25,9 @@ namespace OpenQotd.Core.Presets.Commands
 
             await Helpers.General.PrintPresetDisabledWarningIfRequired(context, config);
 
-            if (id < 0 || id >= Commands.Presets.Values.Length)
+            if (id < 0 || id >= Api.Presets.Length)
             {
-                await context.RespondAsync(GenericEmbeds.Error($"ID must be between 0 and {Commands.Presets.Values.Length - 1}."));
+                await context.RespondAsync(GenericEmbeds.Error($"ID must be between 0 and {Api.Presets.Length - 1}."));
                 return;
             }
 
@@ -58,7 +58,7 @@ namespace OpenQotd.Core.Presets.Commands
                     await dbContext.SaveChangesAsync();
             }
 
-            string presetString = (new Commands.Presets.GuildDependentPreset(id, !active)).ToString();
+            string presetString = new Api.GuildDependentPreset(id, !active).ToString();
             if (changesMade)
             {
                 await context.RespondAsync(

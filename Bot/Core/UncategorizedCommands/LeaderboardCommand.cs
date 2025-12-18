@@ -9,7 +9,7 @@ using System.ComponentModel;
 
 namespace OpenQotd.Core.UncategorizedCommands
 {
-    public sealed class Leaderboard
+    public sealed class LeaderboardCommand
     {
         private class LeaderboardEntry
         {

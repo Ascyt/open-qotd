@@ -4,7 +4,7 @@ using DSharpPlus.EventArgs;
 using Microsoft.EntityFrameworkCore;
 using OpenQotd.Core.Configs.Entities;
 using OpenQotd.Core.Database;
-using OpenQotd.Exceptions;
+using OpenQotd.Core.Exceptions;
 
 namespace OpenQotd.Core.Profiles
 {

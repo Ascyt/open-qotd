@@ -22,28 +22,23 @@ namespace OpenQotd.Core.EventHandlers
                     if (!await Helpers.General.HasExactlyNArguments(args, idArgs, 2))
                         return;
 
-                    await SuggestionNotificationsEventHandlers.SuggestionsDenyReasonModalSubmitted(args, int.Parse(idArgs[1]), int.Parse(idArgs[2]));
+                    await Suggestions.EventHandlers.SuggestionNotification.SuggestionsDenyReasonModalSubmitted(args, int.Parse(idArgs[1]), int.Parse(idArgs[2]));
                     return;
                 case "suggest-qotd":
                     if (!await Helpers.General.HasExactlyNArguments(args, idArgs, 1))
                         return;
 
-                    await CreateSuggestionEventHandlers.SuggestQotdModalSubmitted(args, int.Parse(idArgs[1]));
+                    await Suggestions.EventHandlers.CreateSuggestion.SuggestQotdModalSubmitted(args, int.Parse(idArgs[1]));
                     return;
                 case "questions-add":
                     if (!await Helpers.General.HasExactlyNArguments(args, idArgs, 1))
                         return;
 
-                    await QuestionsEventHandlers.QuestionsAddModalSubmitted(args, int.Parse(idArgs[1]));
+                    await Questions.EventHandlers.General.QuestionsAddModalSubmitted(args, int.Parse(idArgs[1]));
                     return;
             }
 
             await Helpers.General.RespondWithError(args, $"Unknown event: `{args.Interaction.Data.CustomId}`");
-        }
-
-        public static async Task GuildCreated(DiscordClient client, GuildCreatedEventArgs args)
-        {
-            await OnGuildCreated.SendMessage(args);
         }
     }
 }

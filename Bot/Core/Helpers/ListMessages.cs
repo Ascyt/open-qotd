@@ -93,7 +93,7 @@ namespace OpenQotd.Core.Helpers
             {
                 if (result.Result.User.Id != context.User.Id)
                 {
-                    await EventHandlers.EventHandlers.RespondWithError(result.Result, "You cannot interact with a different user's list message.");
+                    await EventHandlers.Helpers.General.RespondWithError(result.Result, "You cannot interact with a different user's list message.");
                     result = await message.WaitForButtonAsync();
                     continue;
                 }

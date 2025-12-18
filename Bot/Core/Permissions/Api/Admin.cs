@@ -1,8 +1,9 @@
-﻿using DSharpPlus.Commands;
+﻿using System.Diagnostics;
+using DSharpPlus.Commands;
 using DSharpPlus.Entities;
 using DSharpPlus.EventArgs;
 using DSharpPlus.Exceptions;
-using OpenQotd.Commands;
+using OpenQotd.Core.Configs.Commands;
 using OpenQotd.Core.Configs.Entities;
 using OpenQotd.Core.Database;
 
@@ -17,7 +18,7 @@ namespace OpenQotd.Core.Permissions.Api
         {
             if (!context.Member!.Permissions.HasPermission(DiscordPermission.Administrator))
             {
-                if (Debug.sudoUserIds.Contains(context.User.Id))
+                if (UncategorizedCommands.DebugCommand.sudoUserIds.Contains(context.User.Id))
                     return true;
 
                 if (responseOnError)
@@ -93,7 +94,7 @@ namespace OpenQotd.Core.Permissions.Api
                 return (true, null);
             }
 
-            if (Debug.sudoUserIds.Contains(member.Id))
+            if (UncategorizedCommands.DebugCommand.sudoUserIds.Contains(member.Id))
                 return (true, null);
 
             DiscordRole role;

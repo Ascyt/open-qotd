@@ -32,19 +32,19 @@ namespace OpenQotd.Core.EventHandlers
                     if (!await Helpers.General.HasExactlyNArguments(args, idArgs, 2))
                         return;
 
-                    await SuggestionNotificationsEventHandlers.SuggestionsAcceptButtonClicked(args, int.Parse(idArgs[1]), int.Parse(idArgs[2]));
+                    await Suggestions.EventHandlers.SuggestionNotification.SuggestionsAcceptButtonClicked(args, int.Parse(idArgs[1]), int.Parse(idArgs[2]));
                     return;
                 case "suggestions-deny":
                     if (!await Helpers.General.HasExactlyNArguments(args, idArgs, 2))
                         return;
 
-                    await SuggestionNotificationsEventHandlers.SuggestionsDenyButtonClicked(args, int.Parse(idArgs[1]), int.Parse(idArgs[2]));
+                    await Suggestions.EventHandlers.SuggestionNotification.SuggestionsDenyButtonClicked(args, int.Parse(idArgs[1]), int.Parse(idArgs[2]));
                     return;
                 case "suggest-qotd":
                     if (!await Helpers.General.HasExactlyNArguments(args, idArgs, 1))
                         return;
 
-                    await CreateSuggestionEventHandlers.SuggestQotdButtonClicked(args, int.Parse(idArgs[1]));
+                    await Suggestions.EventHandlers.CreateSuggestion.SuggestQotdButtonClicked(args, int.Parse(idArgs[1]));
                     return;
 
                 case "show-qotd-notes":
@@ -76,7 +76,7 @@ namespace OpenQotd.Core.EventHandlers
                     if (!await Helpers.General.HasExactlyNArguments(args, idArgs, 0))
                         return;
 
-                    await Help.OnProfileSelectChanged(args);
+                    await HelpCommand.OnProfileSelectChanged(args);
                     return;
 
                 case "forward":
@@ -90,7 +90,7 @@ namespace OpenQotd.Core.EventHandlers
                     return;
             }
 
-            await RespondWithError(args, $"Unknown event: `{args.Id}`");
+            await Helpers.General.RespondWithError(args, $"Unknown event: `{args.Id}`");
         }
 
         public static async Task ModalSubmittedEvent(DiscordClient client, ModalSubmittedEventArgs args)
@@ -99,38 +99,33 @@ namespace OpenQotd.Core.EventHandlers
 
             if (idArgs.Length == 0)
             {
-                await RespondWithError(args, "Interaction ID is empty");
+                await Helpers.General.RespondWithError(args, "Interaction ID is empty");
                 return;
             }
 
             switch (idArgs[0])
             {
                 case "suggestions-deny":
-                    if (!await HasExactlyNArguments(args, idArgs, 2))
+                    if (!await Helpers.General.HasExactlyNArguments(args, idArgs, 2))
                         return;
 
-                    await SuggestionNotificationsEventHandlers.SuggestionsDenyReasonModalSubmitted(args, int.Parse(idArgs[1]), int.Parse(idArgs[2]));
+                    await Suggestions.EventHandlers.SuggestionNotification.SuggestionsDenyReasonModalSubmitted(args, int.Parse(idArgs[1]), int.Parse(idArgs[2]));
                     return;
                 case "suggest-qotd":
-                    if (!await HasExactlyNArguments(args, idArgs, 1))
+                    if (!await Helpers.General.HasExactlyNArguments(args, idArgs, 1))
                         return;
 
-                    await CreateSuggestionEventHandlers.SuggestQotdModalSubmitted(args, int.Parse(idArgs[1]));
+                    await Suggestions.EventHandlers.CreateSuggestion.SuggestQotdModalSubmitted(args, int.Parse(idArgs[1]));
                     return;
                 case "questions-add":
-                    if (!await HasExactlyNArguments(args, idArgs, 1))
+                    if (!await Helpers.General.HasExactlyNArguments(args, idArgs, 1))
                         return;
 
-                    await QuestionsEventHandlers.QuestionsAddModalSubmitted(args, int.Parse(idArgs[1]));
+                    await Questions.EventHandlers.General.QuestionsAddModalSubmitted(args, int.Parse(idArgs[1]));
                     return;
             }
 
-            await RespondWithError(args, $"Unknown event: `{args.Interaction.Data.CustomId}`");
-        }
-
-        public static async Task GuildCreated(DiscordClient client, GuildCreatedEventArgs args)
-        {
-            await OnGuildCreated.SendMessage(args);
+            await Helpers.General.RespondWithError(args, $"Unknown event: `{args.Interaction.Data.CustomId}`");
         }
     }
 }

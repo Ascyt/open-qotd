@@ -1,15 +1,15 @@
-﻿using OpenQotd.Database;
-using Microsoft.EntityFrameworkCore;
-using OpenQotd.Exceptions;
-using OpenQotd.Database.Entities;
+﻿using Microsoft.EntityFrameworkCore;
+using OpenQotd.Core.Configs.Entities;
+using OpenQotd.Core.Database;
+using OpenQotd.Core.Exceptions;
 using System.Collections.Concurrent;
 
-namespace OpenQotd.QotdSending
+namespace OpenQotd.Core.QotdSending.Timer
 {
     /// <summary>
     /// Periodic timer that checks which configs need to be sent a QOTD and sends them.
     /// </summary>
-    public class QotdSenderTimer
+    public class Api
     {
         private class CachedConfig
         {
@@ -92,7 +92,7 @@ namespace OpenQotd.QotdSending
                 .Select(c => new CachedConfig
                 {
                     ConfigId = c.Id,
-                    NextSendTime = QotdSenderTimeCalculations.GetNextSendTime(c.LastSent, c.Hour, c.Minute, c.DayCondition, c.DayConditionLastChanged)
+                    NextSendTime = TimeCalculations.GetNextSendTime(c.LastSent, c.Hour, c.Minute, c.DayCondition, c.DayConditionLastChanged)
                 })
                 .Select(c => new KeyValuePair<int, CachedConfig>(c.ConfigId, c)));
 
@@ -186,7 +186,7 @@ namespace OpenQotd.QotdSending
 
         private static void RecacheElement(ConfigToSendElement config)
         {
-            DateTime nextSendTime = QotdSenderTimeCalculations.GetNextSendTime(config.LastSent, config.Hour, config.Minute, config.DayCondition, config.DayConditionLastChanged);
+            DateTime nextSendTime = TimeCalculations.GetNextSendTime(config.LastSent, config.Hour, config.Minute, config.DayCondition, config.DayConditionLastChanged);
             CachedConfig newCachedConfig = new() { ConfigId = config.Id, NextSendTime = nextSendTime };
             lock (_cacheLock)
             {
@@ -253,7 +253,7 @@ namespace OpenQotd.QotdSending
             if (configs.Length == 0)
                 return;
 
-            Notices.Notice? latestAvailableNotice = Notices.GetLatestAvailableNotice();
+            Notices.Api.Notice? latestAvailableNotice = Notices.Api.GetLatestAvailableNotice();
 
             // Send QOTDs in parallel, but limit the degree of parallelism to avoid overwhelming the database or Discord API
             ParallelOptions options = new()
@@ -271,12 +271,12 @@ namespace OpenQotd.QotdSending
         /// <summary>
         /// Send the next QOTD for the guild and catch, ignore/print all exceptions and add it back to cache if necessary.
         /// </summary>
-        private static async Task SendNextQotdIgnoreExceptionsRecacheIfNecessary(Config config, Notices.Notice? latestAvailableNotice)
+        private static async Task SendNextQotdIgnoreExceptionsRecacheIfNecessary(Config config, Notices.Api.Notice? latestAvailableNotice)
         {
             bool shouldRecache = true;
             try
             {
-                shouldRecache = await QotdSender.FetchGuildAndSendNextQotdAsync(config, latestAvailableNotice);
+                shouldRecache = await Sender.Api.FetchGuildAndSendNextQotdAsync(config, latestAvailableNotice);
             }
             catch (QotdChannelNotFoundException)
             {

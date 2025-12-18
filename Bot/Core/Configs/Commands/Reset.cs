@@ -3,12 +3,11 @@ using DSharpPlus.Entities;
 using OpenQotd.Core.Configs.Entities;
 using OpenQotd.Core.Database;
 using OpenQotd.Core.Helpers;
-using OpenQotd.QotdSending;
 using System.ComponentModel;
 
 namespace OpenQotd.Core.Configs.Commands
 {
-    public sealed partial class Commands
+    public sealed partial class ConfigCommand
     {        
         public enum SingleOption
         {
@@ -112,7 +111,7 @@ namespace OpenQotd.Core.Configs.Commands
                 await dbContext.SaveChangesAsync();
             }
 
-            QotdSenderTimer.ConfigIdsToRecache.Add(config.Id);
+            QotdSending.Timer.Api.ConfigIdsToRecache.Add(config.Id);
 
             string configString = config.ToString();
 
