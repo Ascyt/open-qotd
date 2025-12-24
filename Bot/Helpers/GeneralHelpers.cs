@@ -98,7 +98,7 @@ namespace OpenQotd.Helpers
             string log = contextInfo != "" ?
                 $"Rate limit hit in context \"{contextInfo}\". " :
                 $"Rate limit hit.";
-            log += $"\n\tCode: {ex.Response!.StatusCode}.\n\tMessage: {ex.Message}\n\tStack Trace: {ex.StackTrace}\n\tResponse Headers:\n\t{ex.Response.Headers}\n\tResponse Content:\n\t{ex.Response.Content}\n\n\n";
+            log += $"\n\tCode: {ex.Response!.StatusCode}.\n\tMessage: {ex.Message}\n\tStack Trace: {ex.StackTrace}\n\tResponse Headers:\n\t{ex.Response.Headers}\n\tResponse Content:\n\t{await ex.Response.Content.ReadAsStringAsync()}\n\n\n";
             
             await Console.Out.WriteLineAsync(log);
 
