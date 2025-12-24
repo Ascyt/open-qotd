@@ -34,64 +34,71 @@ namespace OpenQotd.EventHandlers
             if (idArgs[0].StartsWith("prompt-option-"))
                 return;
 
-            switch (idArgs[0])
+            try 
             {
-                case "suggestions-accept":
-                    if (!await HasExactlyNArguments(args, idArgs, 2))
+                switch (idArgs[0])
+                {
+                    case "suggestions-accept":
+                        if (!await HasExactlyNArguments(args, idArgs, 2))
+                            return;
+
+                        await SuggestionNotificationsEventHandlers.SuggestionsAcceptButtonClicked(args, int.Parse(idArgs[1]), int.Parse(idArgs[2]));
+                        return;
+                    case "suggestions-deny":
+                        if (!await HasExactlyNArguments(args, idArgs, 2))
+                            return;
+
+                        await SuggestionNotificationsEventHandlers.SuggestionsDenyButtonClicked(args, int.Parse(idArgs[1]), int.Parse(idArgs[2]));
+                        return;
+                    case "suggest-qotd":
+                        if (!await HasExactlyNArguments(args, idArgs, 1))
+                            return;
+
+                        await CreateSuggestionEventHandlers.SuggestQotdButtonClicked(args, int.Parse(idArgs[1]));
                         return;
 
-                    await SuggestionNotificationsEventHandlers.SuggestionsAcceptButtonClicked(args, int.Parse(idArgs[1]), int.Parse(idArgs[2]));
-                    return;
-                case "suggestions-deny":
-                    if (!await HasExactlyNArguments(args, idArgs, 2))
+                    case "show-qotd-notes":
+                        if (!await HasExactlyNArguments(args, idArgs, 2))
+                            return;
+                        await QotdInfoButtonsEventHandlers.ShowQotdNotesButtonClicked(args, int.Parse(idArgs[1]), int.Parse(idArgs[2]));
                         return;
 
-                    await SuggestionNotificationsEventHandlers.SuggestionsDenyButtonClicked(args, int.Parse(idArgs[1]), int.Parse(idArgs[2]));
-                    return;
-                case "suggest-qotd":
-                    if (!await HasExactlyNArguments(args, idArgs, 1))
+                    case "show-general-info":
+                        if (!await HasExactlyNArguments(args, idArgs, 2))
+                            return;
+                        await QotdInfoButtonsEventHandlers.ShowGeneralInfoButtonClicked(args, int.Parse(idArgs[1]), int.Parse(idArgs[2]));
                         return;
 
-                    await CreateSuggestionEventHandlers.SuggestQotdButtonClicked(args, int.Parse(idArgs[1]));
-                    return;
-
-                case "show-qotd-notes":
-                    if (!await HasExactlyNArguments(args, idArgs, 2))
-                        return;
-                    await QotdInfoButtonsEventHandlers.ShowQotdNotesButtonClicked(args, int.Parse(idArgs[1]), int.Parse(idArgs[2]));
-                    return;
-
-                case "show-general-info":
-                    if (!await HasExactlyNArguments(args, idArgs, 2))
-                        return;
-                    await QotdInfoButtonsEventHandlers.ShowGeneralInfoButtonClicked(args, int.Parse(idArgs[1]), int.Parse(idArgs[2]));
-                    return;
-
-                case "show-general-info-no-prompt":
-                    if (!await HasExactlyNArguments(args, idArgs, 1))
-                        return;
-                    await QotdInfoButtonsEventHandlers.ShowGeneralInfoNoPromptButtonClicked(args, int.Parse(idArgs[1]), editMessage);
-                    return;
-
-                case "show-qotd-info":
-                    if (!await HasExactlyNArguments(args, idArgs, 2))
+                    case "show-general-info-no-prompt":
+                        if (!await HasExactlyNArguments(args, idArgs, 1))
+                            return;
+                        await QotdInfoButtonsEventHandlers.ShowGeneralInfoNoPromptButtonClicked(args, int.Parse(idArgs[1]), editMessage);
                         return;
 
-                    await QotdInfoButtonsEventHandlers.ShowQotdInfoButtonClicked(args, int.Parse(idArgs[1]), int.Parse(idArgs[2]), editMessage);
-                    return;
+                    case "show-qotd-info":
+                        if (!await HasExactlyNArguments(args, idArgs, 2))
+                            return;
 
-                case "forward":
-                case "backward":
-                case "first":
-                case "last":
-                case "redirect":
-                case "reroll":
-                case "confirm_choice":
-                case "cancel_choice":
-                    return;
+                        await QotdInfoButtonsEventHandlers.ShowQotdInfoButtonClicked(args, int.Parse(idArgs[1]), int.Parse(idArgs[2]), editMessage);
+                        return;
+
+                    case "forward":
+                    case "backward":
+                    case "first":
+                    case "last":
+                    case "redirect":
+                    case "reroll":
+                    case "confirm_choice":
+                    case "cancel_choice":
+                        return;
+                }
+
+                await RespondWithError(args, $"Unknown event: `{args.Id}`");
             }
-
-            await RespondWithError(args, $"Unknown event: `{args.Id}`");
+            catch (RateLimitException ex)
+            {
+                await GeneralHelpers.LogRateLimitExceptionAsync(ex, contextInfo: $"EventHandlers.ComponentInteractionCreated for interaction ID `{args.Id}`");
+            }
         }
 
         public static async Task ModalSubmittedEvent(DiscordClient client, ModalSubmittedEventArgs args)

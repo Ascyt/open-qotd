@@ -3,6 +3,8 @@ using Microsoft.EntityFrameworkCore;
 using OpenQotd.Exceptions;
 using OpenQotd.Database.Entities;
 using System.Collections.Concurrent;
+using DSharpPlus.Exceptions;
+using OpenQotd.Helpers;
 
 namespace OpenQotd.QotdSending
 {
@@ -281,6 +283,10 @@ namespace OpenQotd.QotdSending
             catch (QotdChannelNotFoundException)
             {
                 // This exception is expected if the QOTD channel is not set for the guild.
+            }
+            catch (RateLimitException ex)
+            {
+                await GeneralHelpers.LogRateLimitExceptionAsync(ex, contextInfo: "QotdSenderTimer.SendNextQotdIgnoreExceptionsRecacheIfNecessary");
             }
             catch (Exception ex)
             {
