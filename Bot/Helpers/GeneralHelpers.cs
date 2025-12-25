@@ -111,7 +111,15 @@ namespace OpenQotd.Helpers
                 await File.AppendAllTextAsync("ratelimits.log", log);
             }
 
-            log = $"Content:\n\t{await ex.Response.Content.ReadAsStringAsync()}";
+            MemoryStream memoryStream = new();
+            await ex.Response.Content.CopyToAsync(memoryStream);
+            memoryStream.Seek(0, SeekOrigin.Begin);
+
+            StreamReader streamReader = new(memoryStream);
+            string responseContent = streamReader.ReadToEnd();
+
+
+            log = $"Content:\n\t{responseContent}\n\n\n";
             await Console.Out.WriteLineAsync(log);
             await File.AppendAllTextAsync("ratelimits.log", log);        
         }
