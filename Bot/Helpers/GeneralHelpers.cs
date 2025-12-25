@@ -100,28 +100,31 @@ namespace OpenQotd.Helpers
                 $"Rate limit hit.";
             log += $"\n\tCode: {ex.Response!.StatusCode}.\n\tMessage: {ex.Message}\n\tStack Trace: {ex.StackTrace}\n\tResponse Headers:\n\t{ex.Response.Headers}\n\tResponse ";
             
-            await Console.Out.WriteLineAsync(log);
+            await Console.Out.WriteLineAsync(log).ConfigureAwait(false);
 
             if (!File.Exists("ratelimits.log"))
             {
-                await File.WriteAllTextAsync("ratelimits.log", log);
+                await File.WriteAllTextAsync("ratelimits.log", log).ConfigureAwait(false);
             }
             else
             {
-                await File.AppendAllTextAsync("ratelimits.log", log);
+                await File.AppendAllTextAsync("ratelimits.log", log).ConfigureAwait(false);
             }
 
-            MemoryStream memoryStream = new();
-            await ex.Response.Content.CopyToAsync(memoryStream);
-            memoryStream.Seek(0, SeekOrigin.Begin);
-
-            StreamReader streamReader = new(memoryStream);
-            string responseContent = streamReader.ReadToEnd();
-
+            HttpContent? content = ex.Response.Content;
+            string responseContent;
+            if (content is not null)
+            {
+                responseContent = await content.ReadAsStringAsync().ConfigureAwait(false);
+            }
+            else
+            {
+                responseContent = string.Empty;
+            }
 
             log = $"Content:\n\t{responseContent}\n\n\n";
-            await Console.Out.WriteLineAsync(log);
-            await File.AppendAllTextAsync("ratelimits.log", log);        
+            await Console.Out.WriteLineAsync(log).ConfigureAwait(false);
+            await File.AppendAllTextAsync("ratelimits.log", log).ConfigureAwait(false);
         }
     }
 }
