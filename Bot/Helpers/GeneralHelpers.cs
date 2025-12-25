@@ -111,16 +111,44 @@ namespace OpenQotd.Helpers
                 await File.AppendAllTextAsync("ratelimits.log", log).ConfigureAwait(false);
             }
 
-            HttpContent? content = ex.Response.Content;
-            string responseContent;
-            if (content is not null)
-            {
-                responseContent = await content.ReadAsStringAsync().ConfigureAwait(false);
-            }
-            else
-            {
-                responseContent = string.Empty;
-            }
+                HttpContent? content = ex.Response.Content;
+                string responseContent;
+                if (content is not null)
+                {
+                    int timeoutSeconds = 5;
+                    try
+                    {
+                        responseContent = await content.ReadAsStringAsync().WaitAsync(TimeSpan.FromSeconds(timeoutSeconds)).ConfigureAwait(false);
+                    }
+                    catch (OperationCanceledException)
+                    {
+                        try
+                        {
+                            using MemoryStream memoryStream = new();
+                            using CancellationTokenSource cts = new(TimeSpan.FromSeconds(timeoutSeconds));
+                            await content.CopyToAsync(memoryStream, cts.Token).ConfigureAwait(false);
+                            memoryStream.Seek(0, SeekOrigin.Begin);
+                            using StreamReader streamReader = new(memoryStream);
+                            responseContent = await streamReader.ReadToEndAsync().ConfigureAwait(false);
+                        }
+                        catch (OperationCanceledException)
+                        {
+                            responseContent = "<response read timed out after 5 seconds>";
+                        }
+                        catch (Exception copyEx)
+                        {
+                            responseContent = $"<response copy failed: {copyEx.GetType().Name}: {copyEx.Message}>";
+                        }
+                    }
+                    catch (Exception readEx)
+                    {
+                        responseContent = $"<response read failed: {readEx.GetType().Name}: {readEx.Message}>";
+                    }
+                }
+                else
+                {
+                    responseContent = string.Empty;
+                }
 
             log = $"Content:\n\t{responseContent}\n\n\n";
             await Console.Out.WriteLineAsync(log).ConfigureAwait(false);
