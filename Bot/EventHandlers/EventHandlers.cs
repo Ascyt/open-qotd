@@ -111,20 +111,27 @@ namespace OpenQotd.EventHandlers
                 return;
             }
 
-            switch (idArgs[0])
+            try 
             {
-                case "suggestions-deny":
-                    if (!await HasExactlyNArguments(args, idArgs, 2))
-                        return;
+                switch (idArgs[0])
+                {
+                    case "suggestions-deny":
+                        if (!await HasExactlyNArguments(args, idArgs, 2))
+                            return;
 
-                    await SuggestionNotificationsEventHandlers.SuggestionsDenyReasonModalSubmitted(args, int.Parse(idArgs[1]), int.Parse(idArgs[2]));
-                    return;
-                case "suggest-qotd":
-                    if (!await HasExactlyNArguments(args, idArgs, 1))
+                        await SuggestionNotificationsEventHandlers.SuggestionsDenyReasonModalSubmitted(args, int.Parse(idArgs[1]), int.Parse(idArgs[2]));
                         return;
+                    case "suggest-qotd":
+                        if (!await HasExactlyNArguments(args, idArgs, 1))
+                            return;
 
-                    await CreateSuggestionEventHandlers.SuggestQotdModalSubmitted(args, int.Parse(idArgs[1]));
-                    return;
+                        await CreateSuggestionEventHandlers.SuggestQotdModalSubmitted(args, int.Parse(idArgs[1]));
+                        return;
+                }
+            }
+            catch (RateLimitException ex)
+            {
+                await GeneralHelpers.LogRateLimitExceptionAsync(ex, contextInfo: $"EventHandlers.ComponentInteractionCreated for interaction ID `{args.Id}`");
             }
 
             await RespondWithError(args, $"Unknown event: `{args.Interaction.Data.CustomId}`");
