@@ -123,6 +123,12 @@ namespace OpenQotd
                 .HandleComponentInteractionCreated(EventHandlers.EventHandlers.ComponentInteractionCreated)
                 .HandleModalSubmitted(EventHandlers.EventHandlers.ModalSubmittedEvent));
 
+            builder.ConfigureExtraFeatures(b =>
+            {
+                b.LogUnknownEvents = false;
+                b.LogUnknownAuditlogs = false;
+            });
+
             DiscordClient client = builder.Build();
             Client = client;
 
