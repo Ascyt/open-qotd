@@ -7,14 +7,13 @@ using OpenQotd.Core.Database;
 using OpenQotd.Core.Helpers;
 using System.Text;
 using DSharpPlus.Entities;
-using Microsoft.AspNetCore.Http.HttpResults;
 using DSharpPlus.Exceptions;
 
 namespace OpenQotd.Core.Suggestions.Commands
 {
     public sealed partial class SuggestionsCommands
     {
-        [Command("accepsall")]
+        [Command("acceptall")]
         [Description("Accept all suggestions.")]
         public static async Task AcceptAllSuggestionsAsync(CommandContext context)
         {

@@ -27,8 +27,6 @@ namespace OpenQotd.Core.Questions.Commands
 				return;
 			}
 
-			ulong guildId = context.Guild!.Id;
-
 			List<Question>? questions;
 			using (AppDbContext dbContext = new())
 			{

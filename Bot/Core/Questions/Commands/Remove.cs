@@ -19,8 +19,6 @@ namespace OpenQotd.Core.Questions.Commands
             if (config is null || !await Permissions.Api.Admin.CheckAsync(context, config))
                 return;
 
-            ulong guildId = context.Guild!.Id;
-
             Question? question;
             string body;
             QuestionType originalType;

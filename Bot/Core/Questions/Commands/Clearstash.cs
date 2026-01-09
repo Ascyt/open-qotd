@@ -18,8 +18,6 @@ namespace OpenQotd.Core.Questions.Commands
             if (config is null || !await Permissions.Api.Admin.CheckAsync(context, config))
                 return;
 
-            ulong guildId = context.Guild!.Id;
-
 			List<Question>? questions;
 			using (AppDbContext dbContext = new())
 			{
