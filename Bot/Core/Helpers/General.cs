@@ -76,5 +76,31 @@ namespace OpenQotd.Core.Helpers
             return string.Join('\n', text!.Split('\n')
                 .Select(line => string.IsNullOrEmpty(line) ? "" : $"*{line}*"));
         }
+
+        /// <summary>
+        /// Provisorial logging of rate limit exceptions to a file.
+        /// </summary>
+        public static async Task LogRateLimitExceptionAsync(RateLimitException ex, string contextInfo = "")
+        {
+            string log = contextInfo != "" ?
+                $"Rate limit hit in context \"{contextInfo}\". " :
+                $"Rate limit hit.";
+            log += $"\n\tCode: {ex.Response!.StatusCode}.\n\tMessage: {ex.Message}\n\tStack Trace: {ex.StackTrace}\n\tResponse Headers:\n\t{ex.Response.Headers}\n\tResponse ";
+            
+            await Console.Out.WriteLineAsync(log);
+
+            if (!File.Exists("ratelimits.log"))
+            {
+                await File.WriteAllTextAsync("ratelimits.log", log);
+            }
+            else
+            {
+                await File.AppendAllTextAsync("ratelimits.log", log);
+            }
+
+            log = $"Content:\n\t{await ex.Response.Content.ReadAsStringAsync()}";
+            await Console.Out.WriteLineAsync(log);
+            await File.AppendAllTextAsync("ratelimits.log", log);        
+        }
     }
 }
