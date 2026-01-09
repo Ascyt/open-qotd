@@ -1,16 +1,8 @@
 ﻿using DSharpPlus;
-using DSharpPlus.Entities;
 using DSharpPlus.Commands;
 using DSharpPlus.Commands.Processors.SlashCommands;
-using OpenQotd;
 using DSharpPlus.Interactivity.Extensions;
 using DSharpPlus.Interactivity;
-using OpenQotd.QotdSending;
-using OpenQotd.EventHandlers;
-using OpenQotd.Commands;
-using OpenQotd.UserCommands;
-using Microsoft.Extensions.Configuration;
-using OpenQotd.ActivitySwitcher;
 
 namespace OpenQotd
 {
@@ -57,7 +49,7 @@ namespace OpenQotd
             Console.WriteLine();
 
             Console.WriteLine("Loading presets...");
-            await Presets.LoadPresetsAsync();
+            await Core.Presets.Api.LoadPresetsAsync();
             Console.WriteLine("Presets loaded.");
 
             string? discordToken = Environment.GetEnvironmentVariable("OPENQOTD_TOKEN");
@@ -83,19 +75,19 @@ namespace OpenQotd
                 (IServiceProvider provider, CommandsExtension extension) =>
                 {
                     extension.AddCommands([
-                        typeof(ProfilesCommand),
-                        typeof(ConfigCommand),
-                        typeof(QuestionsCommand),
-                        typeof(SuggestCommand),
-                        typeof(SuggestionsCommands),
-                        typeof(PresetsCommand),
-                        typeof(TriggerCommand),
-                        typeof(DebugCommand),
-                        typeof(LeaderboardCommand),
-                        typeof(TopicCommand),
-                        typeof(HelpCommand),
-                        typeof(SimpleCommands),
-                        /*typeof(MyQuestionsCommand)*/]);
+                        typeof(Core.Profiles.Commands.ProfilesCommand),
+                        typeof(Core.Configs.Commands.ConfigCommand),
+                        typeof(Core.Questions.Commands.QuestionsCommand),
+                        typeof(Core.UncategorizedCommands.SuggestCommand),
+                        typeof(Core.Suggestions.Commands.SuggestionsCommands),
+                        typeof(Core.Presets.Commands.PresetsCommand),
+                        typeof(Core.UncategorizedCommands.TriggerCommand),
+                        typeof(Core.UncategorizedCommands.DebugCommand),
+                        typeof(Core.UncategorizedCommands.LeaderboardCommand),
+                        typeof(Core.UncategorizedCommands.TopicCommand),
+                        typeof(Core.UncategorizedCommands.HelpCommand),
+                        typeof(Core.UncategorizedCommands.SimpleCommands),
+                        /*typeof(Core.UserCommands.MyQuestionsCommand)*/]);
 
                     // Text commands disabled because of missing MessageContent intent. It would require an application to Discord.
                     /*TextCommandProcessor textCommandProcessor = new(new()
@@ -106,7 +98,7 @@ namespace OpenQotd
                     // Add text commands with a custom prefix 
                     extension.AddProcessors(textCommandProcessor);*/
 
-                    extension.CommandErrored += ErrorEventHandlers.CommandErrored;
+                    extension.CommandErrored += Core.EventHandlers.Error.CommandErroredAsync;
                 },
                 new CommandsConfiguration()
                 {
@@ -121,9 +113,9 @@ namespace OpenQotd
             });
 
             builder.ConfigureEventHandlers(b => b
-                .HandleComponentInteractionCreated(EventHandlers.EventHandlers.ComponentInteractionCreated)
-                .HandleModalSubmitted(EventHandlers.EventHandlers.ModalSubmittedEvent)
-                .HandleGuildCreated(EventHandlers.EventHandlers.GuildCreated));
+                .HandleComponentInteractionCreated(Core.EventHandlers.ComponentInteractionEntry.ComponentInteractionCreatedAsync)
+                .HandleModalSubmitted(Core.EventHandlers.ModalSubmittedEntry.ModalSubmittedEvent)
+                .HandleGuildCreated(Core.EventHandlers.GuildCreatedEntry.GuildCreatedAsync));
 
             builder.ConfigureExtraFeatures(b =>
             {
@@ -141,13 +133,13 @@ namespace OpenQotd
             Console.WriteLine("Client started.");
 
             Console.WriteLine("Creating send information cache...");
-            await QotdSenderTimer.LoadAllAsync();
+            await Core.QotdSending.Timer.Api.LoadAllAsync();
 
             CancellationTokenSource cts = new();
 
             // Start the background loops for sending QOTDs and switching activities.
-            _ = Task.Run(() => QotdSenderTimer.FetchLoopAsync(cts.Token));
-            _ = Task.Run(() => ActivitySwitcherTimer.ActivitySwitchLoopAsync(cts.Token));
+            _ = Task.Run(() => Core.QotdSending.Timer.Api.FetchLoopAsync(cts.Token));
+            _ = Task.Run(() => Core.ActivitySwitcher.Timer.ActivitySwitchLoopAsync(cts.Token));
 
             // And now we wait infinitely so that our bot actually stays connected.
             await Task.Delay(-1);

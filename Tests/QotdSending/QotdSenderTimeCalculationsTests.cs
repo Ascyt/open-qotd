@@ -1,4 +1,4 @@
-using OpenQotd.QotdSending;
+using static OpenQotd.Core.QotdSending.Timer.TimeCalculations;
 
 namespace Tests.QotdSending
 {
@@ -11,7 +11,7 @@ namespace Tests.QotdSending
             DateTime? lastSent = null;
             DateTime expected = new(2025, 10, 26, 12, 30, 0, DateTimeKind.Utc);
 
-            DateTime next = QotdSenderTimeCalculations.GetNextSendTime(now, lastSent, 12, 30, qotdTimeDayCondition: null, qotdTimeDayConditionLastChanged: null);
+            DateTime next = GetNextSendTime(now, lastSent, 12, 30, qotdTimeDayCondition: null, qotdTimeDayConditionLastChanged: null);
 
             Assert.Equal(expected, next);
         }
@@ -23,7 +23,7 @@ namespace Tests.QotdSending
             DateTime lastSent = new(2025, 10, 26, 8, 0, 0, DateTimeKind.Utc); // same day
             DateTime expected = new(2025, 10, 27, 9, 0, 0, DateTimeKind.Utc);
 
-            DateTime next = QotdSenderTimeCalculations.GetNextSendTime(now, lastSent, 9, 0, qotdTimeDayCondition: null, qotdTimeDayConditionLastChanged: null);
+            DateTime next = GetNextSendTime(now, lastSent, 9, 0, qotdTimeDayCondition: null, qotdTimeDayConditionLastChanged: null);
 
             Assert.Equal(expected, next);
         }
@@ -36,7 +36,7 @@ namespace Tests.QotdSending
             string invalid = "%x999"; // invalid condition -> fallback to daily
             DateTime expected = new(2025, 3, 15, 8, 0, 0, DateTimeKind.Utc);
 
-            DateTime next = QotdSenderTimeCalculations.GetNextSendTime(now, lastSent, 8, 0, invalid, qotdTimeDayConditionLastChanged: null);
+            DateTime next = GetNextSendTime(now, lastSent, 8, 0, invalid, qotdTimeDayConditionLastChanged: null);
 
             Assert.Equal(expected, next);
         }
@@ -50,7 +50,7 @@ namespace Tests.QotdSending
             string condition = "%D3";
             DateTime expected = new(2025, 10, 10, 15, 45, 0, DateTimeKind.Utc);
 
-            DateTime next = QotdSenderTimeCalculations.GetNextSendTime(now, lastSentTimestamp: null, qotdTimeHourUtc: 15, qotdTimeMinuteUtc: 45, qotdTimeDayCondition: condition, qotdTimeDayConditionLastChanged: epoch);
+            DateTime next = GetNextSendTime(now, lastSentTimestamp: null, qotdTimeHourUtc: 15, qotdTimeMinuteUtc: 45, qotdTimeDayCondition: condition, qotdTimeDayConditionLastChanged: epoch);
 
             Assert.Equal(expected, next);
         }
@@ -64,7 +64,7 @@ namespace Tests.QotdSending
             string condition = "%D3";
             DateTime expected = new(2025, 10, 13, 6, 0, 0, DateTimeKind.Utc);
 
-            DateTime next = QotdSenderTimeCalculations.GetNextSendTime(now, lastSent, 6, 0, condition, epoch);
+            DateTime next = GetNextSendTime(now, lastSent, 6, 0, condition, epoch);
 
             Assert.Equal(expected, next);
         }
@@ -80,7 +80,7 @@ namespace Tests.QotdSending
             DateTime? lastSent = null;
 
             DateTime expected = new(2025, 10, 8, 12, 0, 0, DateTimeKind.Utc); // Wednesday
-            DateTime next = QotdSenderTimeCalculations.GetNextSendTime(now, lastSent, 12, 0, condition, null);
+            DateTime next = GetNextSendTime(now, lastSent, 12, 0, condition, null);
 
             Assert.Equal(expected, next);
         }
@@ -98,7 +98,7 @@ namespace Tests.QotdSending
             // next allowed after Tuesday is Thursday (2025-10-09)
             DateTime expected = new(2025, 10, 9, 6, 0, 0, DateTimeKind.Utc);
 
-            DateTime next = QotdSenderTimeCalculations.GetNextSendTime(now, lastSent, 6, 0, condition, null);
+            DateTime next = GetNextSendTime(now, lastSent, 6, 0, condition, null);
 
             Assert.Equal(expected, next);
         }
@@ -116,7 +116,7 @@ namespace Tests.QotdSending
 
             DateTime expected = new(2025, 10, 13, 9, 30, 0, DateTimeKind.Utc);
 
-            DateTime next = QotdSenderTimeCalculations.GetNextSendTime(now, lastSent, 9, 30, condition, epoch);
+            DateTime next = GetNextSendTime(now, lastSent, 9, 30, condition, epoch);
 
             Assert.Equal(expected, next);
         }
@@ -134,7 +134,7 @@ namespace Tests.QotdSending
             // next cycle is one week later
             DateTime expected = new(2025, 10, 20, 7, 0, 0, DateTimeKind.Utc);
 
-            DateTime next = QotdSenderTimeCalculations.GetNextSendTime(now, lastSent, 7, 0, condition, epoch);
+            DateTime next = GetNextSendTime(now, lastSent, 7, 0, condition, epoch);
 
             Assert.Equal(expected, next);
         }
@@ -150,7 +150,7 @@ namespace Tests.QotdSending
 
             DateTime expected = new(2025, 10, 15, 13, 0, 0, DateTimeKind.Utc);
 
-            DateTime next = QotdSenderTimeCalculations.GetNextSendTime(now, lastSent, 13, 0, condition, null);
+            DateTime next = GetNextSendTime(now, lastSent, 13, 0, condition, null);
 
             Assert.Equal(expected, next);
         }
@@ -167,7 +167,7 @@ namespace Tests.QotdSending
             // next allowed after skipping today is 20th of current month
             DateTime expected = new(2025, 10, 20, 9, 0, 0, DateTimeKind.Utc);
 
-            DateTime next = QotdSenderTimeCalculations.GetNextSendTime(now, lastSent, 9, 0, condition, null);
+            DateTime next = GetNextSendTime(now, lastSent, 9, 0, condition, null);
 
             Assert.Equal(expected, next);
         }
@@ -184,7 +184,7 @@ namespace Tests.QotdSending
             // 31 snaps to 30 in Nov, and since it's still in the current month and >= today, expect Nov 30
             DateTime expected = new(2025, 11, 30, 8, 0, 0, DateTimeKind.Utc);
 
-            DateTime next = QotdSenderTimeCalculations.GetNextSendTime(now, lastSent, 8, 0, condition, null);
+            DateTime next = GetNextSendTime(now, lastSent, 8, 0, condition, null);
 
             Assert.Equal(expected, next);
         }
@@ -198,7 +198,7 @@ namespace Tests.QotdSending
             DateTime now = new(year, month, dayNow, 6, 0, 0, DateTimeKind.Utc);
             DateTime expected = new(year, month, expectedDom, 8, 0, 0, DateTimeKind.Utc);
 
-            DateTime next = QotdSenderTimeCalculations.GetNextSendTime(now, null, 8, 0, condition, null);
+            DateTime next = GetNextSendTime(now, null, 8, 0, condition, null);
 
             Assert.Equal(expected, next);
         }

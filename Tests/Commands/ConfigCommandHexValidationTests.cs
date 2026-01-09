@@ -1,4 +1,4 @@
-using OpenQotd.Commands;
+using static OpenQotd.Core.Configs.Commands.Helpers.Validity;
 
 namespace Tests.Commands
 {
@@ -13,7 +13,7 @@ namespace Tests.Commands
         public void IsValidHexCode_ValidHexWithHashPrefix_ReturnsTrue(string hexCode)
         {
             string input = hexCode;
-            bool result = ConfigCommand.IsValidHexCode(ref input);
+            bool result = IsValidHexCode(ref input);
 
             Assert.True(result);
             Assert.StartsWith("#", input);
@@ -29,7 +29,7 @@ namespace Tests.Commands
         public void IsValidHexCode_ValidHexWithoutHashPrefix_ReturnsTrue(string hexCode)
         {
             string input = hexCode;
-            bool result = ConfigCommand.IsValidHexCode(ref input);
+            bool result = OpenQotd.Core.Configs.Commands.Helpers.Validity.IsValidHexCode(ref input);
 
             Assert.True(result);
             Assert.StartsWith("#", input);
@@ -44,7 +44,7 @@ namespace Tests.Commands
         public void IsValidHexCode_UppercaseInput_ConvertsToLowercase(string input, string expected)
         {
             string hexCode = input;
-            bool result = ConfigCommand.IsValidHexCode(ref hexCode);
+            bool result = IsValidHexCode(ref hexCode);
 
             Assert.True(result);
             Assert.Equal(expected, hexCode);
@@ -60,7 +60,7 @@ namespace Tests.Commands
         public void IsValidHexCode_WrongLength_ReturnsFalse(string hexCode)
         {
             string input = hexCode;
-            bool result = ConfigCommand.IsValidHexCode(ref input);
+            bool result = IsValidHexCode(ref input);
 
             Assert.False(result);
         }
@@ -75,7 +75,7 @@ namespace Tests.Commands
         public void IsValidHexCode_InvalidCharacters_ReturnsFalse(string hexCode)
         {
             string input = hexCode;
-            bool result = ConfigCommand.IsValidHexCode(ref input);
+            bool result = IsValidHexCode(ref input);
 
             Assert.False(result);
         }
@@ -86,7 +86,7 @@ namespace Tests.Commands
         public void IsValidHexCode_MultipleHashPrefixes_ReturnsFalse(string hexCode)
         {
             string input = hexCode;
-            bool result = ConfigCommand.IsValidHexCode(ref input);
+            bool result = IsValidHexCode(ref input);
 
             Assert.False(result);
         }
@@ -95,7 +95,7 @@ namespace Tests.Commands
         public void IsValidHexCode_MixedCase_NormalizesToLowercase()
         {
             string input = "AaBbCc";
-            bool result = ConfigCommand.IsValidHexCode(ref input);
+            bool result = IsValidHexCode(ref input);
 
             Assert.True(result);
             Assert.Equal("#aabbcc", input);
@@ -107,7 +107,7 @@ namespace Tests.Commands
         public void IsValidHexCode_MixedCaseWithAndWithoutHash_NormalizesToLowercase(string hexCode)
         {
             string input = hexCode;
-            bool result = ConfigCommand.IsValidHexCode(ref input);
+            bool result = IsValidHexCode(ref input);
 
             Assert.True(result);
             Assert.Equal("#aabbcc", input);
