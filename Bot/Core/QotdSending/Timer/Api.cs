@@ -4,7 +4,6 @@ using OpenQotd.Core.Database;
 using OpenQotd.Core.Exceptions;
 using System.Collections.Concurrent;
 using DSharpPlus.Exceptions;
-using OpenQotd.Helpers;
 
 namespace OpenQotd.Core.QotdSending.Timer
 {
@@ -286,7 +285,7 @@ namespace OpenQotd.Core.QotdSending.Timer
             }
             catch (RateLimitException ex)
             {
-                await GeneralHelpers.LogRateLimitExceptionAsync(ex, contextInfo: "QotdSenderTimer.SendNextQotdIgnoreExceptionsRecacheIfNecessary");
+                await Helpers.General.LogRateLimitExceptionAsync(ex, contextInfo: "QotdSenderTimer.SendNextQotdIgnoreExceptionsRecacheIfNecessary");
             }
             catch (Exception ex)
             {
