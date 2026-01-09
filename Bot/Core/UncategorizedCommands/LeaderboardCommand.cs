@@ -35,7 +35,7 @@ namespace OpenQotd.Core.UncategorizedCommands
             int profileId = of;
 
             Config? config = await Profiles.Api.TryGetConfigAsync(context, of);
-            if (config is null || !await Permissions.Api.Basic.UserIsBasic(context, config))
+            if (config is null || !await Permissions.Api.Basic.CheckAsync(context, config))
                 return;
 
             List<Question> sentQuestions;
@@ -68,7 +68,7 @@ namespace OpenQotd.Core.UncategorizedCommands
                 .Select(pair => new LeaderboardEntry() { UserId = pair.Key, Count = pair.Value })];
 
             int itemsPerPage = Program.AppSettings.ListMessageItemsPerPage;
-            await ListMessages.SendNew(context, page, "QOTD Leaderboard",
+            await ListMessages.SendNewAsync(context, page, "QOTD Leaderboard",
                 (int page) =>
                 {
                     LeaderboardEntry[] filteredEntries = [.. sortedEntries

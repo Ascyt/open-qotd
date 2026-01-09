@@ -11,15 +11,15 @@ namespace OpenQotd.Core.Suggestions.EventHandlers
 {
     public class CreateSuggestion
     {
-        public static async Task SuggestQotdButtonClicked(ComponentInteractionCreatedEventArgs args, int profileId)
+        public static async Task SuggestQotdButtonClickedAsync(ComponentInteractionCreatedEventArgs args, int profileId)
         {
             Config? config = await Profiles.Api.TryGetConfigAsync(args, profileId);
-            if (config is null || !await Permissions.Api.Basic.UserIsBasic(args, config))
+            if (config is null || !await Permissions.Api.Basic.CheckAsync(args, config))
                 return;
 
             if (!config.EnableSuggestions)
             {
-                await Core.EventHandlers.Helpers.General.RespondWithError(args, $"Suggestions are not enabled for this profile ({config.ProfileName}).");
+                await Core.EventHandlers.Helpers.General.RespondWithErrorAsync(args, $"Suggestions are not enabled for this profile ({config.ProfileName}).");
                 return;
             }
 
@@ -47,7 +47,7 @@ namespace OpenQotd.Core.Suggestions.EventHandlers
         public static async Task SuggestQotdModalSubmitted(ModalSubmittedEventArgs args, int profileId)
         {
             Config? config = await Profiles.Api.TryGetConfigAsync(args, profileId);
-            if (config is null || !await Permissions.Api.Basic.UserIsBasic(args, config))
+            if (config is null || !await Permissions.Api.Basic.CheckAsync(args, config))
                 return;
 
             using (AppDbContext dbContext = new())
@@ -136,7 +136,7 @@ namespace OpenQotd.Core.Suggestions.EventHandlers
             if (newQuestion.ThumbnailImageUrl is not null)
                 result.Item2.WithThumbnail(newQuestion.ThumbnailImageUrl);
 
-            await Logging.Api.LogUserAction(channel, user, config,
+            await Logging.Api.LogUserActionAsync(channel, user, config,
                 title: $"Suggested {config.QotdShorthandText}",
                 message: $"\"**{newQuestion.Text}**\"\nID: `{newQuestion.GuildDependentId}`");
 

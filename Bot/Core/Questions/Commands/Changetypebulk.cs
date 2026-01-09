@@ -17,7 +17,7 @@ namespace OpenQotd.Core.Questions.Commands
 			[Description("The type to set all of those questions to.")] QuestionType toType)
         {
             Config? config = await Profiles.Api.TryGetSelectedOrDefaultConfigAsync(context);
-            if (config is null || !await Permissions.Api.Admin.UserIsAdmin(context, config))
+            if (config is null || !await Permissions.Api.Admin.CheckAsync(context, config))
                 return;
 
             if (fromType == toType)
@@ -66,7 +66,7 @@ namespace OpenQotd.Core.Questions.Commands
 			await context.RespondAsync(
 				GenericEmbeds.Success("Set Bulk Question Types", body)
 				);
-			await Logging.Api.LogUserAction(context, config, "Set Bulk Question Types", message: body);
+			await Logging.Api.LogUserActionAsync(context, config, "Set Bulk Question Types", message: body);
 		}
     }
 }

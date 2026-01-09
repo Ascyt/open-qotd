@@ -12,7 +12,7 @@ namespace OpenQotd.Core.Suggestions.Commands.Helpers
         public static async Task<bool> IsInSuggestionsChannelOrHasAdmin(CommandContext context, Config config)
         {
             bool isInSuggestionsChannel = config.SuggestionsChannelId is not null && config.SuggestionsChannelId.Value == context.Channel.Id;
-            if (!isInSuggestionsChannel && !await Permissions.Api.Admin.UserIsAdmin(context, config, responseOnError: config.SuggestionsChannelId is null))
+            if (!isInSuggestionsChannel && !await Permissions.Api.Admin.CheckAsync(context, config, responseOnError: config.SuggestionsChannelId is null))
             {
                 if (config.SuggestionsChannelId is not null)
                 {

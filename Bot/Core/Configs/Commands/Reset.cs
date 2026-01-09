@@ -69,7 +69,7 @@ namespace OpenQotd.Core.Configs.Commands
             SingleOption? SuggestionsPingRole = null,
             SingleOption? LogsChannel = null)
         {
-            if (!await Permissions.Api.Admin.UserHasAdministratorPermission(context))
+            if (!await Permissions.Api.Admin.CheckAdminPermissionAsync(context))
                 return;
 
             Config? config = await Profiles.Api.TryGetSelectedOrDefaultConfigAsync(context);
@@ -121,7 +121,7 @@ namespace OpenQotd.Core.Configs.Commands
 
             await context.RespondAsync(builder);
 
-            await Logging.Api.LogUserAction(context, config, "Set config values", message: configString);
+            await Logging.Api.LogUserActionAsync(context, config, "Set config values", message: configString);
         }
     }
 }

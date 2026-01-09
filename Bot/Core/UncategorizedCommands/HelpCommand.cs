@@ -50,12 +50,12 @@ namespace OpenQotd.Core.UncategorizedCommands
             return messageBuilder;
         }
 
-        public static async Task OnProfileSelectChanged(ComponentInteractionCreatedEventArgs args)
+        public static async Task OnProfileSelectChangedAsync(ComponentInteractionCreatedEventArgs args)
         {
             int selectedProfileId = int.Parse(args.Values[0]);
 
             Config? config = await Profiles.Api.TryGetConfigAsync(args, selectedProfileId);
-            if (config is null || !await Permissions.Api.Basic.UserIsBasic(args, config))
+            if (config is null || !await Permissions.Api.Basic.CheckAsync(args, config))
                 return;
 
             DiscordMember member = await args.Guild.GetMemberAsync(args.User.Id);
@@ -71,7 +71,7 @@ namespace OpenQotd.Core.UncategorizedCommands
             DiscordMessageBuilder messageBuilder = new();
             if (config is not null) // if config is set, require basic perms
             {
-                (bool userIsBasic, string? error) = await Permissions.Api.Basic.UserIsBasic(guild, member, config);
+                (bool userIsBasic, string? error) = await Permissions.Api.Basic.CheckAsync(guild, member, config);
 
                 if (!userIsBasic) 
                 {
@@ -86,7 +86,7 @@ namespace OpenQotd.Core.UncategorizedCommands
                 string userRole = $"Basic {config.QotdShorthandText} User";
                 if (member.Permissions.HasPermission(DiscordPermission.Administrator))
                     userRole = "Full Server Administrator (incl. `/config` and `/profiles`)";
-                else if ((await Permissions.Api.Admin.UserIsAdmin(guild, member, config)).Item1)
+                else if ((await Permissions.Api.Admin.CheckAsync(guild, member, config)).Item1)
                     userRole = $"{config.QotdShorthandText} Administrator (excl. `/config` and `/profiles`)";
 
                 DateTime? nextQotdTime = await QotdSending.Timer.Api.GetConfigNextSendTime(config.Id);

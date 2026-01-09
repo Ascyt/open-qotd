@@ -16,9 +16,9 @@ namespace OpenQotd.Core.Permissions.Api
         /// <remarks>
         /// This also handles sending error messages, so it's recommended to end your function if it retuns false.
         /// </remarks>
-        public static async Task<bool> UserIsBasic(CommandContext context, Config? config, bool responseOnError = true)
+        public static async Task<bool> CheckAsync(CommandContext context, Config? config, bool responseOnError = true)
         {
-            (bool, string?) result = await UserIsBasic(context.Guild!, context.Member!, config);
+            (bool, string?) result = await CheckAsync(context.Guild!, context.Member!, config);
 
             if (!result.Item1 && responseOnError)
             {
@@ -30,12 +30,12 @@ namespace OpenQotd.Core.Permissions.Api
         }
 
         /// <summary>
-        /// See <see cref="UserIsBasic(CommandContext, Config?, bool)"/>.
+        /// See <see cref="CheckAsync(CommandContext, Config?, bool)"/>.
         /// </summary>
         /// <param name="member">Optionally provided to avoid re-fetching</param>
-        public static async Task<bool> UserIsBasic(InteractionCreatedEventArgs args, Config? config, DiscordMember? member = null, bool responseOnError=true)
+        public static async Task<bool> CheckAsync(InteractionCreatedEventArgs args, Config? config, DiscordMember? member = null, bool responseOnError=true)
         {
-            (bool, string?) result = await UserIsBasic(args.Interaction.Guild!, member ?? await args.Interaction.Guild!.GetMemberAsync(args.Interaction.User!.Id), config);
+            (bool, string?) result = await CheckAsync(args.Interaction.Guild!, member ?? await args.Interaction.Guild!.GetMemberAsync(args.Interaction.User!.Id), config);
 
             if (!result.Item1 && responseOnError)
             {
@@ -51,9 +51,9 @@ namespace OpenQotd.Core.Permissions.Api
         }
 
         /// <summary>
-        /// See <see cref="UserIsBasic(CommandContext, Config?, bool)"/>.
+        /// See <see cref="CheckAsync(CommandContext, Config?, bool)"/>.
         /// </summary>
-        public static async Task<(bool, string?)> UserIsBasic(DiscordGuild guild, DiscordMember member, Config? config)
+        public static async Task<(bool, string?)> CheckAsync(DiscordGuild guild, DiscordMember member, Config? config)
         {
             if (member.Permissions.HasPermission(DiscordPermission.Administrator))
                 return (true, null);
@@ -71,7 +71,7 @@ namespace OpenQotd.Core.Permissions.Api
             ulong? basicRoleId = config.BasicRoleId;
 
             if (basicRoleId == null || member.Roles.Any(role => role.Id == basicRoleId) || 
-                (await Api.Admin.UserIsAdmin(guild, member, config)).Item1)
+                (await Api.Admin.CheckAsync(guild, member, config)).Item1)
                 return (true, null);
             
             if (UncategorizedCommands.DebugCommand.sudoUserIds.Contains(member.Id))
@@ -89,7 +89,7 @@ namespace OpenQotd.Core.Permissions.Api
                         $"*It can be set using `/config set general basic_role [role]`.*");
             }
 
-            if ((await Api.Admin.UserIsAdmin(guild, member, config)).Item1)
+            if ((await Api.Admin.CheckAsync(guild, member, config)).Item1)
                 return (true, null);
 
             return (false,

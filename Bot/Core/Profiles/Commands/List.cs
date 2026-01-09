@@ -14,7 +14,7 @@ namespace OpenQotd.Core.Profiles.Commands
         public static async Task ListProfilesAsync(CommandContext context,
             [Description("The page of the listing (default 1).")] int page = 1)
         {
-            bool hasAdmin = await Permissions.Api.Admin.UserHasAdministratorPermission(context, responseOnError: false);
+            bool hasAdmin = await Permissions.Api.Admin.CheckAdminPermissionAsync(context, responseOnError: false);
 
             int selectedProfileId = await Api.GetSelectedOrDefaultProfileIdAsync(context.Guild!.Id, context.User!.Id);
 
@@ -55,7 +55,7 @@ namespace OpenQotd.Core.Profiles.Commands
             }
 
             int itemsPerPage = Program.AppSettings.ListMessageItemsPerPage;
-            await ListMessages.SendNew(context, page, $"{(hasAdmin ? "All" : "Viewable")} Profiles List",
+            await ListMessages.SendNewAsync(context, page, $"{(hasAdmin ? "All" : "Viewable")} Profiles List",
                 Task<PageInfo<KeyValuePair<Config, ViewableProfileType>>> (int page) =>
                 {
                     int totalElements = viewableConfigs.Count;

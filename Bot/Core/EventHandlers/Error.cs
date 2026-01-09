@@ -10,16 +10,16 @@ namespace OpenQotd.Core.EventHandlers
         /// <summary>
         /// Replies with an error message to the command context when a command errors.
         /// </summary>
-        public static async Task CommandErrored(CommandsExtension s, CommandErroredEventArgs e)
+        public static async Task CommandErroredAsync(CommandsExtension s, CommandErroredEventArgs e)
         {
-            await SendCommandErroredMessage(e.Exception, e.Context);
+            await SendCommandErroredMessageAsync(e.Exception, e.Context);
         }
 
         /// <summary>
         /// Sends an error message to the specified command context.
         /// </summary>
         /// <param name="additionalEmbeds">Optionally provide additional embeds to append to the message.</param>
-        public static async Task SendCommandErroredMessage(Exception e, CommandContext context, string? errorSummary = null, IEnumerable<DiscordEmbed>? additionalEmbeds = null)
+        public static async Task SendCommandErroredMessageAsync(Exception e, CommandContext context, string? errorSummary = null, IEnumerable<DiscordEmbed>? additionalEmbeds = null)
         {
             string message = (errorSummary ?? $"An uncaught error occurred from the command you tried to execute.") + "\n" +
                 $"If you're unsure what to do here, please feel free to join the [Support Server](<https://open-qotd.ascyt.com/community>) to reach out for help. " +

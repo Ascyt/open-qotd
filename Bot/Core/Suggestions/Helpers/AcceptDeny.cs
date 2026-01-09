@@ -118,9 +118,9 @@ namespace OpenQotd.Core.Suggestions.Helpers
             }
 
             if (context is null)
-                await Logging.Api.LogUserAction(suggestionMessage!.Channel!, user, config, "Accepted Suggestion", question.ToString());
+                await Logging.Api.LogUserActionAsync(suggestionMessage!.Channel!, user, config, "Accepted Suggestion", question.ToString());
             else
-                await Logging.Api.LogUserAction(context, config, "Accepted Suggestion", question.ToString());
+                await Logging.Api.LogUserActionAsync(context, config, "Accepted Suggestion", question.ToString());
         }
 
         public static async Task DenySuggestionAsync(Question question, Config config, ModalSubmittedEventArgs? result, CommandContext? context, string? reason, bool logAndNotify = true)
@@ -227,9 +227,9 @@ namespace OpenQotd.Core.Suggestions.Helpers
                 $"\n\nDenial Reason: \"**{reason}**\"" : "");
 
             if (context is null)
-                await Logging.Api.LogUserAction(suggestionMessage!.Channel!, user, config, logTitle, logBody);
+                await Logging.Api.LogUserActionAsync(suggestionMessage!.Channel!, user, config, logTitle, logBody);
             else
-                await Logging.Api.LogUserAction(context, config, logTitle, logBody);
+                await Logging.Api.LogUserActionAsync(context, config, logTitle, logBody);
         }
 
         

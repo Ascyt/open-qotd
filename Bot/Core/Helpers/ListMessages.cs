@@ -39,7 +39,7 @@ namespace OpenQotd.Core.Helpers
         /// <summary>
         /// Automatic list message with pagination buttons.
         /// </summary>
-        public static async Task SendNew<T>(CommandContext context, int initialPage, string title, FetchDb<T> fetchDb, ElementToString<T>? elementToString=null)
+        public static async Task SendNewAsync<T>(CommandContext context, int initialPage, string title, FetchDb<T> fetchDb, ElementToString<T>? elementToString=null)
         {
             if (initialPage < 1)
             {
@@ -93,7 +93,7 @@ namespace OpenQotd.Core.Helpers
             {
                 if (result.Result.User.Id != context.User.Id)
                 {
-                    await EventHandlers.Helpers.General.RespondWithError(result.Result, "You cannot interact with a different user's list message.");
+                    await EventHandlers.Helpers.General.RespondWithErrorAsync(result.Result, "You cannot interact with a different user's list message.");
                     result = await message.WaitForButtonAsync();
                     continue;
                 }

@@ -16,10 +16,10 @@ namespace OpenQotd.Core.Pools.Commands
             [Description("The page of the listing (default 1).")] int page = 1)
         {
             Config? config = await Profiles.Api.TryGetSelectedOrDefaultConfigAsync(context);
-            if (config is null || !await Permissions.Api.Admin.UserIsAdmin(context, config))
+            if (config is null || !await Permissions.Api.Admin.CheckAsync(context, config))
                 return;
 
-            await Helpers.ListMessages.SendNew(context, page,
+            await Helpers.ListMessages.SendNewAsync(context, page,
                 title: $"Pools for {config.QotdShorthandText}",
                 async Task<Helpers.PageInfo<Pool>> (int page) =>
                 {

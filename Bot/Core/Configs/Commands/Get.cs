@@ -12,7 +12,7 @@ namespace OpenQotd.Core.Configs.Commands
         [Description("Get all config values")]
         public static async Task GetAsync(CommandContext context)
         {
-            if (!await Permissions.Api.Admin.UserHasAdministratorPermission(context))
+            if (!await Permissions.Api.Admin.CheckAdminPermissionAsync(context))
                 return;
 
             Config? config = await Profiles.Api.TryGetSelectedOrDefaultConfigAsync(context);

@@ -19,7 +19,7 @@ namespace OpenQotd.Core.Configs.Commands
             [Description("The UTC minute of the day the QOTDs should get sent (0-59).")] int QotdTimeMinuteUtc,            
             [Description("Whether to send a QOTD daily automatically (warning: may send a QOTD before setup is finished).")] bool EnableAutomaticQotd)
         {
-            if (!await Permissions.Api.Admin.UserHasAdministratorPermission(context))
+            if (!await Permissions.Api.Admin.CheckAdminPermissionAsync(context))
                 return;
 
             QotdTimeMinuteUtc = Math.Clamp(QotdTimeMinuteUtc, 0, 59);

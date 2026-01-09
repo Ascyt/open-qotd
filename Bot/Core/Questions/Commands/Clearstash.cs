@@ -15,7 +15,7 @@ namespace OpenQotd.Core.Questions.Commands
         public static async Task ClearStashAsync(CommandContext context)
         {
             Config? config = await Profiles.Api.TryGetSelectedOrDefaultConfigAsync(context);
-            if (config is null || !await Permissions.Api.Admin.UserIsAdmin(context, config))
+            if (config is null || !await Permissions.Api.Admin.CheckAsync(context, config))
                 return;
 
             ulong guildId = context.Guild!.Id;
@@ -37,7 +37,7 @@ namespace OpenQotd.Core.Questions.Commands
 			await context.RespondAsync(
 				GenericEmbeds.Success(title, body)
 				);
-			await Logging.Api.LogUserAction(context, config, title, body);
+			await Logging.Api.LogUserActionAsync(context, config, title, body);
 		}
     }
 }

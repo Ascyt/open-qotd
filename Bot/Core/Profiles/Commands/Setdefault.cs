@@ -13,7 +13,7 @@ namespace OpenQotd.Core.Profiles.Commands
         [Description("Set the current profile as the default.")]
         public static async Task SetDefaultProfileAsync(CommandContext context)
         {
-            if (!await Permissions.Api.Admin.UserHasAdministratorPermission(context))
+            if (!await Permissions.Api.Admin.CheckAdminPermissionAsync(context))
                 return;
 
             Config? config = await Api.TryGetSelectedOrDefaultConfigAsync(context);

@@ -18,7 +18,7 @@ namespace OpenQotd.Core.UncategorizedCommands
             int profileId = For;
 
             Config? config = await Profiles.Api.TryGetConfigAsync(context, profileId);
-            if (config is null || !await Permissions.Api.Basic.UserIsBasic(context, config))
+            if (config is null || !await Permissions.Api.Basic.CheckAsync(context, config))
                 return;
 
             if (!await Questions.Api.IsWithinMaxQuestionsAmount(context, 1))

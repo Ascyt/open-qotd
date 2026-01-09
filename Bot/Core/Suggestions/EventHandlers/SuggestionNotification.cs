@@ -23,17 +23,17 @@ namespace OpenQotd.Core.Suggestions.EventHandlers
             if (question is null)
             {
                 await Core.EventHandlers.Helpers.General
-                    .RespondWithError(args, $"Question with ID `{questionGuildDepedentId}` for profile \"{config.ProfileName}\" not found.");
+                    .RespondWithErrorAsync(args, $"Question with ID `{questionGuildDepedentId}` for profile \"{config.ProfileName}\" not found.");
                 return null;
             }
 
             return question;
         }
 
-        public static async Task SuggestionsAcceptButtonClicked(ComponentInteractionCreatedEventArgs args, int profileId, int questionGuildDepedentId)
+        public static async Task SuggestionsAcceptButtonClickedAsync(ComponentInteractionCreatedEventArgs args, int profileId, int questionGuildDepedentId)
         {
             Config? config = await Profiles.Api.TryGetConfigAsync(args, profileId);
-            if (config is null || !await Permissions.Api.Basic.UserIsBasic(args, config))
+            if (config is null || !await Permissions.Api.Basic.CheckAsync(args, config))
                 return;
 
             Question? suggestion = await TryGetSuggestion(args, config, questionGuildDepedentId);
@@ -45,7 +45,7 @@ namespace OpenQotd.Core.Suggestions.EventHandlers
         public static async Task SuggestionsDenyButtonClicked(ComponentInteractionCreatedEventArgs args, int profileId, int questionGuildDependentId)
         {
             Config? config = await Profiles.Api.TryGetConfigAsync(args, profileId);
-            if (config is null || !await Permissions.Api.Basic.UserIsBasic(args, config))
+            if (config is null || !await Permissions.Api.Basic.CheckAsync(args, config))
                 return;
 
             Question? question;
@@ -58,7 +58,7 @@ namespace OpenQotd.Core.Suggestions.EventHandlers
             if (question is null)
             {
                 await Core.EventHandlers.Helpers.General
-                    .RespondWithError(args, $"Question with ID `{questionGuildDependentId}` for profile \"{config.ProfileName}\" not found.");
+                    .RespondWithErrorAsync(args, $"Question with ID `{questionGuildDependentId}` for profile \"{config.ProfileName}\" not found.");
                 return;
             }
 
@@ -68,7 +68,7 @@ namespace OpenQotd.Core.Suggestions.EventHandlers
         public static async Task SuggestionsDenyReasonModalSubmitted(ModalSubmittedEventArgs args, int profileId, int guildDependentId)
         {
             Config? config = await Profiles.Api.TryGetConfigAsync(args, profileId);
-            if (config is null || !await Permissions.Api.Basic.UserIsBasic(args, config))
+            if (config is null || !await Permissions.Api.Basic.CheckAsync(args, config))
                 return;
 
             Question? suggestion = await TryGetSuggestion(args, config, guildDependentId);

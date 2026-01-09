@@ -16,7 +16,7 @@ namespace OpenQotd.Core.Questions.Commands
         public static async Task AddQuestionAsync(CommandContext context)
         {
             Config? config = await Profiles.Api.TryGetSelectedOrDefaultConfigAsync(context);
-            if (config is null || !await Permissions.Api.Admin.UserIsAdmin(context, config))
+            if (config is null || !await Permissions.Api.Admin.CheckAsync(context, config))
                 return;
 
             if (!await Api.IsWithinMaxQuestionsAmount(context, 1))

@@ -17,7 +17,7 @@ namespace OpenQotd.Core.Questions.Commands
             [Description("The page of the listing (default 1).")] int page = 1)
         {
             Config? config = await Profiles.Api.TryGetSelectedOrDefaultConfigAsync(context);
-            if (config is null || !await Permissions.Api.Admin.UserIsAdmin(context, config))
+            if (config is null || !await Permissions.Api.Admin.CheckAsync(context, config))
                 return;
 
             await ListQuestionsNoPermcheckAsync(context, config, type, page);
@@ -26,7 +26,7 @@ namespace OpenQotd.Core.Questions.Commands
         {
             int itemsPerPage = Program.AppSettings.ListMessageItemsPerPage;
 
-            await ListMessages.SendNew(context, page, type is null ? $"{config.QotdShorthandText} Questions List" : $"{type} {config.QotdShorthandText} Questions List", 
+            await ListMessages.SendNewAsync(context, page, type is null ? $"{config.QotdShorthandText} Questions List" : $"{type} {config.QotdShorthandText} Questions List", 
                 async Task<PageInfo<Question>> (int page) =>
                 {
                     using AppDbContext dbContext = new();

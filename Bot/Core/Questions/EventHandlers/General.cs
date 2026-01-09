@@ -109,7 +109,7 @@ namespace OpenQotd.Core.Questions.EventHandlers
 			await args.Interaction.CreateResponseAsync(DiscordInteractionResponseType.ChannelMessageWithSource, new DiscordInteractionResponseBuilder()
                  .AddEmbed(GenericEmbeds.Success("Added Question", body))
                 );
-            await Logging.Api.LogUserAction(args.Interaction.Channel, args.Interaction.User, config, "Added Question", message: body);
+            await Logging.Api.LogUserActionAsync(args.Interaction.Channel, args.Interaction.User, config, "Added Question", message: body);
         }
     }
 }

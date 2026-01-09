@@ -18,11 +18,11 @@ namespace OpenQotd.Core.Questions.Commands
             [Description("The page of the listing (default 1).")] int page = 1)
         {
             Config? config = await Profiles.Api.TryGetSelectedOrDefaultConfigAsync(context);
-            if (config is null || !await Permissions.Api.Admin.UserIsAdmin(context, config))
+            if (config is null || !await Permissions.Api.Admin.CheckAsync(context, config))
                 return;
 
             int itemsPerPage = Program.AppSettings.ListMessageItemsPerPage;
-            await ListMessages.SendNew<Question>(context, page, $"{(type != null ? $"{type} " : "")}Questions Search for \"{query}\"", 
+            await ListMessages.SendNewAsync<Question>(context, page, $"{(type != null ? $"{type} " : "")}Questions Search for \"{query}\"", 
                 async Task<PageInfo<Question>> (int page) =>
                 {
                     using AppDbContext dbContext = new();

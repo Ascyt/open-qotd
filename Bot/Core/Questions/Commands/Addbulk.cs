@@ -18,7 +18,7 @@ namespace OpenQotd.Core.Questions.Commands
             [Description("The type of the questions to add.")] QuestionType type)
         {
             Config? config = await Profiles.Api.TryGetSelectedOrDefaultConfigAsync(context);
-            if (config is null || !await Permissions.Api.Admin.UserIsAdmin(context, config))
+            if (config is null || !await Permissions.Api.Admin.CheckAsync(context, config))
                 return;
 
             await context.DeferResponseAsync();
@@ -68,7 +68,7 @@ namespace OpenQotd.Core.Questions.Commands
                             );
                     }
 
-                    await Core.EventHandlers.Error.SendCommandErroredMessage(ex, context, "An error occurred while trying to fetch the file contents.", additionalEmbeds);
+                    await Core.EventHandlers.Error.SendCommandErroredMessageAsync(ex, context, "An error occurred while trying to fetch the file contents.", additionalEmbeds);
                     return;
                 }
             }
@@ -121,7 +121,7 @@ namespace OpenQotd.Core.Questions.Commands
             await context.RespondAsync(
                 GenericEmbeds.Success("Added Bulk Questions", body)
                 );
-            await Logging.Api.LogUserAction(context, config, "Added Bulk Questions", message: body);
+            await Logging.Api.LogUserActionAsync(context, config, "Added Bulk Questions", message: body);
         }
     }
 }

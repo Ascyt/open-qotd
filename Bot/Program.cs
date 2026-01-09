@@ -98,7 +98,7 @@ namespace OpenQotd
                     // Add text commands with a custom prefix 
                     extension.AddProcessors(textCommandProcessor);*/
 
-                    extension.CommandErrored += Core.EventHandlers.Error.CommandErrored;
+                    extension.CommandErrored += Core.EventHandlers.Error.CommandErroredAsync;
                 },
                 new CommandsConfiguration()
                 {
@@ -113,9 +113,9 @@ namespace OpenQotd
             });
 
             builder.ConfigureEventHandlers(b => b
-                .HandleComponentInteractionCreated(Core.EventHandlers.ComponentInteractionEntry.ComponentInteractionCreated)
+                .HandleComponentInteractionCreated(Core.EventHandlers.ComponentInteractionEntry.ComponentInteractionCreatedAsync)
                 .HandleModalSubmitted(Core.EventHandlers.ModalSubmittedEntry.ModalSubmittedEvent)
-                .HandleGuildCreated(Core.EventHandlers.GuildCreatedEntry.GuildCreated));
+                .HandleGuildCreated(Core.EventHandlers.GuildCreatedEntry.GuildCreatedAsync));
 
             builder.ConfigureExtraFeatures(b =>
             {

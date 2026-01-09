@@ -118,7 +118,7 @@ namespace OpenQotd.Core.Suggestions.Commands
                 index1++;
             }
 
-            await Logging.Api.LogUserAction(context, config, $"Accepted all {count} Suggestions", logSb.ToString());
+            await Logging.Api.LogUserActionAsync(context, config, $"Accepted all {count} Suggestions", logSb.ToString());
 
             await context.FollowupAsync(GenericEmbeds.Success("Suggestions Accepted", $"Successfully accepted {count} suggestion{(count == 1 ? "" : "s")}."));
         }

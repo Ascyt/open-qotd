@@ -10,23 +10,23 @@ namespace OpenQotd.Core.Logging
         /// <summary>
         /// Logs a user action to the configured log channel, if set.
         /// </summary>
-        public static async Task LogUserAction(CommandContext context, Config config, string title, string? message = null)
+        public static async Task LogUserActionAsync(CommandContext context, Config config, string title, string? message = null)
         {
-            await LogUserAction(context.Channel, context.User, config, title, message);
+            await LogUserActionAsync(context.Channel, context.User, config, title, message);
         }
 
         /// <summary>
         /// Logs a user action to the configured log channel, if set.
         /// </summary>
-        public static async Task LogUserAction(DiscordChannel channel, DiscordUser user, Config config, string title, string? message = null)
+        public static async Task LogUserActionAsync(DiscordChannel channel, DiscordUser user, Config config, string title, string? message = null)
         {
             if (!config.LogsChannelId.HasValue)
                 return;
 
-            DiscordChannel? logChannel = await Helpers.General.GetDiscordChannel(config.LogsChannelId.Value, guild:channel.Guild);
+            DiscordChannel? logChannel = await Helpers.General.GetDiscordChannelAsync(config.LogsChannelId.Value, guild:channel.Guild);
             if (logChannel is null)
             {
-                await PrintNotFoundWarning(channel);
+                await PrintNotFoundWarningAsync(channel);
                 return;
             }
 
@@ -45,7 +45,7 @@ namespace OpenQotd.Core.Logging
             await logChannel.SendMessageAsync(embed.Build());
         }
 
-        private static async Task PrintNotFoundWarning(DiscordChannel channel)
+        private static async Task PrintNotFoundWarningAsync(DiscordChannel channel)
         {
             await channel.SendMessageAsync(
                 GenericEmbeds.Warning("Log channel is set, but not found.\n\n" +

@@ -39,7 +39,7 @@ namespace OpenQotd.Core.Configs.Commands.Helpers
 			bool? EnableDeletedToStash = null,
 			DiscordChannel? LogsChannel = null)
         {
-            if (!await Permissions.Api.Admin.UserHasAdministratorPermission(context))
+            if (!await Permissions.Api.Admin.CheckAdminPermissionAsync(context))
                 return;
 
             Config? config = await Profiles.Api.TryGetSelectedOrDefaultConfigAsync(context);
@@ -160,7 +160,7 @@ namespace OpenQotd.Core.Configs.Commands.Helpers
 
             await context.RespondAsync(builder);
 
-            await Logging.Api.LogUserAction(context, config, "Set config values", message: configString);
+            await Logging.Api.LogUserActionAsync(context, config, "Set config values", message: configString);
         }
 
         

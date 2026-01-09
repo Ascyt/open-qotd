@@ -10,7 +10,7 @@ namespace OpenQotd.Core.Helpers
         /// Gets a channel from an ID.
         /// </summary>
         /// <returns>The channel, or null if it's not found</returns>
-        public static async Task<DiscordChannel?> GetDiscordChannel(ulong id, DiscordGuild? guild = null, ulong? guildId = null, CommandContext? commandContext = null)
+        public static async Task<DiscordChannel?> GetDiscordChannelAsync(ulong id, DiscordGuild? guild = null, ulong? guildId = null, CommandContext? commandContext = null)
         {
             if (guildId is null && commandContext is null && guild is null)
                 throw new ArgumentNullException(nameof(guildId));
@@ -39,7 +39,7 @@ namespace OpenQotd.Core.Helpers
         /// Gets a channel from an ID.
         /// </summary>
         /// <returns>The channel, or null if it's not found</returns>
-        public static async Task<DiscordMessage?> GetDiscordMessage(ulong id, DiscordChannel channel)
+        public static async Task<DiscordMessage?> GetDiscordMessageAsync(ulong id, DiscordChannel channel)
         {
             try
             {

@@ -20,7 +20,7 @@ namespace OpenQotd.Core.Presets.Commands
             if (config is null)
                 return;
 
-            if (!await Permissions.Api.Admin.UserIsAdmin(context, config))
+            if (!await Permissions.Api.Admin.CheckAsync(context, config))
                 return;
 
             await Helpers.General.PrintPresetDisabledWarningIfRequired(context, config);
@@ -34,7 +34,7 @@ namespace OpenQotd.Core.Presets.Commands
             List<Api.GuildDependentPreset> guildDependentPresets = Api.GetPresetsAsGuildDependent(presetSents);
 
             int itemsPerPage = Program.AppSettings.ListMessageItemsPerPage;
-            await ListMessages.SendNew(context, page, $"{(type != null ? $"{type} " : "")}Presets List",
+            await ListMessages.SendNewAsync(context, page, $"{(type != null ? $"{type} " : "")}Presets List",
                 Task<PageInfo<Api.GuildDependentPreset>> (int page) =>
                 {
                     int totalPresets = guildDependentPresets.Count;

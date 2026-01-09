@@ -7,12 +7,12 @@ namespace OpenQotd.Core.EventHandlers
 {
     public class GuildCreatedEntry
     {
-        public static async Task GuildCreated(DiscordClient client, GuildCreatedEventArgs args)
+        public static async Task GuildCreatedAsync(DiscordClient client, GuildCreatedEventArgs args)
         {
-            await SendMessage(args);
+            await SendMessageAsync(args);
         }
 
-        public static async Task SendMessage(GuildCreatedEventArgs args)
+        private static async Task SendMessageAsync(GuildCreatedEventArgs args)
         {
             DiscordChannel? systemChannel = await args.Guild.GetSystemChannelAsync();
             if (systemChannel is null)

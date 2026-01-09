@@ -18,10 +18,10 @@ namespace OpenQotd.Core.EventHandlers
         /// <summary>
         /// Shows the notes for a QOTD question, if any exist.
         /// </summary>
-        public static async Task ShowQotdNotesButtonClicked(ComponentInteractionCreatedEventArgs args, int profileId, int questionGuildDependentId)
+        public static async Task ShowQotdNotesButtonClickedAsync(ComponentInteractionCreatedEventArgs args, int profileId, int questionGuildDependentId)
         {
             Config? config = await Profiles.Api.TryGetConfigAsync(args, profileId);
-            if (config is null || !await Permissions.Api.Basic.UserIsBasic(args, config))
+            if (config is null || !await Permissions.Api.Basic.CheckAsync(args, config))
                 return;
 
             Question? question;
@@ -33,13 +33,13 @@ namespace OpenQotd.Core.EventHandlers
             }
             if (question is null)
             {
-                await Helpers.General.RespondWithError(args, $"Question with ID `{questionGuildDependentId}` for profile \"{config.ProfileName}\" not found.");
+                await Helpers.General.RespondWithErrorAsync(args, $"Question with ID `{questionGuildDependentId}` for profile \"{config.ProfileName}\" not found.");
                 return;
             }
 
             if (question.Notes is null)
             {
-                await Helpers.General.RespondWithError(args, "This question does not have any submittor-written additional notes.");
+                await Helpers.General.RespondWithErrorAsync(args, "This question does not have any submittor-written additional notes.");
                 return;
             }
 
@@ -54,12 +54,12 @@ namespace OpenQotd.Core.EventHandlers
         /// <summary>
         /// Shows general info about OpenQOTD. If this is a response to a question and the user is an admin, prompts the user to choose between question info and general info.
         /// </summary>
-        public static async Task ShowGeneralInfoButtonClicked(ComponentInteractionCreatedEventArgs args, int profileId, int questionGuildDependentId)
+        public static async Task ShowGeneralInfoButtonClickedAsync(ComponentInteractionCreatedEventArgs args, int profileId, int questionGuildDependentId)
         {
             DiscordMember member = await args.Guild.GetMemberAsync(args.User.Id);
 
             Config? config = await Profiles.Api.TryGetConfigAsync(args, profileId);
-            if (config is null || !await Permissions.Api.Basic.UserIsBasic(args, config, member: member))
+            if (config is null || !await Permissions.Api.Basic.CheckAsync(args, config, member: member))
                 return;
 
             // If this is a response to a question and the user is an admin, show the prompt.
@@ -78,7 +78,7 @@ namespace OpenQotd.Core.EventHandlers
             }
 
             // Otherwise, show general info.
-            await ShowGeneralInfoNoPromptButtonClicked(args, profileId, editMessage: false, config: config, member: member);
+            await ShowGeneralInfoNoPromptButtonClickedAsync(args, profileId, editMessage: false, config: config, member: member);
         }
 
         /// <summary>
@@ -86,14 +86,14 @@ namespace OpenQotd.Core.EventHandlers
         /// </summary>
         /// <param name="config">Optionally provided to avoid re-fetching</param>
         /// <param name="member">Optionally provided to avoid re-fetching</param>
-        public static async Task ShowGeneralInfoNoPromptButtonClicked(ComponentInteractionCreatedEventArgs args, int profileId, bool editMessage, Config? config=null, DiscordMember? member=null)
+        public static async Task ShowGeneralInfoNoPromptButtonClickedAsync(ComponentInteractionCreatedEventArgs args, int profileId, bool editMessage, Config? config=null, DiscordMember? member=null)
         {
             member ??= await args.Guild.GetMemberAsync(args.User.Id);
 
             if (config is null)
             {
                 config = await Profiles.Api.TryGetConfigAsync(args, profileId);
-                if (config is not null && !await Permissions.Api.Basic.UserIsBasic(args, config, member))
+                if (config is not null && !await Permissions.Api.Basic.CheckAsync(args, config, member))
                     return;
             }
 
@@ -106,10 +106,10 @@ namespace OpenQotd.Core.EventHandlers
         /// <summary>
         /// Show info about a QOTD question (like /questions view).
         /// </summary>
-        public static async Task ShowQotdInfoButtonClicked(ComponentInteractionCreatedEventArgs args, int profileId, int questionGuildDependentId, bool editMessage)
+        public static async Task ShowQotdInfoButtonClickedAsync(ComponentInteractionCreatedEventArgs args, int profileId, int questionGuildDependentId, bool editMessage)
         {
             Config? config = await Profiles.Api.TryGetConfigAsync(args, profileId);
-            if (config is null || !await Permissions.Api.Basic.UserIsBasic(args, config))
+            if (config is null || !await Permissions.Api.Basic.CheckAsync(args, config))
                 return;
 
             Question? question;
@@ -121,7 +121,7 @@ namespace OpenQotd.Core.EventHandlers
             }
             if (question is null)
             {
-                await Helpers.General.RespondWithError(args, $"Question with ID `{questionGuildDependentId}` for profile \"{config.ProfileName}\" not found.");
+                await Helpers.General.RespondWithErrorAsync(args, $"Question with ID `{questionGuildDependentId}` for profile \"{config.ProfileName}\" not found.");
                 return;
             }
 

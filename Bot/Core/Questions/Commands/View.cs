@@ -18,7 +18,7 @@ namespace OpenQotd.Core.Questions.Commands
         [Description("The ID of the question.")] int questionId)
         {
             Config? config = await Profiles.Api.TryGetSelectedOrDefaultConfigAsync(context);
-            if (config is null || !await Permissions.Api.Admin.UserIsAdmin(context, config))
+            if (config is null || !await Permissions.Api.Admin.CheckAsync(context, config))
                 return;
 
             Question? question;

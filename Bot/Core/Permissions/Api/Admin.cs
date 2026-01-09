@@ -14,7 +14,7 @@ namespace OpenQotd.Core.Permissions.Api
         /// <summary>
         /// Checks if a user has the "Server Administrator" permission.
         /// </summary>
-        public static async Task<bool> UserHasAdministratorPermission(CommandContext context, bool responseOnError = true)
+        public static async Task<bool> CheckAdminPermissionAsync(CommandContext context, bool responseOnError = true)
         {
             if (!context.Member!.Permissions.HasPermission(DiscordPermission.Administrator))
             {
@@ -36,9 +36,9 @@ namespace OpenQotd.Core.Permissions.Api
         /// Check if a user has admin permission. This function also handles sending error messages, so it's recommended to end the function if it retuns false.
         /// </summary>
         /// <param name="config">Config if already fetched, if null it will be fetched from the database.</param>
-        public static async Task<bool> UserIsAdmin(CommandContext context, Config? config, bool responseOnError = true)
+        public static async Task<bool> CheckAsync(CommandContext context, Config? config, bool responseOnError = true)
         {
-            (bool, string?) result = await UserIsAdmin(context.Guild!, context.Member!, config);
+            (bool, string?) result = await CheckAsync(context.Guild!, context.Member!, config);
 
             if (!result.Item1 && responseOnError)
             {
@@ -49,11 +49,11 @@ namespace OpenQotd.Core.Permissions.Api
             return result.Item1;
         }
         /// <summary>
-        /// See <see cref="UserIsAdmin(CommandContext, Config?, bool)"/>.
+        /// See <see cref="CheckAsync(CommandContext, Config?, bool)"/>.
         /// </summary>
         public static async Task<bool> UserIsAdmin(InteractionCreatedEventArgs args, Config? config, bool responseOnError=true)
         {
-            (bool, string?) result = await UserIsAdmin(args.Interaction.Guild!, await args.Interaction.Guild!.GetMemberAsync(args.Interaction.User!.Id), config);
+            (bool, string?) result = await CheckAsync(args.Interaction.Guild!, await args.Interaction.Guild!.GetMemberAsync(args.Interaction.User!.Id), config);
 
             if (!result.Item1 && responseOnError)
             {
@@ -69,10 +69,10 @@ namespace OpenQotd.Core.Permissions.Api
         }
 
         /// <summary>
-        /// See <see cref="UserIsAdmin(CommandContext, Config?, bool)"/>.
+        /// See <see cref="CheckAsync(CommandContext, Config?, bool)"/>.
         /// </summary>
         /// <returns>(If config is initialized, error message if not)</returns>
-        public static async Task<(bool, string?)> UserIsAdmin(DiscordGuild guild, DiscordMember member, Config? config)
+        public static async Task<(bool, string?)> CheckAsync(DiscordGuild guild, DiscordMember member, Config? config)
         {
             if (member.Permissions.HasPermission(DiscordPermission.Administrator))
                 return (true, null);

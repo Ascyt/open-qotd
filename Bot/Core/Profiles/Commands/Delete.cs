@@ -17,7 +17,7 @@ namespace OpenQotd.Core.Profiles.Commands
         [Description("Irreversably delete the current selected profile, including all its associated data.")]
         public static async Task DeleteProfileAsync(CommandContext context)
         {
-            if (!await Permissions.Api.Admin.UserHasAdministratorPermission(context))
+            if (!await Permissions.Api.Admin.CheckAdminPermissionAsync(context))
                 return;
 
             Config? config = await Api.TryGetSelectedOrDefaultConfigAsync(context);

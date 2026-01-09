@@ -13,7 +13,7 @@ namespace OpenQotd.Core.Profiles.Commands
         [Description("Switch to new-profile-mode. Then, use /config initialize to create the profile.")]
         public static async Task NewProfileAsync(CommandContext context)
         {
-            if (!await Permissions.Api.Admin.UserHasAdministratorPermission(context))
+            if (!await Permissions.Api.Admin.CheckAdminPermissionAsync(context))
                 return;
 
             int? nextProfileId = await Config.TryGetNextProfileId(context.Guild!.Id);

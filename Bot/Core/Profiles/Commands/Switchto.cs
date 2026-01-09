@@ -23,7 +23,7 @@ namespace OpenQotd.Core.Profiles.Commands
                 return;
 
             // Check if user has permission to switch to that profile
-            bool hasAdmin = await Permissions.Api.Admin.UserHasAdministratorPermission(context, responseOnError: false);
+            bool hasAdmin = await Permissions.Api.Admin.CheckAdminPermissionAsync(context, responseOnError: false);
             if (!hasAdmin && !context.Member!.Roles.Any(role => role.Id == configToSelect.AdminRoleId))
             {
                 await (context as SlashCommandContext)!

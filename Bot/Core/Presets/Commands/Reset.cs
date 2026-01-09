@@ -19,7 +19,7 @@ namespace OpenQotd.Core.Presets.Commands
             if (config is null)
                 return;
 
-            if (!await Permissions.Api.Admin.UserIsAdmin(context, config))
+            if (!await Permissions.Api.Admin.CheckAsync(context, config))
                 return;
 
             await Helpers.General.PrintPresetDisabledWarningIfRequired(context, config);

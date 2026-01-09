@@ -24,7 +24,7 @@ namespace OpenQotd.Core.UncategorizedCommands
             int profileId = from;
 
             Config? config = await Profiles.Api.TryGetConfigAsync(context, from);
-            if (config is null || !await Permissions.Api.Basic.UserIsBasic(context, config))
+            if (config is null || !await Permissions.Api.Basic.CheckAsync(context, config))
                 return;
 
             includePresets = includePresets && config.EnableQotdAutomaticPresets; // Presets can only be included if enabled in config.

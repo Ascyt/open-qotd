@@ -116,7 +116,7 @@ namespace OpenQotd.Core.Suggestions.Commands
                 index1++;
             }
 
-            await Logging.Api.LogUserAction(context, config, $"Denied all {count} Suggestions", logSb.ToString());
+            await Logging.Api.LogUserActionAsync(context, config, $"Denied all {count} Suggestions", logSb.ToString());
 
             await context.FollowupAsync(GenericEmbeds.Success("Suggestions Denied", $"Successfully denied {count} suggestion{(count == 1 ? "" : "s")}."));
         }

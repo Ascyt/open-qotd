@@ -12,7 +12,7 @@ namespace OpenQotd.Core.UncategorizedCommands
         public static async Task TriggerAsync(CommandContext context)
         {
             Config? config = await Profiles.Api.TryGetSelectedOrDefaultConfigAsync(context);
-            if (config is null || !await Permissions.Api.Admin.UserIsAdmin(context, config))
+            if (config is null || !await Permissions.Api.Admin.CheckAsync(context, config))
                 return;
 
             await context.DeferResponseAsync();
@@ -23,7 +23,7 @@ namespace OpenQotd.Core.UncategorizedCommands
                 GenericEmbeds.Success(title:$"Successfully triggered {config.QotdShorthandText}", 
                 message:$"A new {config.QotdTitleText} has been successfully sent to the <#{config.QotdChannelId}> channel."));
 
-            await Logging.Api.LogUserAction(context, config, "Trigger QOTD");
+            await Logging.Api.LogUserActionAsync(context, config, "Trigger QOTD");
         }
     }
 }
