@@ -136,7 +136,7 @@ namespace OpenQotd.Helpers
 
 
             if (context is null) 
-                await Logging.LogUserAction(result!.Channel, user, config, "Accepted Suggestion", question.ToString());
+                await Logging.LogUserAction(result!.Interaction.Channel, user, config, "Accepted Suggestion", question.ToString());
             else
                 await Logging.LogUserAction(context, config, "Accepted Suggestion", question.ToString());
         }
