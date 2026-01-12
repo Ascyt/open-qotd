@@ -97,11 +97,22 @@ namespace OpenQotd.Helpers
 
                 messageBuilder.AddEmbed(GenericEmbeds.Custom($"{config.QotdShorthandText} Suggestion Accepted", embedBody +
                     $"\n\nAccepted by: {user.Mention}", color: "#20ff20"));
-
+    
                 if (result is null)
                     await suggestionMessage.ModifyAsync(messageBuilder);
                 else
-                    await result.Interaction.CreateResponseAsync(DiscordInteractionResponseType.UpdateMessage, new DiscordInteractionResponseBuilder(messageBuilder));
+                {
+                    try 
+                    {
+                        await result.Interaction.CreateResponseAsync(DiscordInteractionResponseType.UpdateMessage, new DiscordInteractionResponseBuilder(messageBuilder));
+                    }
+                    catch (Exception) // fallback in case of timeout or other issues
+                    {
+                        await suggestionMessage.ModifyAsync(messageBuilder);
+                        await suggestionMessage.UnpinAsync();
+                        throw;
+                    }
+                }
 
                 await suggestionMessage.UnpinAsync();
             }
