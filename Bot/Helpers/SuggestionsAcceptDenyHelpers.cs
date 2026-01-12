@@ -134,8 +134,9 @@ namespace OpenQotd.Helpers
                     );
             }
 
-            if (context is null)
-                await Logging.LogUserAction(suggestionMessage!.Channel!, user, config, "Accepted Suggestion", question.ToString());
+
+            if (context is null) 
+                await Logging.LogUserAction(result!.Channel, user, config, "Accepted Suggestion", question.ToString());
             else
                 await Logging.LogUserAction(context, config, "Accepted Suggestion", question.ToString());
         }
@@ -240,7 +241,7 @@ namespace OpenQotd.Helpers
             }
 
             if (context is null)
-                await Logging.LogUserAction(suggestionMessage!.Channel!, user, config, "Denied Suggestion" + (config.EnableDeletedToStash ? " (moved to stash)" : ""), $"{question}\n\n" +
+                await Logging.LogUserAction(result!.Interaction.Channel, user, config, "Denied Suggestion" + (config.EnableDeletedToStash ? " (moved to stash)" : ""), $"{question}\n\n" +
                 $"Denial Reason: \"**{reason}**\"");
             else
                 await Logging.LogUserAction(context, config, "Denied Suggestion" + (config.EnableDeletedToStash ? " (moved to stash)" : ""), $"{question}\n\n" +
