@@ -54,6 +54,11 @@
         public int QuestionsPerGuildMaxAmount { get; set; } = 65536;
 
         /// <summary>
+        /// The maximum amount of pools a guild can have. Does not add a database constraint.
+        /// </summary>
+        public int PoolsPerGuildMaxAmount { get; set; } = 256;
+
+        /// <summary>
         /// The maximum amount of characters that Config.QotdTitle can be. Does not add a database constraint.
         /// </summary>
         /// <remarks>

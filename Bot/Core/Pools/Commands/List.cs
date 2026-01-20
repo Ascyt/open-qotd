@@ -13,7 +13,8 @@ namespace OpenQotd.Core.Pools.Commands
         [Command("list")]
         [Description("Lists all Pools in the selected profile.")]
         public static async Task ListPoolsAsync(CommandContext context,
-            [Description("The page of the listing (default 1).")] int page = 1)
+            [Description("The page of the listing (default 1).")] int page = 1,
+            [Description("Whether to only show enabled/disabled pools.")] bool? onlyEnabled = null)
         {
             Config? config = await Profiles.Api.TryGetSelectedOrDefaultConfigAsync(context);
             if (config is null || !await Permissions.Api.Admin.CheckAsync(context, config))
@@ -31,7 +32,7 @@ namespace OpenQotd.Core.Pools.Commands
                     int itemsPerPage = Program.AppSettings.ListMessageItemsPerPage;
 
                     Pool[] poolsInPage = await dbContext.Pools
-                        .Where(p => p.ConfigId == config.Id)
+                        .Where(p => p.ConfigId == config.Id && (onlyEnabled == null || p.Enabled == onlyEnabled.Value))
                         .OrderBy(p => p.Id)
                         .Skip((page - 1) * itemsPerPage)
                         .Take(itemsPerPage)

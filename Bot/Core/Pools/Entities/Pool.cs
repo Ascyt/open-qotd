@@ -1,5 +1,4 @@
 ﻿using System.ComponentModel.DataAnnotations.Schema;
-using OpenQotd.Core.Configs;
 using OpenQotd.Core.Configs.Entities;
 
 namespace OpenQotd.Core.Pools.Entities
@@ -24,6 +23,11 @@ namespace OpenQotd.Core.Pools.Entities
         /// The name of the pool that will be shown to users.
         /// </summary>
         public string Name { get; set; } = string.Empty;
+
+        /// <summary>
+        /// Whether the pool is enabled or disabled.
+        /// </summary>
+        public bool Enabled { get; set; } = true;
 
         /// <summary>
         /// The ordering option for selecting items from the pool.
@@ -63,6 +67,11 @@ namespace OpenQotd.Core.Pools.Entities
 
         // Internal Variables
 
-        public DateTime CreatedAt { get; set; } = DateTime.UtcNow;    
+        public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+
+        public override string ToString()
+        {
+            return $"{Name} ";
+        }
     }
 }
