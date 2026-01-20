@@ -70,11 +70,16 @@ namespace OpenQotd.Helpers
                 {
                     DiscordEmbed embed = GenericEmbeds.Error(title: "Suggestion Not Found", message: $"The suggestion with ID `{question.GuildDependentId}` could not be found in profile *{config.ProfileName}*.");
 
-                    if (suggestionMessage is null)
-                        await context!.Channel.SendMessageAsync(embed);
+                    if (suggestionMessage is not null)
+                    {
+                        await suggestionMessage.ModifyAsync(embed: embed);
+                        await suggestionMessage.UnpinAsync();
+                    }
+
+                    if (context is not null)
+                        await context.Channel.SendMessageAsync(embed);
                     else
-                        await suggestionMessage.Channel!.SendMessageAsync(embed
-                        );
+                        await result!.Interaction.CreateResponseAsync(DiscordInteractionResponseType.ChannelMessageWithSource, new DiscordInteractionResponseBuilder().AddEmbed(embed).AsEphemeral(true));
                     return;
                 }
 
@@ -169,14 +174,19 @@ namespace OpenQotd.Helpers
                 Question? disableQuestion = await dbContext.Questions.FindAsync(question.Id);
 
                 if (disableQuestion == null)
-                {
+                {                    
                     DiscordEmbed embed = GenericEmbeds.Error(title: "Suggestion Not Found", message: $"The suggestion with ID `{question.GuildDependentId}` could not be found in profile *{config.ProfileName}*.");
 
-                    if (suggestionMessage is null)
-                        await context!.Channel.SendMessageAsync(embed);
+                    if (suggestionMessage is not null)
+                    {
+                        await suggestionMessage.ModifyAsync(embed: embed);
+                        await suggestionMessage.UnpinAsync();
+                    }
+
+                    if (context is not null)
+                        await context.Channel.SendMessageAsync(embed);
                     else
-                        await suggestionMessage.Channel!.SendMessageAsync(embed
-                        );
+                        await result!.Interaction.CreateResponseAsync(DiscordInteractionResponseType.ChannelMessageWithSource, new DiscordInteractionResponseBuilder().AddEmbed(embed).AsEphemeral(true));
                     return;
                 }
 
