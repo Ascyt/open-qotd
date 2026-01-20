@@ -32,6 +32,17 @@ namespace OpenQotd.Core.Pools.Commands
             }
 
             using AppDbContext dbContext = new();
+
+            int existingPoolsCount = await dbContext.Pools
+                .Where(p => p.ConfigId == config.Id)
+                .CountAsync();
+            
+            if (existingPoolsCount >= Program.AppSettings.PoolsPerGuildMaxAmount)
+            {
+                await context.RespondAsync($"Unable to create a new pool because the maximum amount of pools per guild ({Program.AppSettings.PoolsPerGuildMaxAmount}) has been reached.");
+                return;
+            }
+
             Pool newPool = new()
             {
                 ConfigId = config.Id,
