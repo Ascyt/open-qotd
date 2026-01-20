@@ -123,6 +123,12 @@ namespace OpenQotd
                 b.LogUnknownAuditlogs = false;
             });
 
+            builder.ConfigureExtraFeatures(b =>
+            {
+                b.LogUnknownEvents = false;
+                b.LogUnknownAuditlogs = false;
+            });
+
             DiscordClient client = builder.Build();
             Client = client;
 

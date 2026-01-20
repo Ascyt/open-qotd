@@ -32,11 +32,16 @@ namespace OpenQotd.Core.Suggestions.Helpers
                 {
                     DiscordEmbed embed = GenericEmbeds.Error(title: "Suggestion Not Found", message: $"The suggestion with ID `{question.GuildDependentId}` could not be found in profile *{config.ProfileName}*.");
 
-                    if (suggestionMessage is null)
-                        await context!.Channel.SendMessageAsync(embed);
+                    if (suggestionMessage is not null)
+                    {
+                        await suggestionMessage.ModifyAsync(embed: embed);
+                        await suggestionMessage.UnpinAsync();
+                    }
+
+                    if (context is not null)
+                        await context.Channel.SendMessageAsync(embed);
                     else
-                        await suggestionMessage.Channel!.SendMessageAsync(embed
-                        );
+                        await result!.Interaction.CreateResponseAsync(DiscordInteractionResponseType.ChannelMessageWithSource, new DiscordInteractionResponseBuilder().AddEmbed(embed).AsEphemeral(true));
                     return;
                 }
 
@@ -69,7 +74,18 @@ namespace OpenQotd.Core.Suggestions.Helpers
                 if (result is null)
                     await suggestionMessage.ModifyAsync(messageBuilder);
                 else
-                    await result.Interaction.CreateResponseAsync(DiscordInteractionResponseType.UpdateMessage, new DiscordInteractionResponseBuilder(messageBuilder));
+                {
+                    try 
+                    {
+                        await result.Interaction.CreateResponseAsync(DiscordInteractionResponseType.UpdateMessage, new DiscordInteractionResponseBuilder(messageBuilder));
+                    }
+                    catch (Exception) // fallback in case of timeout or other issues
+                    {
+                        await suggestionMessage.ModifyAsync(messageBuilder);
+                        await suggestionMessage.UnpinAsync();
+                        throw;
+                    }
+                }
 
                 if (config.EnableSuggestionsPinMessage)
                     await suggestionMessage.UnpinAsync();
@@ -117,8 +133,9 @@ namespace OpenQotd.Core.Suggestions.Helpers
                     );
             }
 
-            if (context is null)
-                await Logging.Api.LogUserActionAsync(suggestionMessage!.Channel!, user, config, "Accepted Suggestion", question.ToString());
+
+            if (context is null) 
+                await Logging.Api.LogUserActionAsync(result!.Interaction.Channel, user, config, "Accepted Suggestion", question.ToString());
             else
                 await Logging.Api.LogUserActionAsync(context, config, "Accepted Suggestion", question.ToString());
         }
@@ -140,14 +157,19 @@ namespace OpenQotd.Core.Suggestions.Helpers
                 Question? disableQuestion = await dbContext.Questions.FindAsync(question.Id);
 
                 if (disableQuestion == null)
-                {
+                {                    
                     DiscordEmbed embed = GenericEmbeds.Error(title: "Suggestion Not Found", message: $"The suggestion with ID `{question.GuildDependentId}` could not be found in profile *{config.ProfileName}*.");
 
-                    if (suggestionMessage is null)
-                        await context!.Channel.SendMessageAsync(embed);
+                    if (suggestionMessage is not null)
+                    {
+                        await suggestionMessage.ModifyAsync(embed: embed);
+                        await suggestionMessage.UnpinAsync();
+                    }
+
+                    if (context is not null)
+                        await context.Channel.SendMessageAsync(embed);
                     else
-                        await suggestionMessage.Channel!.SendMessageAsync(embed
-                        );
+                        await result!.Interaction.CreateResponseAsync(DiscordInteractionResponseType.ChannelMessageWithSource, new DiscordInteractionResponseBuilder().AddEmbed(embed).AsEphemeral(true));
                     return;
                 }
 
@@ -227,7 +249,8 @@ namespace OpenQotd.Core.Suggestions.Helpers
                 $"\n\nDenial Reason: \"**{reason}**\"" : "");
 
             if (context is null)
-                await Logging.Api.LogUserActionAsync(suggestionMessage!.Channel!, user, config, logTitle, logBody);
+                await Logging.Api.LogUserActionAsync(result!.Interaction.Channel, user, config, "Denied Suggestion" + (config.EnableDeletedToStash ? " (moved to stash)" : ""), $"{question}\n\n" +
+                $"Denial Reason: \"**{reason}**\"");
             else
                 await Logging.Api.LogUserActionAsync(context, config, logTitle, logBody);
         }

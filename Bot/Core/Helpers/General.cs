@@ -87,20 +87,59 @@ namespace OpenQotd.Core.Helpers
                 $"Rate limit hit.";
             log += $"\n\tCode: {ex.Response!.StatusCode}.\n\tMessage: {ex.Message}\n\tStack Trace: {ex.StackTrace}\n\tResponse Headers:\n\t{ex.Response.Headers}\n\tResponse ";
             
-            await Console.Out.WriteLineAsync(log);
+            await Console.Out.WriteLineAsync(log).ConfigureAwait(false);
 
             if (!File.Exists("ratelimits.log"))
             {
-                await File.WriteAllTextAsync("ratelimits.log", log);
+                await File.WriteAllTextAsync("ratelimits.log", log).ConfigureAwait(false);
             }
             else
             {
-                await File.AppendAllTextAsync("ratelimits.log", log);
+                await File.AppendAllTextAsync("ratelimits.log", log).ConfigureAwait(false);
             }
 
-            log = $"Content:\n\t{await ex.Response.Content.ReadAsStringAsync()}";
-            await Console.Out.WriteLineAsync(log);
-            await File.AppendAllTextAsync("ratelimits.log", log);        
+                HttpContent? content = ex.Response.Content;
+                string responseContent;
+                if (content is not null)
+                {
+                    int timeoutSeconds = 5;
+                    try
+                    {
+                        responseContent = await content.ReadAsStringAsync().WaitAsync(TimeSpan.FromSeconds(timeoutSeconds)).ConfigureAwait(false);
+                    }
+                    catch (OperationCanceledException)
+                    {
+                        try
+                        {
+                            using MemoryStream memoryStream = new();
+                            using CancellationTokenSource cts = new(TimeSpan.FromSeconds(timeoutSeconds));
+                            await content.CopyToAsync(memoryStream, cts.Token).ConfigureAwait(false);
+                            memoryStream.Seek(0, SeekOrigin.Begin);
+                            using StreamReader streamReader = new(memoryStream);
+                            responseContent = await streamReader.ReadToEndAsync().ConfigureAwait(false);
+                        }
+                        catch (OperationCanceledException)
+                        {
+                            responseContent = "<response read timed out after 5 seconds>";
+                        }
+                        catch (Exception copyEx)
+                        {
+                            responseContent = $"<response copy failed: {copyEx.GetType().Name}: {copyEx.Message}>";
+                        }
+                    }
+                    catch (Exception readEx)
+                    {
+                        responseContent = $"<response read failed: {readEx.GetType().Name}: {readEx.Message}>";
+                    }
+                }
+                else
+                {
+                    responseContent = string.Empty;
+                }
+
+            log = $"Content:\n\t{responseContent}\n\n\n";
+            await Console.Out.WriteLineAsync(log).ConfigureAwait(false);
+            await File.AppendAllTextAsync("ratelimits.log", log).ConfigureAwait(false);
         }
     }
 }
