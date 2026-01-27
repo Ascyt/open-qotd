@@ -133,7 +133,9 @@ namespace OpenQotd.Core.QotdSending.Sender
                 (d.config.EnableSuggestions ? $"\n\n*Suggest some using `{d.SuggestCommand}`!*" : ""), color: "#dc5051"));
             Helpers.AddButtonsIfEnabled(d.config, question, messageBuilder);
 
-            await qotdChannel.SendMessageAsync(messageBuilder);
+            DiscordMessage sentMessage = null!;
+            await Core.Helpers.General.RetryOnRateLimitAsync(async () => sentMessage = await qotdChannel.SendMessageAsync(messageBuilder), 
+                "QotdSender.SendQotdPresetAsync SendMessageAsync");
             await SendNoticeIfAvailable(d);
         }
         /// <summary>
@@ -165,7 +167,9 @@ namespace OpenQotd.Core.QotdSending.Sender
 
             Helpers.AddButtonsIfEnabled(d.config, null, messageBuilder);
 
-            DiscordMessage sentMessage = await qotdChannel.SendMessageAsync(messageBuilder);
+            DiscordMessage sentMessage = null!;
+            await Core.Helpers.General.RetryOnRateLimitAsync(async () => sentMessage = await qotdChannel.SendMessageAsync(messageBuilder), 
+                "QotdSender.SendQotdPresetAsync SendMessageAsync");
 
             using (AppDbContext dbContext = new())
             {
@@ -228,7 +232,9 @@ namespace OpenQotd.Core.QotdSending.Sender
             DiscordChannel qotdChannel = await d.GetQotdChannelAsync();
 
             // Send the message
-            DiscordMessage sentMessage = await qotdChannel.SendMessageAsync(messageBuilder);
+            DiscordMessage sentMessage = null!;
+            await Core.Helpers.General.RetryOnRateLimitAsync(async () => sentMessage = await qotdChannel.SendMessageAsync(messageBuilder), 
+                "QotdSender.SendQotdPresetAsync SendMessageAsync");
             using (AppDbContext dbContext = new())
             {
                 // Update the question and config in the database
