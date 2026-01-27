@@ -141,10 +141,10 @@ namespace OpenQotd.Core.QotdSending.Sender
 
             if (oldSentMessage is not null)
             {
-                await oldSentMessage.UnpinAsync();
+                await Core.Helpers.General.RetryOnRateLimitAsync(() => oldSentMessage.UnpinAsync(), "QotdSenderHelper.PinMessageIfEnabled UnpinAsync");
             }
 
-            await sentMessage.PinAsync();
+            await Core.Helpers.General.RetryOnRateLimitAsync(() => sentMessage.PinAsync(), "QotdSenderHelper.PinMessageIfEnabled PinAsync");
         }
 
         public static async Task CreateThreadIfEnabled(SendQotdData d, DiscordMessage sentMessage, int? sentQuestionsCount)
@@ -152,9 +152,9 @@ namespace OpenQotd.Core.QotdSending.Sender
             if (!d.config.EnableQotdCreateThread)
                 return;
 
-            await sentMessage.CreateThreadAsync(
+            await Core.Helpers.General.RetryOnRateLimitAsync(() => sentMessage.CreateThreadAsync(
                 $"{d.QotdShorthand}{(sentQuestionsCount is null ? "" : $" #{sentQuestionsCount}")} Discussion ({DateTime.UtcNow:yyyy-MM-dd})", 
-                DiscordAutoArchiveDuration.Day, reason: $"Automatic {d.QotdShorthand} thread");
+                DiscordAutoArchiveDuration.Day, reason: $"Automatic {d.QotdShorthand} thread"), "QotdSenderHelper.CreateThreadIfEnabled CreateThreadAsync");
         }
 
         public static async Task AddPingRoleIfEnabledAndExistent(SendQotdData d, DiscordMessageBuilder builder)
