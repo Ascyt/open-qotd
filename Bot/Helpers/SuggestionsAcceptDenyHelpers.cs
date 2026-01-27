@@ -60,7 +60,7 @@ namespace OpenQotd.Helpers
             DiscordUser user = context?.User ?? result!.User;
             DiscordGuild guild = context?.Guild ?? result!.Guild;
 
-            DiscordMessage? suggestionMessage = await TryGetSuggestionMessage(question, config, guild);
+            DiscordMessage? suggestionMessage =  result?.Message ?? await TryGetSuggestionMessage(question, config, guild);
 
             using (AppDbContext dbContext = new())
             {
@@ -102,21 +102,14 @@ namespace OpenQotd.Helpers
 
                 messageBuilder.AddEmbed(GenericEmbeds.Custom($"{config.QotdShorthandText} Suggestion Accepted", embedBody +
                     $"\n\nAccepted by: {user.Mention}", color: "#20ff20"));
-    
-                if (result is null)
-                    await suggestionMessage.ModifyAsync(messageBuilder);
+
+                if (result is not null)
+                {
+                    await result.Interaction.CreateResponseAsync(DiscordInteractionResponseType.UpdateMessage, new DiscordInteractionResponseBuilder(messageBuilder));
+                }
                 else
                 {
-                    try 
-                    {
-                        await result.Interaction.CreateResponseAsync(DiscordInteractionResponseType.UpdateMessage, new DiscordInteractionResponseBuilder(messageBuilder));
-                    }
-                    catch (Exception) // fallback in case of timeout or other issues
-                    {
-                        await suggestionMessage.ModifyAsync(messageBuilder);
-                        await suggestionMessage.UnpinAsync();
-                        throw;
-                    }
+                    await suggestionMessage.ModifyAsync(messageBuilder);
                 }
 
                 await suggestionMessage.UnpinAsync();

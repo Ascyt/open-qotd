@@ -154,5 +154,27 @@ namespace OpenQotd.Helpers
             await Console.Out.WriteLineAsync(log).ConfigureAwait(false);
             await File.AppendAllTextAsync("ratelimits.log", log).ConfigureAwait(false);
         }
+
+        public static async Task RetryOnRateLimitAsync(Func<Task> action, string contextInfo = "", int maxRetries = 5)
+        {
+            try
+            {
+                await action();
+            }
+            catch (RateLimitException ex)
+            {
+                await Console.Out.WriteLineAsync($"Rate limit hit in context \"{contextInfo}\". Retrying... ({maxRetries} retries left)");
+                if (maxRetries > 0)
+                {
+                    await Task.Delay(1000); // TODO: Change to RetryAfter when https://github.com/DSharpPlus/DSharpPlus/issues/2407 fixed
+                    await RetryOnRateLimitAsync(action, contextInfo, maxRetries - 1);
+                }
+                else
+                {
+                    await Console.Out.WriteLineAsync($"Max retries reached for context \"{contextInfo}\". Logging rate limit exception.");
+                    await LogRateLimitExceptionAsync(ex, contextInfo);
+                }
+            }
+        }
     }
 }

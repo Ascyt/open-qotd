@@ -131,7 +131,9 @@ namespace OpenQotd.QotdSending
                 (d.config.EnableSuggestions ? $"\n\n*Suggest some using `{d.SuggestCommand}`!*" : ""), color: "#dc5051"));
             QotdSenderHelpers.AddButtonsIfEnabled(d.config, question, messageBuilder);
 
-            await qotdChannel.SendMessageAsync(messageBuilder);
+            DiscordMessage sentMessage = null!;
+            await GeneralHelpers.RetryOnRateLimitAsync(async () => sentMessage = await qotdChannel.SendMessageAsync(messageBuilder), 
+                "QotdSender.SendQotdPresetAsync SendMessageAsync");
             await SendNoticeIfAvailable(d);
         }
         /// <summary>
@@ -158,7 +160,9 @@ namespace OpenQotd.QotdSending
 
             QotdSenderHelpers.AddButtonsIfEnabled(d.config, null, messageBuilder);
 
-            DiscordMessage sentMessage = await qotdChannel.SendMessageAsync(messageBuilder);
+            DiscordMessage sentMessage = null!;
+            await GeneralHelpers.RetryOnRateLimitAsync(async () => sentMessage = await qotdChannel.SendMessageAsync(messageBuilder), 
+                "QotdSender.SendQotdPresetAsync SendMessageAsync");
 
             using (AppDbContext dbContext = new())
             {
@@ -176,6 +180,7 @@ namespace OpenQotd.QotdSending
             }
 
             await SendNoticeIfAvailable(d);
+
             await QotdSenderHelpers.PinMessageIfEnabled(d, sentMessage);
             await QotdSenderHelpers.CreateThreadIfEnabled(d, sentMessage, null);
         }
@@ -218,7 +223,9 @@ namespace OpenQotd.QotdSending
             DiscordChannel qotdChannel = await d.GetQotdChannelAsync();
 
             // Send the message
-            DiscordMessage sentMessage = await qotdChannel.SendMessageAsync(messageBuilder);
+            DiscordMessage sentMessage = null!;
+            await GeneralHelpers.RetryOnRateLimitAsync(async () => sentMessage = await qotdChannel.SendMessageAsync(messageBuilder), 
+                "QotdSender.SendQotdPresetAsync SendMessageAsync");
             using (AppDbContext dbContext = new())
             {
                 // Update the question and config in the database
