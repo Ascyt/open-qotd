@@ -160,7 +160,7 @@ namespace OpenQotd.Helpers
             DiscordUser user = context?.User ?? result!.Interaction.User;
             DiscordGuild guild = context?.Guild ?? result!.Interaction.Guild!;
 
-            DiscordMessage? suggestionMessage =  result?.Message ?? await TryGetSuggestionMessage(question, config, guild);
+            DiscordMessage? suggestionMessage =  result?.Interaction.Message ?? await TryGetSuggestionMessage(question, config, guild);
 
             using (AppDbContext dbContext = new())
             {
