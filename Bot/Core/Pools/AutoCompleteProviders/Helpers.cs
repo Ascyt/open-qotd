@@ -8,22 +8,19 @@ using OpenQotd.Core.Pools.Entities;
 
 namespace OpenQotd.Core.Pools.AutoCompleteProviders
 {
-    public class Pools : IAutoCompleteProvider
+    public class Helpers 
     {
-        public async ValueTask<IEnumerable<DiscordAutoCompleteChoice>> AutoCompleteAsync(AutoCompleteContext context)
-        {
-            Dictionary<int, string> filteredPools = await GetPoolsAsync(context.Guild!, context.Member!, context.UserInput);
-
-            return filteredPools
-                .Take(25) // Max 25 choices allowed by Discord API
-                .Select(kv => new DiscordAutoCompleteChoice(kv.Value, kv.Key));
-        }
-
-        public static async Task<Dictionary<int, string>> GetPoolsAsync(DiscordGuild guild, DiscordMember member, string? filter)
+        public static async Task<Dictionary<int, string>> GetPoolsAsync(DiscordGuild guild, DiscordMember member, string? filter, bool requireAdmin)
         {
             Config? config = (await Profiles.Api.TryGetSelectedOrDefaultConfigAsync(guild.Id, member.Id)).Item1;
-            if (config is null || !(await Permissions.Api.Admin.CheckAsync(guild, member, config)).Item1)
+            if (config is null)
                 return [];
+
+            bool isAdmin = (await Permissions.Api.Admin.CheckAsync(guild, member, config)).Item1;
+            if (requireAdmin && !isAdmin)
+                return [];
+
+            ulong[] memberRolesAsAdminFallback = isAdmin ? [] : [.. member.Roles.Select(r => r.Id)];
 
             Pool[] pools; 
             using (AppDbContext dbContext = new())
@@ -31,7 +28,9 @@ namespace OpenQotd.Core.Pools.AutoCompleteProviders
                 bool hasFilter = !string.IsNullOrWhiteSpace(filter);
 
                 pools = await dbContext.Pools
-                        .Where(p => p.ConfigId == config.Id && (!hasFilter || EF.Functions.ILike(p.Name, $"%{filter}%")))
+                        .Where(p => p.ConfigId == config.Id && 
+                            (!hasFilter || EF.Functions.ILike(p.Name, $"%{filter}%")) && 
+                            (isAdmin || p.ModRoleId == null || memberRolesAsAdminFallback.Contains(p.ModRoleId.Value)) /* Only show pools that the user has access to */)
                         .OrderByDescending(p => p.Enabled) // Enabled pools first
                         .ThenBy(p => p.Name) // Then alphabetically by name
                         .ToArrayAsync();

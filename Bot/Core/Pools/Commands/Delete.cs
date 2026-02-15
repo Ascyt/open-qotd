@@ -14,7 +14,7 @@ namespace OpenQotd.Core.Pools.Commands
         [Command("delete")]
         [Description("Delete an existing pool.")]
         public static async Task DeletePoolAsync(CommandContext context, 
-            [Description("The pool to delete.")][SlashAutoCompleteProvider<AutoCompleteProviders.Pools>] int pool)
+            [Description("The pool to delete.")][SlashAutoCompleteProvider<AutoCompleteProviders.RequireAdminPools>] int pool)
         {
             int poolId = pool;
 

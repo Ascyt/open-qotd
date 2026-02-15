@@ -76,7 +76,7 @@ namespace OpenQotd.Core.Pools.Entities
 
         public override string ToString()
         {
-            return $"{Name} ";
+            return $"{Name}{(Enabled ? "" : " (disabled)")}";
         }
     }
 }
