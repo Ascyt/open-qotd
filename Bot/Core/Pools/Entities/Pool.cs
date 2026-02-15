@@ -65,6 +65,11 @@ namespace OpenQotd.Core.Pools.Entities
         /// </summary>
         public Config.AlterQuestionAfterSentOption? OverrideAlterQuestionAfterSent { get; set; }
 
+        /// <summary>
+        /// Next to AdminRole, the ModRole can also manage the pool, but cannot change its settings or delete it.
+        /// </summary>
+        public ulong? ModRoleId { get; set; } = null; 
+
         // Internal Variables
 
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
