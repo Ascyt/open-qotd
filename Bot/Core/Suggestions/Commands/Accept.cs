@@ -8,7 +8,7 @@ using OpenQotd.Core.Helpers;
 
 namespace OpenQotd.Core.Suggestions.Commands
 {
-    public sealed partial class SuggestionsCommands
+    public sealed partial class SuggestionsCommand
     {
         [Command("accept")]
         [Description("Accept a suggestion.")]

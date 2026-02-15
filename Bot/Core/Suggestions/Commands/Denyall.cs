@@ -12,7 +12,7 @@ using DSharpPlus.Exceptions;
 
 namespace OpenQotd.Core.Suggestions.Commands
 {
-    public sealed partial class SuggestionsCommands
+    public sealed partial class SuggestionsCommand
     {
         [Command("denyall")]
         [Description("Deny all suggestions.")]

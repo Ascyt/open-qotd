@@ -8,7 +8,7 @@ using System.ComponentModel;
 
 namespace OpenQotd.Core.Pools.Commands
 {
-    public sealed partial class Pools
+    public sealed partial class PoolsCommand
     {
         [Command("list")]
         [Description("Lists all Pools in the selected profile.")]

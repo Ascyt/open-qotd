@@ -13,7 +13,7 @@ using OpenQotd.Core.Helpers;
 namespace OpenQotd.Core.Suggestions.Commands
 {
     [Command("suggestions")]
-    public sealed partial class SuggestionsCommands
+    public sealed partial class SuggestionsCommand
     {
         
     }

@@ -9,7 +9,7 @@ using System.ComponentModel;
 
 namespace OpenQotd.Core.Pools.Commands
 {
-    public sealed partial class Pools
+    public sealed partial class PoolsCommand
     {
         [Command("delete")]
         [Description("Delete an existing pool.")]
@@ -39,7 +39,8 @@ namespace OpenQotd.Core.Pools.Commands
                 await dbContext.SaveChangesAsync();
             }
 
-            await context.RespondAsync($"The pool \"{poolToDelete.Name}\" has been deleted successfully.");
+            await context.RespondAsync(GenericEmbeds.Success(title: "Pool deleted", message: $"The pool \"{poolToDelete.Name}\" has been deleted successfully."));
+            await Logging.Api.LogUserActionAsync(context, config, title:"Pool deleted", message:$"Pool \"{poolToDelete.Name}\" deleted.");
         }
     }
 }

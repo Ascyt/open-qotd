@@ -3,7 +3,7 @@
 namespace OpenQotd.Core.Pools.Commands
 {
     [Command("pools")]
-    public sealed partial class Pools
+    public sealed partial class PoolsCommand
     {
         
     }

@@ -9,7 +9,7 @@ using OpenQotd.Core.Helpers;
 
 namespace OpenQotd.Core.Suggestions.Commands
 {
-    public sealed partial class SuggestionsCommands
+    public sealed partial class SuggestionsCommand
     {
         [Command("deny")]
         [Description("Deny a suggestion.")]

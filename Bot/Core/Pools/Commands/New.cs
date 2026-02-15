@@ -3,12 +3,13 @@ using DSharpPlus.Commands.Processors.SlashCommands.ArgumentModifiers;
 using Microsoft.EntityFrameworkCore;
 using OpenQotd.Core.Configs.Entities;
 using OpenQotd.Core.Database;
+using OpenQotd.Core.Helpers;
 using OpenQotd.Core.Pools.Entities;
 using System.ComponentModel;
 
 namespace OpenQotd.Core.Pools.Commands
 {
-    public sealed partial class Pools
+    public sealed partial class PoolsCommand
     {
         [Command("new")]
         [Description("Create a new pool.")]
@@ -22,12 +23,12 @@ namespace OpenQotd.Core.Pools.Commands
 
             if (string.IsNullOrWhiteSpace(name))
             {
-                await context.RespondAsync("The pool name cannot be empty.");
+                await context.RespondAsync(GenericEmbeds.Error("The pool name cannot be empty."));
                 return;
             }
             if (name.Length > 100)
             {
-                await context.RespondAsync("The pool name cannot be longer than 100 characters.");
+                await context.RespondAsync(GenericEmbeds.Error("The pool name cannot be longer than 100 characters."));
                 return;
             }
 
@@ -39,7 +40,7 @@ namespace OpenQotd.Core.Pools.Commands
             
             if (existingPoolsCount >= Program.AppSettings.PoolsPerGuildMaxAmount)
             {
-                await context.RespondAsync($"Unable to create a new pool because the maximum amount of pools per guild ({Program.AppSettings.PoolsPerGuildMaxAmount}) has been reached.");
+                await context.RespondAsync(GenericEmbeds.Error($"Unable to create a new pool because the maximum amount of pools per guild ({Program.AppSettings.PoolsPerGuildMaxAmount}) has been reached."));
                 return;
             }
 
@@ -52,7 +53,8 @@ namespace OpenQotd.Core.Pools.Commands
             dbContext.Pools.Add(newPool);
             await dbContext.SaveChangesAsync();
 
-            await context.RespondAsync($"New pool '{name}' created successfully.");
+            await context.RespondAsync(GenericEmbeds.Success(title: "Pool created", message: $"New pool '{name}' created successfully."));
+            await Logging.Api.LogUserActionAsync(context, config, title:"Pool created", message:$"Pool \"{name}\" created.");
         }
     }
 }

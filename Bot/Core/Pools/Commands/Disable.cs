@@ -9,7 +9,7 @@ using System.ComponentModel;
 
 namespace OpenQotd.Core.Pools.Commands
 {
-    public sealed partial class Pools
+    public sealed partial class PoolsCommand
     {
         [Command("disable")]
         [Description("Disable a pool.")]
@@ -42,7 +42,8 @@ namespace OpenQotd.Core.Pools.Commands
                 dbContext.Pools.Update(foundPool);
             }
 
-            await context.RespondAsync($"The pool \"{foundPool.Name}\" has been disabled successfully.");
+            await context.RespondAsync(GenericEmbeds.Success(title: "Pool disabled", message: $"The pool \"{foundPool.Name}\" has been disabled successfully."));
+            await Logging.Api.LogUserActionAsync(context, config, title:"Pool disabled", message:$"Pool \"{foundPool.Name}\" disabled.");
         }
     }
 }
