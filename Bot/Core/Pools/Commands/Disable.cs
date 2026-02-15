@@ -40,6 +40,7 @@ namespace OpenQotd.Core.Pools.Commands
 
                 foundPool.Enabled = false;
                 dbContext.Pools.Update(foundPool);
+                await dbContext.SaveChangesAsync();
             }
 
             await context.RespondAsync(GenericEmbeds.Success(title: "Pool disabled", message: $"The pool \"{foundPool.Name}\" has been disabled successfully."));
