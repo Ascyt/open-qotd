@@ -146,8 +146,8 @@ namespace OpenQotd.EventHandlers.Suggestions
             {
                 if (config.SuggestionsPingRoleId is not null)
                 {
-                    await channel.SendMessageAsync(GenericEmbeds.Warning("Suggestions ping role is set, but suggestions channel is not.\n\n" +
-                        "*The channel can be set using `/config set suggestions_channel [channel]`, or the ping role can be removed using `/config reset suggestions_ping_role`.*"));
+                    await GeneralHelpers.RetryOnRateLimitAsync(async () => await channel.SendMessageAsync(GenericEmbeds.Warning("Suggestions ping role is set, but suggestions channel is not.\n\n" +
+                        "*The channel can be set using `/config set suggestions_channel [channel]`, or the ping role can be removed using `/config reset suggestions_ping_role`.*")));
                 }
                 return result;
             }
@@ -161,10 +161,10 @@ namespace OpenQotd.EventHandlers.Suggestions
                 }
                 catch (NotFoundException)
                 {
-                    await channel.SendMessageAsync(
+                    await GeneralHelpers.RetryOnRateLimitAsync(async () => await channel.SendMessageAsync(
                         GenericEmbeds.Warning("Suggestions ping role is set, but not found.\n\n" +
                         "*It can be set using `/config set suggestions_ping_role [channel]`, or unset using `/config reset suggestions_ping_role`.*")
-                        );
+                        ));
                 }
             }
 
@@ -223,11 +223,10 @@ namespace OpenQotd.EventHandlers.Suggestions
                 new DiscordButtonComponent(DiscordButtonStyle.Danger, $"suggestions-deny/{config.ProfileId}/{newQuestion.GuildDependentId}", "Deny")
             );
 
-            DiscordMessage message = await suggestionsChannel.SendMessageAsync(
-                    messageBuilder
-                );
+            DiscordMessage message = null!;
 
-            await message.PinAsync();
+            await GeneralHelpers.RetryOnRateLimitAsync(async () => message = await suggestionsChannel.SendMessageAsync(messageBuilder), "CreateSuggestionEventHandlers.SuggestAsync SendMessageAsync");
+            await GeneralHelpers.RetryOnRateLimitAsync(async () => await message.PinAsync(), "CreateSuggestionEventHandlers.SuggestAsync PinAsync");
 
             using (AppDbContext dbContext = new())
             {
