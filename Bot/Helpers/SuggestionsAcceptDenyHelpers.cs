@@ -3,8 +3,10 @@ using DSharpPlus.Commands.Processors.SlashCommands;
 using DSharpPlus.Entities;
 using DSharpPlus.EventArgs;
 using DSharpPlus.Exceptions;
+using Microsoft.Extensions.Caching.Memory;
 using OpenQotd.Database;
 using OpenQotd.Database.Entities;
+using OpenQotd.EventHandlers.Suggestions;
 
 namespace OpenQotd.Helpers
 {
@@ -202,7 +204,12 @@ namespace OpenQotd.Helpers
                 messageBuilder.AddEmbed(GenericEmbeds.Custom($"{config.QotdShorthandText} Suggestion Denied", embedBody +
                     $"\n\nDenied by: {user.Mention}{(reason != null ? $"\nReason: \"**{reason}**\"" : "")}", color: "#ff2020"));
 
-                DiscordMessage? suggestionMessage = await TryGetSuggestionMessage(question, config, guild);
+                DiscordMessage? suggestionMessage = (DiscordMessage?)SuggestionNotificationsEventHandlers.suggestionMessageCache.Get(question.Id);
+                if (suggestionMessage is not null)
+                    SuggestionNotificationsEventHandlers.suggestionMessageCache.Remove(question.Id);
+                else
+                    suggestionMessage = await TryGetSuggestionMessage(question, config, guild);
+
                 if (suggestionMessage is not null)
                 {
                     await suggestionMessage.ModifyAsync(messageBuilder);
