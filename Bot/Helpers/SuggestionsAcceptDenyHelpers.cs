@@ -97,7 +97,7 @@ namespace OpenQotd.Helpers
                 await result.Interaction.CreateResponseAsync(DiscordInteractionResponseType.UpdateMessage, new DiscordInteractionResponseBuilder(messageBuilder));
             }
 
-            await Task.Run(async () => // Run in seperate thread to prevent blocking the interaction response if fetching/modifying the suggestion message takes a long time
+            _ = Task.Run(async () => // Run in seperate thread to prevent blocking the interaction response if fetching/modifying the suggestion message takes a long time
             {
                 DiscordMessage? suggestionMessage = result?.Message ?? await TryGetSuggestionMessage(question, config, guild);
                 if (suggestionMessage is not null)
@@ -195,7 +195,7 @@ namespace OpenQotd.Helpers
                 await (context as SlashCommandContext)!.RespondAsync(responseEmbed, ephemeral: true);
             }
 
-            await Task.Run(async () => // Run in seperate thread to prevent blocking the interaction response if fetching/modifying the suggestion message takes a long time
+            _ = Task.Run(async () => // Run in seperate thread to prevent blocking the interaction response if fetching/modifying the suggestion message takes a long time
             {
                 string embedBody = GetEmbedBody(question);
 

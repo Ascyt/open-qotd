@@ -138,109 +138,113 @@ namespace OpenQotd.EventHandlers.Suggestions
             if (newQuestion.ThumbnailImageUrl is not null)
                 result.Item2.WithThumbnail(newQuestion.ThumbnailImageUrl);
 
-            await Logging.LogUserAction(channel, user, config,
+            _ = Task.Run(async () => // Run in seperate thread to prevent blocking the interaction response if sending the suggestion message takes a long time
+            {
+                await Logging.LogUserAction(channel, user, config,
                 title: $"Suggested {config.QotdShorthandText}",
                 message: $"\"**{newQuestion.Text}**\"\nID: `{newQuestion.GuildDependentId}`");
 
-            if (config.SuggestionsChannelId is null)
-            {
+                if (config.SuggestionsChannelId is null)
+                {
+                    if (config.SuggestionsPingRoleId is not null)
+                    {
+                        await GeneralHelpers.RetryOnRateLimitAsync(async () => await channel.SendMessageAsync(GenericEmbeds.Warning("Suggestions ping role is set, but suggestions channel is not.\n\n" +
+                            "*The channel can be set using `/config set suggestions_channel [channel]`, or the ping role can be removed using `/config reset suggestions_ping_role`.*")));
+                    }
+                    return;
+                }
+
+                DiscordRole? pingRole = null;
                 if (config.SuggestionsPingRoleId is not null)
                 {
-                    await GeneralHelpers.RetryOnRateLimitAsync(async () => await channel.SendMessageAsync(GenericEmbeds.Warning("Suggestions ping role is set, but suggestions channel is not.\n\n" +
-                        "*The channel can be set using `/config set suggestions_channel [channel]`, or the ping role can be removed using `/config reset suggestions_ping_role`.*")));
+                    try
+                    {
+                        pingRole = await guild.GetRoleAsync(config.SuggestionsPingRoleId.Value);
+                    }
+                    catch (NotFoundException)
+                    {
+                        await GeneralHelpers.RetryOnRateLimitAsync(async () => await channel.SendMessageAsync(
+                            GenericEmbeds.Warning("Suggestions ping role is set, but not found.\n\n" +
+                            "*It can be set using `/config set suggestions_ping_role [channel]`, or unset using `/config reset suggestions_ping_role`.*")
+                            ));
+                    }
                 }
-                return result;
-            }
 
-            DiscordRole? pingRole = null;
-            if (config.SuggestionsPingRoleId is not null)
-            {
+                DiscordChannel suggestionsChannel;
                 try
                 {
-                    pingRole = await guild.GetRoleAsync(config.SuggestionsPingRoleId.Value);
+                    suggestionsChannel = await guild.GetChannelAsync(config.SuggestionsChannelId!.Value);
                 }
                 catch (NotFoundException)
                 {
-                    await GeneralHelpers.RetryOnRateLimitAsync(async () => await channel.SendMessageAsync(
-                        GenericEmbeds.Warning("Suggestions ping role is set, but not found.\n\n" +
-                        "*It can be set using `/config set suggestions_ping_role [channel]`, or unset using `/config reset suggestions_ping_role`.*")
-                        ));
+                    await channel.SendMessageAsync(
+                        GenericEmbeds.Warning("Suggestions channel is set, but not found.\n\n" +
+                        "*It can be set using `/config set suggestions_channel [channel]`, or unset using `/config reset suggestions_channel`.*")
+                    );
+                    return;
                 }
-            }
 
-            DiscordChannel suggestionsChannel;
-            try
-            {
-                suggestionsChannel = await guild.GetChannelAsync(config.SuggestionsChannelId!.Value);
-            }
-            catch (NotFoundException)
-            {
-                return (false,
-                    GenericEmbeds.Warning("Suggestions channel is set, but not found.\n\n" +
-                    "*It can be set using `/config set suggestions_channel [channel]`, or unset using `/config reset suggestions_channel`.*")
-                    );
-            }
+                DiscordMessageBuilder messageBuilder = new();
 
-            DiscordMessageBuilder messageBuilder = new();
+                AddPingIfAvailable(messageBuilder, pingRole);
 
-            AddPingIfAvailable(messageBuilder, pingRole);
+                string embedBody = $"**Contents:**\n" +
+                    $"\"{GeneralHelpers.Italicize(newQuestion.Text!)}\"\n" +
+                    $"\n" +
+                    $"By: {user.Mention} (`{user.Id}`)\n" +
+                    $"ID: `{newQuestion.GuildDependentId}`" +
+                    (newQuestion.ThumbnailImageUrl is not null ? $"\nIncludes a thumbnail image (if it's not visible in this message, it means that the fetching for it failed)." : null);
 
-            string embedBody = $"**Contents:**\n" +
-                $"\"{GeneralHelpers.Italicize(newQuestion.Text!)}\"\n" +
-                $"\n" +
-                $"By: {user.Mention} (`{user.Id}`)\n" +
-                $"ID: `{newQuestion.GuildDependentId}`" +
-                (newQuestion.ThumbnailImageUrl is not null ? $"\nIncludes a thumbnail image (if it's not visible in this message, it means that the fetching for it failed)." : null);
+                DiscordEmbedBuilder availableEmbed = GenericEmbeds.Custom(title: $"A new {config.QotdShorthandText} Suggestion is available!", message: embedBody,
+                    color: "#f0b132");
 
-            DiscordEmbedBuilder availableEmbed = GenericEmbeds.Custom(title: $"A new {config.QotdShorthandText} Suggestion is available!", message: embedBody,
-                color: "#f0b132");
-
-            if (newQuestion.ThumbnailImageUrl is not null)
-            {
-                availableEmbed.WithThumbnail(newQuestion.ThumbnailImageUrl);
-            }
-
-            messageBuilder.AddEmbed(availableEmbed);
-
-            if (newQuestion.Notes is not null)
-            {
-                messageBuilder.AddEmbed(
-                    GenericEmbeds.Info(title: "Additional Information", message: GeneralHelpers.Italicize(newQuestion.Notes))
-                    .WithFooter("Written by the suggester, visible to everyone.")
-                    );
-            }
-
-            if (newQuestion.SuggesterAdminOnlyInfo is not null)
-            {
-                messageBuilder.AddEmbed(
-                    GenericEmbeds.Info(title: "Staff Note", message: GeneralHelpers.Italicize(newQuestion.SuggesterAdminOnlyInfo))
-                    .WithFooter("Written by the suggester, only visible to staff.")
-                    );
-            }
-
-            messageBuilder.AddActionRowComponent(
-                new DiscordButtonComponent(DiscordButtonStyle.Success, $"suggestions-accept/{config.ProfileId}/{newQuestion.GuildDependentId}", "Accept"),
-                new DiscordButtonComponent(DiscordButtonStyle.Danger, $"suggestions-deny/{config.ProfileId}/{newQuestion.GuildDependentId}", "Deny")
-            );
-
-            DiscordMessage message = null!;
-
-            await GeneralHelpers.RetryOnRateLimitAsync(async () => message = await suggestionsChannel.SendMessageAsync(messageBuilder), "CreateSuggestionEventHandlers.SuggestAsync SendMessageAsync");
-            await GeneralHelpers.RetryOnRateLimitAsync(async () => await message.PinAsync(), "CreateSuggestionEventHandlers.SuggestAsync PinAsync");
-
-            using (AppDbContext dbContext = new())
-            {
-                Question? updateQuestion = await dbContext.Questions.FindAsync(newQuestion.Id);
-
-                if (updateQuestion != null)
+                if (newQuestion.ThumbnailImageUrl is not null)
                 {
-                    updateQuestion.SuggestionMessageId = message.Id;
-
-                    await dbContext.SaveChangesAsync();
-
-                    newQuestion = updateQuestion;
+                    availableEmbed.WithThumbnail(newQuestion.ThumbnailImageUrl);
                 }
-            }
+
+                messageBuilder.AddEmbed(availableEmbed);
+
+                if (newQuestion.Notes is not null)
+                {
+                    messageBuilder.AddEmbed(
+                        GenericEmbeds.Info(title: "Additional Information", message: GeneralHelpers.Italicize(newQuestion.Notes))
+                        .WithFooter("Written by the suggester, visible to everyone.")
+                        );
+                }
+
+                if (newQuestion.SuggesterAdminOnlyInfo is not null)
+                {
+                    messageBuilder.AddEmbed(
+                        GenericEmbeds.Info(title: "Staff Note", message: GeneralHelpers.Italicize(newQuestion.SuggesterAdminOnlyInfo))
+                        .WithFooter("Written by the suggester, only visible to staff.")
+                        );
+                }
+
+                messageBuilder.AddActionRowComponent(
+                    new DiscordButtonComponent(DiscordButtonStyle.Success, $"suggestions-accept/{config.ProfileId}/{newQuestion.GuildDependentId}", "Accept"),
+                    new DiscordButtonComponent(DiscordButtonStyle.Danger, $"suggestions-deny/{config.ProfileId}/{newQuestion.GuildDependentId}", "Deny")
+                );
+
+                DiscordMessage message = null!;
+
+                await GeneralHelpers.RetryOnRateLimitAsync(async () => message = await suggestionsChannel.SendMessageAsync(messageBuilder), "CreateSuggestionEventHandlers.SuggestAsync SendMessageAsync");
+                await GeneralHelpers.RetryOnRateLimitAsync(async () => await message.PinAsync(), "CreateSuggestionEventHandlers.SuggestAsync PinAsync");
+
+                using (AppDbContext dbContext = new())
+                {
+                    Question? updateQuestion = await dbContext.Questions.FindAsync(newQuestion.Id);
+
+                    if (updateQuestion != null)
+                    {
+                        updateQuestion.SuggestionMessageId = message.Id;
+
+                        await dbContext.SaveChangesAsync();
+
+                        newQuestion = updateQuestion;
+                    }
+                }
+            });
 
             return result;
         }
