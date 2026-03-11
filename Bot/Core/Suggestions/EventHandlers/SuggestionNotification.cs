@@ -1,6 +1,7 @@
 ﻿using DSharpPlus.Entities;
 using DSharpPlus.EventArgs;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Caching.Memory;
 using OpenQotd.Core.Configs.Entities;
 using OpenQotd.Core.Database;
 using OpenQotd.Core.Questions.Entities;
@@ -9,6 +10,14 @@ namespace OpenQotd.Core.Suggestions.EventHandlers
 {
     public static class SuggestionNotification
     {
+        /// <summary>
+        /// Cache for DiscordMessage objects.
+        /// Used for storing suggestion messages before responding with the deny modal.
+        /// </summary>
+        public readonly static MemoryCache suggestionMessageCache = new(new MemoryCacheOptions()
+        {
+            SizeLimit = 1024
+        });
 
         /// <returns>(Config, Question), null on error</returns>
         public static async Task<Question?> TryGetSuggestion(InteractionCreatedEventArgs args, Config config, int questionGuildDepedentId)
@@ -61,6 +70,12 @@ namespace OpenQotd.Core.Suggestions.EventHandlers
                     .RespondWithErrorAsync(args, $"Question with ID `{questionGuildDependentId}` for profile \"{config.ProfileName}\" not found.");
                 return;
             }
+
+            // Since responding with the modal would lose the suggestion message reference, we need to cache it before responding.
+            suggestionMessageCache.Set(question.Id, args.Message, new MemoryCacheEntryOptions()
+                .SetSize(1)
+                .SetAbsoluteExpiration(TimeSpan.FromMinutes(10)) 
+            );
 
             await args.Interaction.CreateResponseAsync(DiscordInteractionResponseType.Modal, Helpers.AcceptDeny.GetSuggestionDenyModal(config, question));
         }
