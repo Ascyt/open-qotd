@@ -136,42 +136,45 @@ namespace OpenQotd.Core.Suggestions.EventHandlers
             if (newQuestion.ThumbnailImageUrl is not null)
                 result.Item2.WithThumbnail(newQuestion.ThumbnailImageUrl);
 
-            await Logging.Api.LogUserActionAsync(channel, user, config,
-                title: $"Suggested {config.QotdShorthandText}",
-                message: $"\"**{newQuestion.Text}**\"\nID: `{newQuestion.GuildDependentId}`");
-
-            if (config.SuggestionsChannelId is null)
+            _ = Task.Run(async () => // Run in seperate thread to prevent blocking the interaction response if sending the suggestion message takes a long time
             {
-                if (config.SuggestionsPingRoleId is not null)
+                await Logging.Api.LogUserActionAsync(channel, user, config,
+                    title: $"Suggested {config.QotdShorthandText}",
+                    message: $"\"**{newQuestion.Text}**\"\nID: `{newQuestion.GuildDependentId}`");
+
+                if (config.SuggestionsChannelId is null)
                 {
-                    await channel.SendMessageAsync(GenericEmbeds.Warning("Suggestions ping role is set, but suggestions channel is not.\n\n" +
-                        "*The channel can be set using `/config set suggestions_channel [channel]`, or the ping role can be removed using `/config reset suggestions_ping_role`.*"));
+                    if (config.SuggestionsPingRoleId is not null)
+                    {                        
+                        await General.RetryOnRateLimitAsync(async () => await channel.SendMessageAsync(GenericEmbeds.Warning("Suggestions ping role is set, but suggestions channel is not.\n\n" +
+                            "*The channel can be set using `/config set suggestions_channel [channel]`, or the ping role can be removed using `/config reset suggestions_ping_role`.*")));
+                    }
+                    return;
                 }
-                return result;
-            }
- 
-            DiscordChannel suggestionsChannel;
-            try
-            {
-                suggestionsChannel = await guild.GetChannelAsync(config.SuggestionsChannelId!.Value);
-            }
-            catch (NotFoundException)
-            {
-                return (false,
-                    GenericEmbeds.Warning("Suggestions channel is set, but not found.\n\n" +
-                    "*It can be set using `/config set suggestions_channel [channel]`, or unset using `/config reset suggestions_channel`.*")
+    
+                DiscordChannel suggestionsChannel;
+                try
+                {
+                    suggestionsChannel = await guild.GetChannelAsync(config.SuggestionsChannelId!.Value);
+                }
+                catch (NotFoundException)
+                {
+                    await General.RetryOnRateLimitAsync(async () => await channel.SendMessageAsync(
+                        GenericEmbeds.Warning("Suggestions ping role is set, but not found.\n\n" +
+                        "*It can be set using `/config set suggestions_ping_role [channel]`, or unset using `/config reset suggestions_ping_role`.*")
+                        ));
+                    return;
+                }
+
+                DiscordMessage message = await suggestionsChannel.SendMessageAsync(
+                        Helpers.General.GetSuggestionNotificationMessageBuilder(newQuestion, config, guild, pingIsHighlight:false)
                     );
-            }
 
-            DiscordMessage message = await suggestionsChannel.SendMessageAsync(
-                    Helpers.General.GetSuggestionNotificationMessageBuilder(newQuestion, config, guild, pingIsHighlight:false)
-                );
+                if (config.EnableSuggestionsPinMessage)
+                    await message.PinAsync();
 
-            if (config.EnableSuggestionsPinMessage)
-                await message.PinAsync();
+                using AppDbContext dbContext = new();
 
-            using (AppDbContext dbContext = new())
-            {
                 Question? updateQuestion = await dbContext.Questions.FindAsync(newQuestion.Id);
 
                 if (updateQuestion != null)
@@ -182,7 +185,7 @@ namespace OpenQotd.Core.Suggestions.EventHandlers
 
                     newQuestion = updateQuestion;
                 }
-            }
+            });
 
             return result;
         }
