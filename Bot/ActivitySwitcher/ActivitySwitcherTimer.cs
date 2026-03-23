@@ -19,6 +19,7 @@ namespace OpenQotd.ActivitySwitcher
                 {
                     await SwitchToRandomActivityAsync();
                     await UpdateTopGGServerCountAsync();
+                    await UpdateDiscordForgeServerCountAsync();
                     await Task.Delay(Program.AppSettings.ActivitySwitchLoopDelayMs, ct);
                 }
                 catch (Exception ex)
@@ -60,6 +61,30 @@ namespace OpenQotd.ActivitySwitcher
 
             StringContent content = new($"{{\"server_count\": {guildCount}}}", System.Text.Encoding.UTF8, "application/json");
             HttpResponseMessage response = await httpClient.PostAsync($"https://top.gg/api/bots/{Program.AppSettings.BotId}/stats", content);
+        }
+
+        private static int _leftUntilNextForgeUpdate = 0; // Update the count every n activity switches to avoid hitting rate limits
+        public static async Task UpdateDiscordForgeServerCountAsync()
+        {
+            string? token = Environment.GetEnvironmentVariable("DISCORD_FORGE_TOKEN");
+
+            if (string.IsNullOrWhiteSpace(token))
+                return;
+
+            if (_leftUntilNextForgeUpdate > 0)
+            {
+                _leftUntilNextForgeUpdate--;
+                return;
+            }
+            _leftUntilNextForgeUpdate = (int)(1.0 / Program.AppSettings.ActivitySwitchLoopDelayMs * 1000 * 300); 
+
+
+            int guildCount = Program.Client.Guilds.Count;
+            using HttpClient httpClient = new();
+            httpClient.DefaultRequestHeaders.Add("Authorization", token);
+
+            StringContent content = new($"{{\"server_count\": {guildCount}}}", System.Text.Encoding.UTF8, "application/json");
+            HttpResponseMessage response = await httpClient.PostAsync("https://discordforge.org/api/bots/stats", content);
         }
     }
 }
