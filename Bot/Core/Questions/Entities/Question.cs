@@ -8,53 +8,9 @@ using OpenQotd.Core.Helpers;
 
 namespace OpenQotd.Core.Questions.Entities
 {
-    /// <summary>
-    /// The type of a question.
-    /// </summary>
-    public enum QuestionType
-    {
-        /// <summary>
-        /// A question that has been suggested by a user but not yet accepted.
-        /// </summary>
-        /// <remarks>
-        /// Can be accepted/denied by users with the AdminRoleId or users with access to 
-        /// the Accept/Deny buttons under suggestion messages.
-        /// </remarks>
-		Suggested = 0,
-
-        /// <summary>
-        /// A question that has been accepted by an admin and is eligible to be sent as QOTD.
-        /// </summary>
-        /// <remarks>
-        /// Always takes priority over presets when sending QOTDs. Only questions of this type are sent as QOTD.
-        /// </remarks>
-        Accepted = 1,
-
-        /// <summary>
-        /// Represents the state of a message that has been successfully sent.
-        /// </summary>
-        /// <remarks>
-        /// Users with the BasicRoleId can view all Sent questions, and they get used for the leaderboard and the `/topic` command.
-        /// </remarks>
-        Sent = 2,
-
-        /// <summary>
-        /// Represents a question that has been stashed away and will not be used for QOTDs unless manually changed back to Accepted.
-        /// </summary>
-        /// <remarks>
-        /// If <see cref="Config.EnableDeletedToStash"/> is enabled, questions that are deleted are set to this type
-        /// instead of being permanently deleted, unless they are already of this type.
-        /// </remarks>
-		Stashed = 3
-	}
-
     public class Question
     {
         public int Id { get; set; }
-
-        [ForeignKey("Config")]
-        public int ConfigId { get; set; }
-        public Config? Config { get; set; }
 
         /// <summary>
         /// For convenience, could otherwise be fetched from a join using <see cref="ConfigId"/>
@@ -68,11 +24,6 @@ namespace OpenQotd.Core.Questions.Entities
         /// Used for referencing questions in commands, e.g. `/questions remove 5` or `/suggestions accept 3`.
         /// </remarks>
         public int GuildDependentId { get; set; }
-
-        /// <summary>
-        /// The type of the question, i.e. Suggested, Accepted, Sent, Stashed.
-        /// </summary>
-        public QuestionType Type { get; set; }
 
         /// <summary>
         /// The text contents of the question.
@@ -141,38 +92,6 @@ namespace OpenQotd.Core.Questions.Entities
 
         public ICollection<PoolEntry>? PoolEntries { get; set; }
 
-        /// <summary>
-        /// Gets the emoji associated with a given QuestionType.
-        /// </summary>
-        public static string GetEmoji(QuestionType type)
-        {
-            return type switch
-            {
-                QuestionType.Suggested => ":red_square:",
-                QuestionType.Accepted => ":large_blue_diamond:",
-                QuestionType.Sent => ":green_circle:",
-                QuestionType.Stashed => ":heavy_multiplication_x:",
-                _ => ":black_large_square:",
-            };
-        }
-        /// <summary>
-        /// Converts a QuestionType to a styled string with an emoji and markdown formatting.
-        /// </summary>
-        public static string TypeToStyledString(QuestionType type)
-        {
-            return $"{GetEmoji(type)} *{type}*";
-        }
-
-        public override string ToString()
-            => ToString(longVersion: false);
-
-        /// <param name="longVersion">If true, the type and full question gets written out; otherwise, the question is shortened to a single line and only an emoji is used.</param>
-        public string ToString(bool longVersion)
-        {
-            return longVersion ?
-                $"\"{Helpers.General.Italicize(Text!)}\" (Type: {TypeToStyledString(Type)}); by: <@{SubmittedByUserId}>; ID: `{GuildDependentId}`)" :
-                $"{GetEmoji(Type)} \"*{Helpers.General.TrimIfNecessary(Text!, 64)}*\" (by: <@{SubmittedByUserId}>; ID: `{GuildDependentId}`)";
-        }
         /// <summary>
         /// Generates the next available GuildDependentId for a new question in the specified config.
         /// </summary>

@@ -26,32 +26,6 @@ namespace OpenQotd.Core.Configs.Entities
             /// </summary>
             All = 2 
         }
-        /// <summary>
-        /// What to do with a question after it has been sent as a QOTD.
-        /// </summary>
-        public enum AlterQuestionAfterSentOption
-        {
-            /// <summary>
-            /// The question gets the Sent type.
-            /// </summary>
-            QuestionToSent = 0,
-            /// <summary>
-            /// The question gets the Sent type, and if there are no more Accepted questions, all Sent questions are reset to Accepted.
-            /// </summary>
-            QuestionToSentAndResetIfEmpty = 1,
-            /// <summary>
-            /// The question remains Accepted and can thus be sent again in the future.
-            /// </summary>
-            QuestionStaysAccepted = 2,
-            /// <summary>
-            /// The question gets the Suggested type again.
-            /// </summary>
-            QuestionToSuggested = 3,
-            /// <summary>
-            /// The question gets the Stashed type if <see cref="EnableDeletedToStash"/> is true, otherwise it is permanently deleted.
-            /// </summary>
-            RemoveQuestion = 4
-        }
 
         public int Id { get; set; }
 
@@ -174,11 +148,6 @@ namespace OpenQotd.Core.Configs.Entities
         public string? QotdTimeDayCondition { get; set; } = null;
 
         /// <summary>
-        /// What to do with a question after it has been sent as a QOTD.
-        /// </summary>
-        public AlterQuestionAfterSentOption QotdAlterQuestionAfterSent { get; set; } = AlterQuestionAfterSentOption.QuestionToSent;
-
-        /// <summary>
         /// The title of the QOTD message. If null the default is used which is "Question Of The Day"
         /// </summary>
         public string? QotdTitle { get; set; } = null;
@@ -239,6 +208,11 @@ namespace OpenQotd.Core.Configs.Entities
         /// A question that is already of type <see cref="QuestionType.Stashed"/> will also be permanently deleted.
         /// </remarks>
         public bool EnableDeletedToStash { get; set; } = true;
+
+        /// <summary>
+        /// The ID of the default pool for this config
+        /// </summary> 
+        public int DefaultPoolId { get; set; } = -1; // TODO: Create pool and set this variable on config init
 
         // 
         // -------------------------------- Internal variables (not viewable and not set using /config) --------------------------------
