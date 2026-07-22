@@ -152,9 +152,9 @@ namespace OpenQotd.Core.Profiles
 
                 return (c, null);
             }
-            catch (ConfigNotInitializedException)
+            catch (ConfigNotInitializedException ex)
             {
-                return (null, $"The QOTD bot configuration has not been initialized yet. Use `/config initialize` to initialize it, or `/help` for help.");
+                return (null, ex.Message);
             }
         }
 
@@ -208,9 +208,9 @@ namespace OpenQotd.Core.Profiles
 
                 return (c, null);
             }
-            catch (ConfigNotInitializedException)
+            catch (ConfigNotInitializedException ex)
             {
-                return (null, $"The QOTD bot configuration has not been initialized yet. Use `/config initialize` to initialize it, or `/help` for help.");
+                return (null, ex.Message);
             }
         }
 
