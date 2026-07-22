@@ -85,7 +85,15 @@ namespace OpenQotd.Core.Helpers
             }
             catch (RateLimitException ex)
             {
+                const double MAX_RETRY_AFTER_SECONDS = 10;
+
                 TimeSpan? retryAfter = ex.RetryAfter;
+                if (retryAfter is not null && retryAfter.Value > TimeSpan.FromSeconds(MAX_RETRY_AFTER_SECONDS))
+                {
+                    await Console.Out.WriteLineAsync($"Rate limit hit in context \"{contextInfo}\". RetryAfter is {retryAfter.Value.TotalSeconds} seconds, which exceeds the {MAX_RETRY_AFTER_SECONDS}-second threshold. Not retrying.");
+                    return;
+                }
+
                 TimeSpan delay = retryAfter ?? TimeSpan.FromSeconds(1);
 
                 await Console.Out.WriteLineAsync($"Rate limit hit in context \"{contextInfo}\". Retrying after {delay.TotalSeconds} seconds... ({(retryAfter == null ? "No RetryAfter | " : "")}{maxRetries} retries left)");
