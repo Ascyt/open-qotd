@@ -27,7 +27,7 @@ namespace OpenQotd.Core.EventHandlers
             if (idArgs[0].StartsWith("prompt-option-"))
                 return;
 
-            try
+            await Core.Helpers.General.RetryOnRateLimitAsync(async () => 
             {
                 switch (idArgs[0])
                 {
@@ -92,11 +92,7 @@ namespace OpenQotd.Core.EventHandlers
                     case "cancel_choice":
                         return;
                 }
-            }
-            catch (RateLimitException ex)
-            {
-                await Core.Helpers.General.LogRateLimitExceptionAsync(ex, contextInfo: $"EventHandlers.ComponentInteractionCreated for interaction ID `{args.Id}`");
-            }
+            }, "ComponentInteractionEntry.ComponentInteractionCreatedAsync");
 
 
             await Helpers.General.RespondWithErrorAsync(args, $"Unknown event: `{args.Id}`");
