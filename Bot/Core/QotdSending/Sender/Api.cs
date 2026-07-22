@@ -124,7 +124,6 @@ namespace OpenQotd.Core.QotdSending.Sender
                 return;
 
             DiscordChannel qotdChannel = await d.GetQotdChannelAsync();
-
             DiscordMessageBuilder messageBuilder = new();
 
             messageBuilder.AddEmbed(

@@ -40,13 +40,16 @@ namespace OpenQotd.Core.EventHandlers
             {
                 messageBuilder.AddEmbed(GenericEmbeds.Warning(title: "Hint", message:
                     "This error likely means that the bot is lacking permissions to execute your command.\n" +
-                    "The bot needs three different permissions to function correctly:\n" +
+                    "The bot may need the following permissions in the channel you're trying to use to function correctly:\n" +
+                    "- View Channel\n" +
                     "- Send Messages\n" +
+                    "- Embed Links\n" +
                     "- Manage Messages\n" +
                     "- Mention @​everyone, @​here and All Roles\n" +
                     "\n" +
                     "If the issue keeps occurring despite these steps, try the following:\n" +
-                    "- Verify that the bot is able to send messages and embeds in the relevant channels (qotd channel, suggestion channel, logs channel).\n" +
+                    "- Make sure that the \"@OpenQOTD\" role is above all other roles, as otherwise permissions may be overriden.\n" +
+                    "- Verify that the bot is able to send messages with embeds in the relevant channels (qotd channel, suggestion channel, logs channel).\n" +
                     "- Try disabling features such as logging (`/config reset logs_channel`) to help diagnose in which area the problem occurrs.\n" +
                     "- Try kicking the bot from the server and re-inviting it. Your questions should not get deleted by doing this.\n" +
                     "\n" +
