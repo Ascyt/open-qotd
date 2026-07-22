@@ -77,71 +77,6 @@ namespace OpenQotd.Core.Helpers
                 .Select(line => string.IsNullOrEmpty(line) ? "" : $"*{line}*"));
         }
 
-        /// <summary>
-        /// Provisorial logging of rate limit exceptions to a file.
-        /// </summary>
-        public static async Task LogRateLimitExceptionAsync(RateLimitException ex, string contextInfo = "")
-        {
-            string log = contextInfo != "" ?
-                $"Rate limit hit in context \"{contextInfo}\". " :
-                $"Rate limit hit.";
-            log += $"\n\tCode: {ex.Response!.StatusCode}.\n\tMessage: {ex.Message}\n\tStack Trace: {ex.StackTrace}\n\tResponse Headers:\n\t{ex.Response.Headers}\n\tResponse ";
-            
-            await Console.Out.WriteLineAsync(log).ConfigureAwait(false);
-
-            if (!File.Exists("ratelimits.log"))
-            {
-                await File.WriteAllTextAsync("ratelimits.log", log).ConfigureAwait(false);
-            }
-            else
-            {
-                await File.AppendAllTextAsync("ratelimits.log", log).ConfigureAwait(false);
-            }
-
-                HttpContent? content = ex.Response.Content;
-                string responseContent;
-                if (content is not null)
-                {
-                    int timeoutSeconds = 5;
-                    try
-                    {
-                        responseContent = await content.ReadAsStringAsync().WaitAsync(TimeSpan.FromSeconds(timeoutSeconds)).ConfigureAwait(false);
-                    }
-                    catch (OperationCanceledException)
-                    {
-                        try
-                        {
-                            using MemoryStream memoryStream = new();
-                            using CancellationTokenSource cts = new(TimeSpan.FromSeconds(timeoutSeconds));
-                            await content.CopyToAsync(memoryStream, cts.Token).ConfigureAwait(false);
-                            memoryStream.Seek(0, SeekOrigin.Begin);
-                            using StreamReader streamReader = new(memoryStream);
-                            responseContent = await streamReader.ReadToEndAsync().ConfigureAwait(false);
-                        }
-                        catch (OperationCanceledException)
-                        {
-                            responseContent = "<response read timed out after 5 seconds>";
-                        }
-                        catch (Exception copyEx)
-                        {
-                            responseContent = $"<response copy failed: {copyEx.GetType().Name}: {copyEx.Message}>";
-                        }
-                    }
-                    catch (Exception readEx)
-                    {
-                        responseContent = $"<response read failed: {readEx.GetType().Name}: {readEx.Message}>";
-                    }
-                }
-                else
-                {
-                    responseContent = string.Empty;
-                }
-
-            log = $"Content:\n\t{responseContent}\n\n\n";
-            await Console.Out.WriteLineAsync(log).ConfigureAwait(false);
-            await File.AppendAllTextAsync("ratelimits.log", log).ConfigureAwait(false);
-        }
-
         public static async Task RetryOnRateLimitAsync(Func<Task> action, string contextInfo = "", int maxRetries = 5)
         {
             try
@@ -150,16 +85,18 @@ namespace OpenQotd.Core.Helpers
             }
             catch (RateLimitException ex)
             {
-                await Console.Out.WriteLineAsync($"Rate limit hit in context \"{contextInfo}\". Retrying... ({maxRetries} retries left)");
+                TimeSpan? retryAfter = ex.RetryAfter;
+                TimeSpan delay = retryAfter ?? TimeSpan.FromSeconds(1);
+
+                await Console.Out.WriteLineAsync($"Rate limit hit in context \"{contextInfo}\". Retrying after {delay.TotalSeconds} seconds... ({(retryAfter == null ? "No RetryAfter | " : "")}{maxRetries} retries left)");
                 if (maxRetries > 0)
                 {
-                    await Task.Delay(1000); // TODO: Change to RetryAfter when https://github.com/DSharpPlus/DSharpPlus/issues/2407 fixed
+                    await Task.Delay(delay); 
                     await RetryOnRateLimitAsync(action, contextInfo, maxRetries - 1);
                 }
                 else
                 {
-                    await Console.Out.WriteLineAsync($"Max retries reached for context \"{contextInfo}\". Logging rate limit exception.");
-                    await LogRateLimitExceptionAsync(ex, contextInfo);
+                    await Console.Out.WriteLineAsync($"Max retries reached for context \"{contextInfo}\".");
                 }
             }
         }

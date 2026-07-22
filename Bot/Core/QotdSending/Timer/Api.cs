@@ -277,15 +277,11 @@ namespace OpenQotd.Core.QotdSending.Timer
             bool shouldRecache = true;
             try
             {
-                shouldRecache = await Sender.Api.FetchGuildAndSendNextQotdAsync(config, latestAvailableNotice);
+                await Helpers.General.RetryOnRateLimitAsync(async () => shouldRecache = await Sender.Api.FetchGuildAndSendNextQotdAsync(config, latestAvailableNotice));
             }
             catch (QotdChannelNotFoundException)
             {
                 // This exception is expected if the QOTD channel is not set for the guild.
-            }
-            catch (RateLimitException ex)
-            {
-                await Helpers.General.LogRateLimitExceptionAsync(ex, contextInfo: "QotdSenderTimer.SendNextQotdIgnoreExceptionsRecacheIfNecessary");
             }
             catch (Exception ex)
             {
