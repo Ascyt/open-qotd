@@ -93,7 +93,7 @@ namespace OpenQotd.Core.Permissions.Api
                 return (true, null);
 
             return (false,
-                $"You need to have the \"{role.Mention}\" role or Server Administrator permission to be able to run this command.");
+                $"You need to have the \"{role.Mention}\" role or admin permission to be able to run this command.");
         }
     }
 }
