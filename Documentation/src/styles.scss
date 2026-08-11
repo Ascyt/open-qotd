@@ -275,3 +275,21 @@ code {
         }
     }
 }
+
+section {
+    scroll-margin-top: 100px;
+
+    .url-insert {
+        display: none;
+        color: var(--front-low);
+        text-decoration: none;
+        filter: opacity(0.5);
+        &::after {
+            content: "🔗";
+        }
+    }
+
+    h3:hover .url-insert {
+        display: inline;
+    }
+}
