@@ -16,6 +16,13 @@ namespace OpenQotd.Core.Suggestions.Commands.Helpers
                 bool isInSuggestionsChannel = config.SuggestionsChannelId is not null && config.SuggestionsChannelId.Value == context.Channel.Id;
                 if (!isInSuggestionsChannel)
                 {
+                    if (config.SuggestionsChannelId is null)
+                    {
+                        await context.RespondAsync(
+                            GenericEmbeds.Error(title: "Suggestions Channel Not Set", message: "The suggestions channel has not been set up yet. Set it up with `/config set suggestions channel` or contact a server administrator."));
+                        return false;
+                    }
+
                     await context.RespondAsync(
                         GenericEmbeds.Error(title: "Incorrect Channel", message: $"This command can only be run in the <#{config.SuggestionsChannelId!.Value}> channel."));
                     return false;
