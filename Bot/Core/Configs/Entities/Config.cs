@@ -53,6 +53,25 @@ namespace OpenQotd.Core.Configs.Entities
             RemoveQuestion = 4
         }
 
+        /// <summary>
+        /// Whether to pin the new QOTD message and unpin the old one when it is sent.
+        /// </summary>
+        public enum PinMessageOption
+        {
+            /// <summary>
+            /// Neither pin the new message nor unpin the old one.
+            /// </summary>
+            Disabled = 0,
+            /// <summary>
+            /// Pin the new message but do not unpin the old one.
+            /// </summary>
+            PinMessage = 1,
+            /// <summary>
+            /// Pin the new message and unpin the old one.
+            /// </summary>
+            PinMessageAndUnpinPrevious = 2
+        }
+
         public int Id { get; set; }
 
         public ulong GuildId { get; set; }
@@ -109,7 +128,7 @@ namespace OpenQotd.Core.Configs.Entities
         /// <summary>
         /// If true, the bot will pin the new QOTD message and unpin the old one when it is sent.
         /// </summary>
-        public bool EnableQotdPinMessage { get; set; } = true;
+        public PinMessageOption QotdPinMessageOption { get; set; } = PinMessageOption.PinMessageAndUnpinPrevious;
 
         /// <summary>
         /// If true, the bot will create a thread for the new QOTD message when it is sent.
@@ -266,7 +285,7 @@ namespace OpenQotd.Core.Configs.Entities
         /// The ID of the last QOTD message sent. 
         /// </summary>
         /// <remarks>
-        /// Used for unpinning the old message if <see cref="EnableQotdPinMessage"/> is true.
+        /// Used for unpinning the old message if <see cref="QotdPinMessageOption"/> is true.
         /// </remarks>
         public ulong? LastQotdMessageId { get; set; }
 
@@ -309,7 +328,7 @@ namespace OpenQotd.Core.Configs.Entities
                 $"- title: *{QotdTitleText}*{(QotdTitle is null ? " (default)" : "")}\n" +
                 $"- shorthand: *{QotdShorthandText}*{(QotdShorthand is null ? " (default)" : "")}\n" +
                 $"- embed_color_hex: `{QotdEmbedColorHexEffective}`{(QotdEmbedColorHex is null ? " (default)" : "")}\n" +
-                $"- enable_pin_message: **{EnableQotdPinMessage}**\n" +
+                $"- pin_message_option: **{QotdPinMessageOption}**\n" +
                 $"- enable_create_thread: **{EnableQotdCreateThread}**\n" +
                 $"- enable_show_info_button: **{EnableQotdShowInfoButton}**\n" +
                 $"- enable_show_footer: **{EnableQotdShowFooter}**\n" +
