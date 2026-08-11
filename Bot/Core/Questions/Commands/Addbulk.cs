@@ -81,9 +81,18 @@ namespace OpenQotd.Core.Questions.Commands
             if (!await Api.IsWithinMaxQuestionsAmount(context, lines.Length))
                 return;
 
-            int startId = await Question.GetNextGuildDependentId(config);
+            // Reserve a contiguous range of IDs for this bulk insert
+            int startId;
+            using (AppDbContext dbContext = new())
+            {
+                Config dbConfig = await dbContext.Configs.FindAsync(config.Id) ?? throw new Exception("Config not found");
+                startId = dbConfig.NextGuildDependentId;
+                dbConfig.NextGuildDependentId += lines.Length;
+                await dbContext.SaveChangesAsync();
+            }
+
             DateTime now = DateTime.UtcNow;
-            IEnumerable<Question> questions = lines.Select((line, index) => new Question()
+            List<Question> questions = lines.Select((line, index) => new Question()
             {
                 ConfigId = config.Id,
                 GuildId = context.Guild!.Id,
@@ -92,13 +101,12 @@ namespace OpenQotd.Core.Questions.Commands
                 Text = line,
                 SubmittedByUserId = context.User.Id,
                 Timestamp = now
-            });
-            int lineNumber = 1;
-            foreach (Question question in questions)
+            }).ToList();
+
+            for (int i = 0; i < questions.Count; i++)
             {
-                if (!await Question.CheckQuestionValidity(question, context, config, lineNumber))
+                if (!await Question.CheckQuestionValidity(questions[i], context, config, i + 1))
                     return;
-                lineNumber++;
             }
 
             using (AppDbContext dbContext = new())
