@@ -1,14 +1,18 @@
-<div class="sidebar">
+<button class="sidebar-toggle" type="button" (click)="toggleSidebar()" [attr.aria-expanded]="!isSidebarCollapsed">
+    {{ isSidebarCollapsed ? 'Show sections' : 'Hide sections' }}
+</button>
+
+<div class="sidebar" [ngClass]="{ 'collapsed': isSidebarCollapsed, 'mobile': isSmallScreen }">
     <ul>
         @for (section of sections; track section.id) {
             <li [ngClass]="{'active': activeIds.includes(section.id)}">
-                <a href="documentation#{{section.id}}">{{section.title}}</a>
+                <a href="documentation#{{section.id}}" (click)="onSidebarLinkClick()">{{section.title}}</a>
             </li>
         }
     </ul>
 </div>
 
-<div class="content">
+<div class="content" [ngClass]="{ 'sidebar-collapsed': isSidebarCollapsed || isSmallScreen }">
     <section id="general">
         <h2 class="mb-2">Documentation</h2>
 
