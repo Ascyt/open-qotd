@@ -77,6 +77,9 @@ namespace OpenQotd.Core.Helpers
                 .Select(line => string.IsNullOrEmpty(line) ? "" : $"*{line}*"));
         }
 
+        /// <summary>
+        /// Retries the given action if a RateLimitException is thrown, up to maxRetries times. If the RetryAfter value of the exception exceeds 10 seconds, it will not retry.
+        /// </summary>
         public static async Task RetryOnRateLimitAsync(Func<Task> action, string contextInfo = "", int maxRetries = 5)
         {
             try
@@ -91,7 +94,7 @@ namespace OpenQotd.Core.Helpers
                 if (retryAfter is not null && retryAfter.Value > TimeSpan.FromSeconds(MAX_RETRY_AFTER_SECONDS))
                 {
                     await Console.Out.WriteLineAsync($"Rate limit hit in context \"{contextInfo}\". RetryAfter is {retryAfter.Value.TotalSeconds} seconds, which exceeds the {MAX_RETRY_AFTER_SECONDS}-second threshold. Not retrying.");
-                    return;
+                    throw;
                 }
 
                 TimeSpan delay = retryAfter ?? TimeSpan.FromSeconds(1);
@@ -105,6 +108,7 @@ namespace OpenQotd.Core.Helpers
                 else
                 {
                     await Console.Out.WriteLineAsync($"Max retries reached for context \"{contextInfo}\".");
+                    throw;
                 }
             }
         }
