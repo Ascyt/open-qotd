@@ -42,6 +42,11 @@ namespace OpenQotd.Core.EventHandlers
                     emoji: new DiscordComponentEmoji("💬")
                 ),
                 new DiscordLinkButtonComponent(
+                    url: "https://open-qotd.ascyt.com/vote",
+                    label: "Vote",
+                    emoji: new DiscordComponentEmoji("🎟️")
+                ),
+                new DiscordLinkButtonComponent(
                     url: "https://ascyt.com/donate",
                     label: "Donate",
                     emoji: new DiscordComponentEmoji("❤️")
