@@ -213,6 +213,11 @@ namespace OpenQotd.Core.QotdSending.Sender
                     .CountAsync()
                     + 1;
             }
+            if (question.Type != QuestionType.Accepted)
+            {
+                // Treat the question as `accepted` to prevent count from being off when /trigger is used on non-accepted questions
+                acceptedQuestionsCount++; 
+            }
 
             DiscordEmbedBuilder qotdEmbed =
                 GenericEmbeds.Custom($"{d.QotdTitle}{(d.config.EnableQotdShowCounter ? $" #{sentQuestionsCount}" : "")}",
