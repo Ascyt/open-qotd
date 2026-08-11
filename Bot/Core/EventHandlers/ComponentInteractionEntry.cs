@@ -92,10 +92,9 @@ namespace OpenQotd.Core.EventHandlers
                     case "cancel_choice":
                         return;
                 }
+                
+                await Helpers.General.RespondWithErrorAsync(args, $"Unknown event: `{args.Id}`");
             }, "ComponentInteractionEntry.ComponentInteractionCreatedAsync");
-
-
-            await Helpers.General.RespondWithErrorAsync(args, $"Unknown event: `{args.Id}`");
         }
     }
 }
