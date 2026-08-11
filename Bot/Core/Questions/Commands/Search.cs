@@ -29,7 +29,7 @@ namespace OpenQotd.Core.Questions.Commands
 
                     IQueryable<Question> sqlQuery = dbContext.Questions
                         .Where(q => q.ConfigId == config.Id && (type == null || q.Type == type))
-                        .Where(q => EF.Functions.Like(q.Text, $"%{query}%"));
+                        .Where(q => EF.Functions.ILike(q.Text, $"%{query}%"));
 
                     int totalQuestions = await sqlQuery.CountAsync();
 
