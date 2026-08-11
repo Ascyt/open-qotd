@@ -44,7 +44,7 @@
             <i>Default values are shown using "<code><span class="default-value">value</span></code>".</i>
         </p>
         <p [ngClass]="{'text-warning': true, 'light-theme': themeSwitcherService.isLightTheme}">
-            <b>⚠️ Important</b>: Make sure that, if set, the <code>qotd_sending channel</code>, <code>suggestions channel</code> and <code>logs channel</code> are channels that the bot is able to see, can send messages <b>with embeds</b> in, and, if enabled, also pin messages, ping roles and manage threads in respectively. 
+            <b>⚠️ Important</b>: Make sure that, if set, the <code>qotd_sending channel</code>, <code>suggestions channel</code> and <code>logs channel</code> are channels that the bot is able to see, can send messages <b>with embeds</b> in, and, if enabled, also pin messages, ping roles and manage threads in respectively. Also, if you are still having issues, make sure to put the &#64;OpenQOTD role <b>above all others</b> in the role list.
         </p>
             <div ngbAccordion [closeOthers]="true" class="accordion mb-2">
                 <div ngbAccordionItem class="accordion-item">
@@ -193,8 +193,12 @@
                                     You can use <a href="https://htmlcolorcodes.com/color-picker/" target="_blank">this tool</a> to find a color you like.
                                 </li>
                                 <li class="mb-2">
-                                    <code>enable_pin_message<span class="default-value">true</span></code>:
-                                    If enabled, the old QOTD, if existent and pinned, is unpinned and the new QOTD is pinned automatically after it is sent.
+                                    <code>pin_message_option<span class="default-value">PinMessageAndUnpinPrevious</span></code>: Whether or not the QOTD should be pinned and/or the last QOTD should be unpinned.
+                                    <ul>
+                                        <li><code>Disabled</code>: Do not pin the newly sent QOTD.</li>
+                                        <li><code>PinMessage</code>: Pin the newly sent QOTD, and do not touch other pinned QOTDs.</li>
+                                        <li><code>PinMessageAndUnpinPrevious</code>: Pin the newly sent QOTD, and also unpin the last QOTD that was sent.</li>
+                                    </ul>
                                 </li>
                                 <li class="mb-2">
                                     <code>enable_create_thread<span class="default-value">false</span></code>:
