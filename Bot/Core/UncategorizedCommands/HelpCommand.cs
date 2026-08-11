@@ -157,7 +157,7 @@ namespace OpenQotd.Core.UncategorizedCommands
                 ),
                 new DiscordLinkButtonComponent(
                     url: "https://discord.com/invite/85TtrwuKn8",
-                    label: "Support Server",
+                    label: "Community & Support",
                     emoji: new DiscordComponentEmoji("💬")
                 ),
                 new DiscordLinkButtonComponent(
