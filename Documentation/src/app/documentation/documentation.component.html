@@ -237,17 +237,23 @@
                                 <li class="mb-2">
                                     <code>enable<span class="default-value">true</span></code>:
                                     If enabled, users with the <code>basic_role</code> can suggest new questions using <code>/suggest</code>, <code>/qotd</code> or the suggest button under sent QOTDs.<br />
-                                    Suggested questions then have to be accepted by a staff member in order to be sendable. See <a href="documentation#suggestions">Suggestions</a> for more information.
+                                    Suggested questions then have to be accepted by a moderator in order to be sendable.<br />
+                                    See <a href="documentation#suggestions">Suggestions</a> for more information.
+                                </li>
+                                <li class="mb-2">
+                                    <code>mod_role</code>:
+                                    If set, users with the <code>mod_role</code> can accept or deny suggestions using the buttons under the suggestion notifications or <code>/suggestions accept</code> or <code>/suggestions deny</code>.<br />
+                                    Otherwise, suggestions can only be accepted/denied within the suggestions channel.<br />
+                                    <span [ngClass]="{'text-warning': true, 'light-theme': themeSwitcherService.isLightTheme}">
+                                        <b>⚠️ Warning</b>: If this role is unset, anyone, regardless of their roles, is able to accept/deny suggestions if they are able to view your suggestions channel!<br />
+                                    </span>
                                 </li>
                                 <li class="mb-2">
                                     <code>channel</code>:
-                                    The channel where new suggestions are sent to, with buttons to accept/deny them.<br />
+                                    The channel where notifications about new suggestions are sent to, with buttons to accept/deny them.<br />
                                     If this variable is unset, suggestions are not sent anywhere and can only be viewed using <code>/suggestions</code>.<br />
                                     It is recommended to use this if you have suggestions enabled, as it makes them much easier to manage. <br />
-                                    See <a href="documentation#suggestions">Suggestions</a> for more information.<br />
-                                    <span [ngClass]="{'text-warning': true, 'light-theme': themeSwitcherService.isLightTheme}">
-                                        <b>⚠️ Warning</b>: Make sure to have this set to a channel that is only viewable by people you trust, as anyone can accept or deny suggestions using the buttons of the messages or <code>/suggestions</code> inside of that channel!<br />
-                                    </span>
+                                    See <a href="documentation#suggestions">Suggestions</a> for more information.
                                 </li>
                                 <li class="mb-2">
                                     <code>ping_role</code>:
@@ -352,10 +358,10 @@
     <section id="suggestions">
         <h3 class="mb-2">Suggestions <a class="url-insert" href="documentation#suggestions"></a></h3>
         <p>
-            If suggestions are enabled (<code>/config set enable_suggestions:True</code>), users can suggest questions using <code>/suggest</code> or <code>/qotd</code>.<br />
-            These suggestions (=questions with type <span class="question-type suggested">Suggested</span>) have to be accepted or denied by staff members in order to be sendable, and they are sent to the <code>suggestions_channel</code> with buttons to accept or deny them. The user is notified in DMs when their question is accepted/denied, including the denial reason if applicable.<br />
+            If suggestions are enabled (<code>/config set suggestions enable:True</code>), users can suggest questions using <code>/suggest</code> or <code>/qotd</code>.<br />
+            These suggestions (=questions with type <span class="question-type suggested">Suggested</span>) have to be accepted or denied by moderators in order to be sendable, and notifications are sent to the <code>suggestions channel</code> with buttons to accept or deny them. The user is notified in DMs when their question is accepted/denied, including the denial reason if applicable.<br />
             If a suggestion is accepted, its type is changed to <span class="question-type accepted">Accepted</span>, and if it is denied, its type is changed to <span class="question-type stashed">Stashed</span> (or permanently deleted if <code>enable_deleted_to_stash</code> is false).<br />
-            Note that anyone can accept or deny suggestions using the buttons of the messages or <code>/suggestions</code> in that channel, so make sure to have your <code>suggestions_channel</code> set to a channel that is only viewable by people you trust!<br />
+            Note that, if you did not set up <code>suggestions mod_role</code>, anyone can accept or deny suggestions using the buttons of the messages or <code>/suggestions</code> in that channel, so make sure to have your <code>suggestions_channel</code> set to a channel that is only viewable by people you trust!<br />
         </p>
         <h4>Commands</h4>
         <p>
@@ -368,8 +374,9 @@
                 Accepts a suggestion. This changes the type of the question to <span class="question-type accepted">Accepted</span> and notifies the suggester in private messages.
             </li>
             <li class="mb-2">
-                <code>/suggestions deny [suggestion_id] [reason]</code>: 
-                Denies a suggestion with a reason. This sets the question type to <span class="question-type stashed">Stashed</span> (or permanently deletes it if <code>enable_deleted_to_stash</code> is true) and notifies the suggester with the denial reason in private messages.<br />
+                <code>/suggestions deny [suggestion_id] </code>: 
+                Denies a suggestion. A modal will open up to optionally specify the denial reason.<br />
+                This sets the question type to <span class="question-type stashed">Stashed</span> (or permanently deletes it if <code>enable_deleted_to_stash</code> is true) and notifies the suggester with the denial reason in private messages if applicable.
             </li>
             <li class="mb-2">
                 <code>/suggestions acceptall</code>: 
