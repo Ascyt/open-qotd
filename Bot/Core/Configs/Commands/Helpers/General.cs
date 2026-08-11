@@ -32,6 +32,7 @@ namespace OpenQotd.Core.Configs.Commands.Helpers
             bool? EnableQotdShowCredit = null,
             bool? EnableQotdShowCounter = null,
             bool? EnableSuggestions = null,
+            DiscordRole? SuggestionsModRole = null,
             DiscordChannel? SuggestionsChannel = null,
             DiscordRole? SuggestionsPingRole = null,
             bool? EnableSuggestionsPinMessage = null,
@@ -138,6 +139,8 @@ namespace OpenQotd.Core.Configs.Commands.Helpers
                     config.SuggestionsChannelId = SuggestionsChannel.Id;
                 if (SuggestionsPingRole is not null)
                     config.SuggestionsPingRoleId = SuggestionsPingRole.Id;
+                if (SuggestionsModRole is not null)
+                    config.SuggestionsModRoleId = SuggestionsModRole.Id;
                 if (EnableSuggestionsPinMessage is not null)
                     config.EnableSuggestionsPinMessage = EnableSuggestionsPinMessage.Value;
                 if (NoticesLevel is not null)

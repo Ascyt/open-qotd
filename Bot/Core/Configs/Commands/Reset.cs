@@ -50,10 +50,12 @@ namespace OpenQotd.Core.Configs.Commands
             [Command("suggestions")]
             [Description("Reset config values related to QOTD user suggestions to be unset")]
             public static async Task ResetSuggestionsAsync(CommandContext context,
+                [Description("The role that can accept/deny suggestions (applies to those who can view the channel when reset).")] SingleOption? ModRole = null,
                 [Description("The channel new QOTD suggestions get announced in (no announcements are sent when reset).")] SingleOption? Channel = null,
                 [Description("The role that will get pinged when a new QOTD is suggested (no role is pinged when reset).")] SingleOption? PingRole = null
             )
             => await ResetAllAsync(context, 
+                SuggestionsModRole: ModRole,
                 SuggestionsChannel: Channel,
                 SuggestionsPingRole: PingRole);
         }
@@ -65,6 +67,7 @@ namespace OpenQotd.Core.Configs.Commands
             SingleOption? QotdShorthand = null,
             SingleOption? QotdEmbedColorHex = null,
             SingleOption? QotdPingRole = null,
+            SingleOption? SuggestionsModRole = null,
             SingleOption? SuggestionsChannel = null,
             SingleOption? SuggestionsPingRole = null,
             SingleOption? LogsChannel = null)
@@ -101,6 +104,8 @@ namespace OpenQotd.Core.Configs.Commands
                     config.QotdEmbedColorHex = null;
                 if (QotdPingRole is not null)
                     config.QotdPingRoleId = null;
+                if (SuggestionsModRole is not null)
+                    config.SuggestionsModRoleId = null;
                 if (SuggestionsChannel is not null)
                     config.SuggestionsChannelId = null;
                 if (SuggestionsPingRole is not null)

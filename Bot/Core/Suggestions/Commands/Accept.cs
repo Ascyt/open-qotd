@@ -19,7 +19,7 @@ namespace OpenQotd.Core.Suggestions.Commands
             if (config is null)
                 return;
 
-            if (!await Helpers.General.IsInSuggestionsChannelOrHasAdmin(context, config))
+            if (!await Helpers.General.HasModOrIsInSuggestionsChannel(context, config))
                 return;
 
             Question? question;

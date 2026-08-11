@@ -105,7 +105,7 @@ namespace OpenQotd.Core.Suggestions.Helpers
                 DiscordUser? suggester;
                 try
                 {
-                    suggester = await Program.Client.GetUserAsync(question.SubmittedByUserId);
+                    suggester = await Program.Client.GetUserAsync(question!.SubmittedByUserId);
                 }
                 catch (NotFoundException)
                 {
@@ -116,7 +116,7 @@ namespace OpenQotd.Core.Suggestions.Helpers
                     DiscordMessageBuilder userSendMessage = new();
                     userSendMessage.AddEmbed(GenericEmbeds.Custom($"{guild.Name}: {config.QotdShorthandText} Suggestion Accepted",
                             $"Your {config.QotdShorthandText} Suggestion:\n" +
-                            $"\"**{question.Text}**\"\n\n" +
+                            $"\"**{question!.Text}**\"\n\n" +
                             $"Has been :white_check_mark: **ACCEPTED** :white_check_mark:!\n" +
                             $"It is now qualified to appear as **{config.QotdTitleText}** in **{guild.Name}**!",
                             color: "#20ff20"
@@ -128,9 +128,9 @@ namespace OpenQotd.Core.Suggestions.Helpers
                 }
 
                 if (context is null) 
-                    await Logging.Api.LogUserActionAsync(result!.Interaction.Channel, user, config, "Accepted Suggestion", question.ToString());
+                    await Logging.Api.LogUserActionAsync(result!.Interaction.Channel, user, config, "Accepted Suggestion", question!.ToString());
                 else
-                    await Logging.Api.LogUserActionAsync(context, config, "Accepted Suggestion", question.ToString());
+                    await Logging.Api.LogUserActionAsync(context, config, "Accepted Suggestion", question!.ToString());
             });
         }
 

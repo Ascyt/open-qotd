@@ -8,10 +8,10 @@ using OpenQotd.Core.Helpers;
 
 namespace OpenQotd.Core.Permissions.Api
 {
-    public static class Basic
+    public static class SuggestionsMod
     {
         /// <summary>
-        /// Checks if a user has basic or admin permission.
+        /// Checks if a user has suggestions mod or admin permission. This does NOT check whether or not the command was run in the suggestions channel.
         /// </summary>
         /// <remarks>
         /// This also handles sending error messages, so it's recommended to end your function if it retuns false.
@@ -68,9 +68,9 @@ namespace OpenQotd.Core.Permissions.Api
                     return (false, error);
             }
 
-            ulong? basicRoleId = config.BasicRoleId;
+            ulong? modRoleId = config.SuggestionsModRoleId;
 
-            if (basicRoleId == null || member.Roles.Any(role => role.Id == basicRoleId) || 
+            if (modRoleId == null || member.Roles.Any(role => role.Id == modRoleId) || 
                 (await Api.Admin.CheckAsync(guild, member, config)).Item1)
                 return (true, null);
             
@@ -80,20 +80,20 @@ namespace OpenQotd.Core.Permissions.Api
             DiscordRole role;
             try
             {
-                role = await guild.GetRoleAsync(basicRoleId.Value);
+                role = await guild.GetRoleAsync(modRoleId.Value);
             }
             catch (NotFoundException)
             {
                 return (false,
-                    $"The role in the basic_role config value with ID `{basicRoleId}` could not be found.\n\n" +
-                        $"*It can be set using `/config set general basic_role [role]`.*");
+                    $"The role in the suggestions mod_role config value with ID `{modRoleId}` could not be found.\n\n" +
+                        $"*It can be set using `/config set suggestions mod_role [role]`.*");
             }
 
             if ((await Api.Admin.CheckAsync(guild, member, config)).Item1)
                 return (true, null);
 
             return (false,
-                $"You need to have the \"{role.Mention}\" role or admin permission to be able to run this command.");
+                $"You need to have the \"{role.Mention}\" role or admin permission to be able to do this.");
         }
     }
 }

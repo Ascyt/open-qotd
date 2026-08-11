@@ -42,7 +42,7 @@ namespace OpenQotd.Core.Suggestions.EventHandlers
         public static async Task SuggestionsAcceptButtonClickedAsync(ComponentInteractionCreatedEventArgs args, int profileId, int questionGuildDepedentId)
         {
             Config? config = await Profiles.Api.TryGetConfigAsync(args, profileId);
-            if (config is null || !await Permissions.Api.Basic.CheckAsync(args, config))
+            if (config is null || !await Permissions.Api.SuggestionsMod.CheckAsync(args, config))
                 return;
 
             Question? suggestion = await TryGetSuggestion(args, config, questionGuildDepedentId);
@@ -54,7 +54,7 @@ namespace OpenQotd.Core.Suggestions.EventHandlers
         public static async Task SuggestionsDenyButtonClicked(ComponentInteractionCreatedEventArgs args, int profileId, int questionGuildDependentId)
         {
             Config? config = await Profiles.Api.TryGetConfigAsync(args, profileId);
-            if (config is null || !await Permissions.Api.Basic.CheckAsync(args, config))
+            if (config is null || !await Permissions.Api.SuggestionsMod.CheckAsync(args, config))
                 return;
 
             Question? question;

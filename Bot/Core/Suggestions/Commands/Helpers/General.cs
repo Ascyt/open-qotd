@@ -7,19 +7,24 @@ namespace OpenQotd.Core.Suggestions.Commands.Helpers
     internal static class General
     {
         /// <summary>
-        /// Users in the suggestions channel can also accept/deny suggestions, even without admin permissions
+        /// Check if the user has suggestions mod or admin permission, or, if there is no suggestions mod_role, if the command was run in the suggestions channel.
         /// </summary>
-        public static async Task<bool> IsInSuggestionsChannelOrHasAdmin(CommandContext context, Config config)
+        public static async Task<bool> HasModOrIsInSuggestionsChannel(CommandContext context, Config config)
         {
-            bool isInSuggestionsChannel = config.SuggestionsChannelId is not null && config.SuggestionsChannelId.Value == context.Channel.Id;
-            if (!isInSuggestionsChannel && !await Permissions.Api.Admin.CheckAsync(context, config, responseOnError: config.SuggestionsChannelId is null))
+            if (config.SuggestionsModRoleId is null) 
             {
-                if (config.SuggestionsChannelId is not null)
+                bool isInSuggestionsChannel = config.SuggestionsChannelId is not null && config.SuggestionsChannelId.Value == context.Channel.Id;
+                if (!isInSuggestionsChannel)
                 {
                     await context.RespondAsync(
-                        GenericEmbeds.Error(title: "Incorrect Channel", message: $"This command can only be run in the <#{config.SuggestionsChannelId.Value}> channel."));
+                        GenericEmbeds.Error(title: "Incorrect Channel", message: $"This command can only be run in the <#{config.SuggestionsChannelId!.Value}> channel."));
+                    return false;
                 }
-                return false;
+            }
+            else 
+            {
+                if (!await Permissions.Api.SuggestionsMod.CheckAsync(context, config))
+                    return false;
             }
             return true;
         }

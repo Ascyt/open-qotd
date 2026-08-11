@@ -80,12 +80,14 @@ namespace OpenQotd.Core.Configs.Commands
             [Description("Set config values related to QOTD user suggestions")]
             public static async Task SetSuggestionsAsync(CommandContext context,
                 [Description("Whether to allow users with the basic_role to suggest QOTDs (true by default).")] bool? Enabled = null,
+                [Description("The role that can accept/deny suggestions (applies to those who can view the channel if unset).")] DiscordRole? ModRole = null,
                 [Description("The channel new QOTD suggestions get announced in.")] DiscordChannel? Channel = null,
                 [Description("The role that will get pinged when a new QOTD is suggested.")] DiscordRole? PingRole = null,
                 [Description("Whether to pin suggestion messages when they are sent to the suggestions channel (true by default).")] bool? EnablePinMessage = null
             )
             => await Helpers.General.SetAllAsync(context, 
                 EnableSuggestions: Enabled,
+                SuggestionsModRole: ModRole,
                 SuggestionsChannel: Channel,
                 SuggestionsPingRole: PingRole,
                 EnableSuggestionsPinMessage: EnablePinMessage);
