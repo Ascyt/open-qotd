@@ -37,10 +37,12 @@ namespace OpenQotd.Core.Presets.Commands
             await ListMessages.SendNewAsync(context, page, $"{(type != null ? $"{type} " : "")}Presets List",
                 Task<PageInfo<Api.GuildDependentPreset>> (int page) =>
                 {
-                    int totalPresets = guildDependentPresets.Count;
+                    Api.GuildDependentPreset[] filteredPresets = [.. guildDependentPresets
+                        .Where(p => type == null || (type == PresetsType.Active && !p.IsSent) || (type == PresetsType.Completed && p.IsSent))];
 
-                    Api.GuildDependentPreset[] presetsInPage = [.. guildDependentPresets
-                        .Where(p => type == null || (type == PresetsType.Active && !p.IsSent) || (type == PresetsType.Completed && p.IsSent))
+                    int totalPresets = filteredPresets.Length;
+
+                    Api.GuildDependentPreset[] presetsInPage = [.. filteredPresets
                         .Skip((page - 1) * itemsPerPage)
                         .Take(itemsPerPage)];
 
