@@ -221,6 +221,11 @@ namespace OpenQotd.Core.Configs.Entities
         public bool EnableSuggestions { get; set; } = true;
 
         /// <summary>
+        /// Specifies the role that can moderate suggestions. If null, any user (that is able to view the suggestions channel) can accept/deny suggestions.
+        /// </summary>
+        public ulong? SuggestionsModRoleId { get; set; }
+
+        /// <summary>
         /// Specifies the channel where suggestion notifications are sent to. If null, suggestions are not sent anywhere.
         /// </summary>
         public ulong? SuggestionsChannelId { get; set; }
@@ -337,6 +342,7 @@ namespace OpenQotd.Core.Configs.Entities
                 $"\n" +
                 $"**Suggestions:**\n" +
                 $"- enabled: **{EnableSuggestions}**\n" +
+                $"- mod_role: {FormatRole(SuggestionsModRoleId)}\n" +
                 $"- channel: {FormatChannel(SuggestionsChannelId)}\n" +
                 $"- ping_role: {FormatRole(SuggestionsPingRoleId)}\n" +
                 $"- enable_pin_message: **{EnableSuggestionsPinMessage}**";
