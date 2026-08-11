@@ -43,7 +43,7 @@ namespace OpenQotd.Core.QotdSending.Sender
                 return false;
             }
 
-            await SendNextQotdAsync(guild, config, latestAvailableNotice);
+            await SendRandomQotdAsync(guild, config, latestAvailableNotice);
             return true;
         }
 
@@ -51,7 +51,7 @@ namespace OpenQotd.Core.QotdSending.Sender
         /// Sends the next QOTD to the specified guild.
         /// </summary>
         /// <exception cref="QotdSendException"></exception>
-        public static async Task SendNextQotdAsync(DiscordGuild guild, Config config, Notices.Api.Notice? latestAvaliableNotice)
+        public static async Task SendRandomQotdAsync(DiscordGuild guild, Config config, Notices.Api.Notice? latestAvaliableNotice)
         {
             await SendQotdAsync(guild, config, await Helpers.GetRandomQotd(config), latestAvaliableNotice);
         }
