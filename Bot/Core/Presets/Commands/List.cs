@@ -40,6 +40,7 @@ namespace OpenQotd.Core.Presets.Commands
                     int totalPresets = guildDependentPresets.Count;
 
                     Api.GuildDependentPreset[] presetsInPage = [.. guildDependentPresets
+                        .Where(p => type == null || (type == PresetsType.Active && !p.IsSent) || (type == PresetsType.Completed && p.IsSent))
                         .Skip((page - 1) * itemsPerPage)
                         .Take(itemsPerPage)];
 
