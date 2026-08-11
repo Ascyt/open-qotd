@@ -1,7 +1,47 @@
 <h2 class="mb-4">Changelog</h2>
 
+<section id="v2-1-0" class="mb-4">
+    <h3 class="mb-2">2026-08-11: Update v2.1.0 <a class="url-insert" href="changelog#v2-1-0"></a></h3>
+
+    <p>
+        Finally, after a long break of development (and focusing on other things such as finishing my education and entering the much dreaded realm known as "employment"), I am happy to announce OpenQOTD v2.1.0! <br />
+        This update brings plenty of extra customization options, alongside many small improvements, with it. <br />
+        All features are documented in the <a routerLink="/documentation">Documentation</a> section, however here is a small overview of new features and other changes:
+    </p>
+    <h5>Customization</h5>
+    <ul>
+        <li><b>Customize how the sent QOTD gets altered</b>: Using a new config variable <code>qotd_sending alter_question_after_sent</code>, it is now possible to customize what happens with a question after it is sent as QOTD.<br />
+        This allows questions to be auto-reset when empty, questions to be sent again regardless if they were have already been sent, and moving questions back to suggestions or removing them after being sent.</li>
+        <li><b>Embed color for QOTDs</b>: Using a new config variable <code>embed_color_hex</code>, it is now possible to set the QOTD embed color to any color you like.</li>
+        <li><b>Option to disable things</b>: Using new config variables, it is now possible to disable the QOTD footer, credit, counter, unpinning of previous QOTDs, and the suggestions pin. They are described in the <code>qotd_message</code> part of the <a routerLink="/documentation#configuration">configuration section</a> of the docs.</li>
+    </ul>
+    <h5>Other improvements</h5>
+    <ul>
+        <li>The config variables are now sorted into four categories: <code>general</code>, <code>qotd_sending</code>, <code>qotd_message</code>, and <code>suggestions</code>. This was actually a necessary change, as Discord limits the amount of options a command can have. Also, it is not necessary to specify every variable upon config initialization anymore.</li>
+        <li>Instead of a simple text argument, <code>/questions add</code> now uses a <b>modal</b>, which is similar to when a new QOTD gets suggested, but with an additional type dropdown.</li>
+        <li><code>/trigger</code> now has two optional arguments: one is for sending a question with a specific ID, the other is for preventing the sent question from changing its type.</li>
+        <li><code>/help</code> can now be used prior to bot setup, and includes some buttons which link to useful resources.</li>
+        <li>The bot now sends a welcome message when it is added to a server.</li>
+        <li>Accepted and denied suggestion messages now contain an info button to get detailed information about them.</li>
+        <li>The denial reason for suggestions is now optional.</li>
+        <li>The documentation now has a hide/show sections button.</li>
+    </ul>
+
+    <p>Additionally, other small improvements have been made, and bugs were fixed. For a full list on what has changed, see <a href="https://github.com/Ascyt/open-qotd/milestone/5?closed=1" target="_blank">the v2.1.0 milestone</a> on GitHub.</p>
+
+    <h5>Why no queuing feature?</h5>
+    <p>
+        I am aware how heavily requested this feature is, so you might wonder why it is still not implemented.<br />
+        Well, long story short: the feature turned out to be a lot more extensive that previously anticipated.<br />
+        Not only would this feature come with a lot of customization options, it would also require me to <b>rewrite a large chunk of the bot</b> because it involves fundamental changes to its data structure. <br />
+        This is because I realized that this "queueing feature", or <code>/pools</code> as I've decided to name it, may, for instance, also make it possible to <b>share questions across profiles</b>. <br />
+        If you want to know what I'm talking about more in detail, you may check out the <a href="https://github.com/Ascyt/open-qotd/issues/5" target="_blank">GitHub Issue</a> about this feature. Just note that it's a long read, and that I didn't really intend for other people to read it.<br />
+        This all is the reason as to why I have decided to release everything I had already implemented by that point for v2.1.0, alongside some other commonly requested features, early, and to postpone this feature to the <b>v3.0.0</b> update instead, which I want to start working on as soon as possible. However, since it's a large update, expect it to still be a while.
+    </p>
+</section>
+
 <section id="v2-0-0">
-    <h3 class="mb-2">2025-10-29: Update v2.0.0</h3>
+    <h3 class="mb-2">2025-10-29: Update v2.0.0 <a class="url-insert" href="changelog#v2-0-0"></a></h3>
     <p>
         OpenQOTD v2.0.0 is a major update that brings a ton of both large and small features, including a rewrite to large parts of the bot's codebase to improve stability and performance. 
     </p>

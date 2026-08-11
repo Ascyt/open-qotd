@@ -36,24 +36,30 @@ To deploy, you will need to have [git](https://git-scm.com/install/windows), [.N
     ```
     dotnet tool install --global dotnet-ef
     ```
-6. Run the following to make migrations (and initialize the database tables):
+6. Restore .NET packages:
+    ```
+    cd Bot
+    dotnet restore
+    cd ..
+    ```
+7. Run the following to make migrations (and initialize the database tables):
     ```
     cd Bot
     dotnet ef migrations add InitialCreate
     dotnet ef database update
     cd ..
     ```
-7. In `Bot/appsettings.json`, set the `EnableDbMigrationMode` back to `false`:
+8. In `Bot/appsettings.json`, set the `EnableDbMigrationMode` back to `false`:
     ```jsonc
         // ...
         "EnableDbMigrationMode": false,
         // ...
     ```
-8. Stop the database container:
+9. Stop the database container:
     ```
     docker compose down
     ```
-9. From now on you can start the entire project with the following:
+10. From now on you can start the entire project with the following:
     ```
     docker compose up --build -d
     ```

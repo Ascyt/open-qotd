@@ -40,4 +40,8 @@
   <router-outlet />
   <p class="text-left notice">Licensed under <a href="/license" target="_blank" ngbTooltip="https://github.com/Ascyt/open-qotd/blob/main/LICENSE">AGPL-3.0</a> | <a href="/source" target="_blank" ngbTooltip="https://github.com/Ascyt/open-qotd">Source Code</a><br />
     <a href="/terms-of-service" target="_blank">Terms of Service</a> | <a href="/privacy-policy" target="_blank">Privacy Policy</a></p>
+
+  @if (route.firstChild?.routeConfig?.path === 'documentation') {
+    <div style="margin-bottom: 60px;"></div>
+  }
 </div>

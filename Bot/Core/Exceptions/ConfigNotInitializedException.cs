@@ -1,0 +1,12 @@
+﻿namespace OpenQotd.Core.Exceptions
+{
+    /// <summary>
+    /// Thrown when the bot's configuration has not been initialized but is required for an operation.
+    /// </summary>
+    public class ConfigNotInitializedException : BotException
+    {
+        public ConfigNotInitializedException() : base() { }
+
+        public override string Message => $"The QOTD bot configuration has not been initialized yet. Use `/config initialize` to initialize it, or `/help` for help.";
+    }
+}

@@ -5,6 +5,7 @@
     color: var(--front);
     box-shadow: 0 0 10px var(--back-high);
     margin-bottom: 20px;
+    z-index: 1000;
 
     transition: 0.2s;
 }

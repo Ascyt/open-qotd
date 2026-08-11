@@ -44,7 +44,7 @@ What is the most unique thing about you?
 In intense situations, do you think logically or emotionally?
 If you could be transported into any year irreversably, be it in the past, the future or stay in the present - what would you do?
 What is the best thing?
-What is an interesting fun fact you learned this week?
+What is an interesting fun fact you learned recently?
 Do you do any sports? If yes, what is it?
 What is the story behind your username?
 For aesthetic reasons or comfortability, what is your favorite piece of clothing?
@@ -80,7 +80,7 @@ Which of the 5 love languages is more prevalent in you?
 If you were forced to live in any period in history, when would you live and why?
 What song best represents the current mood you are in?
 If you found a biography of your entire life, what would it be called?
-What frivolous thing do you have a strong opinion about? For example, the correct way to hang the toilet paper is "over".
+What trivial thing do you have a strong opinion about?
 What is the most unique or rarest item you own?
 Do you prefer living in big cities or smaller towns?
 What is/was your opinion on school?
@@ -138,7 +138,7 @@ If you could do something dangerous just once without any risk, what would you d
 What is the most niche community you're a part of?
 What are the things you would like to do at least once in your lifetime?
 Do you like your school/job? 
-There are two scenarios in the universe: Either we are all alone or we are not the only ones. What do you think is scarier?
+There are two scenarios in the universe: Either we are all alone or we are not the only ones. Do you think that one is scarier than the other?
 What is something you would do if you had more time?
 What is something that is generally universally agreed upon that you dislike?
 Have you ever won a contest or giveaway? If yes, what did you win?
@@ -153,7 +153,7 @@ If you walked into a room with everyone you've ever met, who would you look for 
 What thing did you waste the most time on?
 What field do you work in, and what advice would you give to anyone looking to start working in your field?
 Imagine you're hired to think of a new species to put on earth. What are you creating?	
-How do you feel about AI?
+How do you feel about artificial intelligence?
 If you were a villian, what would your "evil plan" be?
 What is the most meaningful gift you've ever received?
 Tell us something you think nobody here knows about you!
@@ -174,3 +174,27 @@ What is your preferred method of learning something?
 What is something you could talk about for hours on end?
 How are you doing right now?
 How would you describe your personality?
+If you could travel to any point in time, whether that is into the past or the future, what would you do?
+What is something you don't mind spending a lot of money on?
+What's one thing you wish people better understood about you?
+What is a dish you love to cook?
+How would you describe your choice of fashion? 
+If your life had a theme song, what would it be?
+What do you believe to be an integral part of your identity?
+What is your favorite video game?
+Do you prefer living in urban, suburban or rural environments?
+What is a piece of media that never gets old for you?
+What is something that made you emotional recently?
+What is a quality you value the most in other people?
+What is something you're striving to become better at?
+What is your dream job?
+Who is the first person you'd tell about an accomplishment?
+Who has had the most positive impact of your life?
+What is something you are grateful for?
+What are your political views?
+What is something legal in your area that you wish was illegal, or vice-versa?
+How would you say you have changed over the years?
+Would you say that water is wet? Is a hotdog a sandwich? Is cereal a form of soup?
+What is, in your opinion, the meaning of life?
+What is something you have been obsessed with lately?
+What do you think is the best way to meet new people?
