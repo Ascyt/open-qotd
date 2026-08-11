@@ -115,7 +115,7 @@ namespace OpenQotd.Core.Suggestions.Helpers
                 DiscordMessageBuilder messageBuilder = GetSuggestionNotificationMessageBuilder(question, config, guild, pingIsHighlight:true, skipAddingPing:true);
                 suggestionMessage = await suggestionChannel.SendMessageAsync(messageBuilder);
 
-                AppDbContext dbContext = new();
+                using AppDbContext dbContext = new();
                 Question? updateQuestion = await dbContext.Questions.FindAsync(question.Id);
 
                 if (updateQuestion != null)
