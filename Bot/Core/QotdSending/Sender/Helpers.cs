@@ -121,27 +121,30 @@ namespace OpenQotd.Core.QotdSending.Sender
 
         public static async Task PinMessageIfEnabled(SendQotdData d, DiscordMessage sentMessage)
         {
-            if (!d.config.EnableQotdPinMessage)
+            if (d.config.QotdPinMessageOption == Config.PinMessageOption.Disabled)
                 return;
 
             DiscordChannel qotdChannel = await d.GetQotdChannelAsync();
 
-            DiscordMessage? oldSentMessage = null;
-            if (d.config.LastQotdMessageId != null)
+            if (d.config.QotdPinMessageOption == Config.PinMessageOption.PinMessageAndUnpinPrevious)
             {
-                try
+                DiscordMessage? oldSentMessage = null;
+                if (d.config.LastQotdMessageId != null)
                 {
-                    oldSentMessage = await qotdChannel.GetMessageAsync(d.config.LastQotdMessageId.Value);
+                    try
+                    {
+                        oldSentMessage = await qotdChannel.GetMessageAsync(d.config.LastQotdMessageId.Value);
+                    }
+                    catch (NotFoundException)
+                    {
+                        oldSentMessage = null;
+                    }
                 }
-                catch (NotFoundException)
-                {
-                    oldSentMessage = null;
-                }
-            }
 
-            if (oldSentMessage is not null)
-            {
-                await Core.Helpers.General.RetryOnRateLimitAsync(() => oldSentMessage.UnpinAsync(), "QotdSenderHelper.PinMessageIfEnabled UnpinAsync");
+                if (oldSentMessage is not null)
+                {
+                    await Core.Helpers.General.RetryOnRateLimitAsync(() => oldSentMessage.UnpinAsync(), "QotdSenderHelper.PinMessageIfEnabled UnpinAsync");
+                }
             }
 
             await Core.Helpers.General.RetryOnRateLimitAsync(() => sentMessage.PinAsync(), "QotdSenderHelper.PinMessageIfEnabled PinAsync");

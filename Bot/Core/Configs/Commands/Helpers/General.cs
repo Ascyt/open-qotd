@@ -22,7 +22,7 @@ namespace OpenQotd.Core.Configs.Commands.Helpers
             string? QotdTitle = null,
             string? QotdShorthand = null,
             bool? EnableAutomaticQotd = null,
-            bool? EnableQotdPinMessage = null,
+            Config.PinMessageOption? QotdPinMessageOption = null,
             bool? EnableQotdCreateThread = null,
             bool? EnableQotdAutomaticPresets = null,
             bool? EnableQotdLastAvailableWarn = null,
@@ -101,8 +101,8 @@ namespace OpenQotd.Core.Configs.Commands.Helpers
                     config.QotdEmbedColorHex = QotdEmbedColorHex;
                 if (EnableAutomaticQotd is not null)
                     config.EnableAutomaticQotd = EnableAutomaticQotd.Value;
-                if (EnableQotdPinMessage is not null)
-                    config.EnableQotdPinMessage = EnableQotdPinMessage.Value;
+                if (QotdPinMessageOption is not null)
+                    config.QotdPinMessageOption = QotdPinMessageOption.Value;
                 if (EnableQotdCreateThread is not null)
                     config.EnableQotdCreateThread = EnableQotdCreateThread.Value;
                 if (EnableQotdAutomaticPresets is not null)
