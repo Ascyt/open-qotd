@@ -18,8 +18,8 @@ namespace OpenQotd.Core.Database
         public DbSet<Question> Questions { get; set; }
         public DbSet<PresetSent> PresetSents { get; set; }
         public DbSet<ProfileSelection> ProfileSelections { get; set; }
-        public DbSet<Pool> Pools { get; set; }
-        public DbSet<PoolEntry> PoolEntries { get; set; }
+        // public DbSet<Pool> Pools { get; set; }
+        // public DbSet<PoolEntry> PoolEntries { get; set; }
 
         private static string? _postgresConnectionString = null;
 
