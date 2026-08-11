@@ -66,6 +66,9 @@ namespace OpenQotd.Core.Suggestions.Helpers
                 }
 
                 messageBuilder.AddEmbed(editEmbed);
+                messageBuilder.AddActionRowComponent([
+                    new(DiscordButtonStyle.Secondary, $"show-qotd-info/{config.ProfileId}/{question?.GuildDependentId ?? -1}", "𝐢")
+                ]);
 
                 if (result is not null)
                 {
@@ -189,6 +192,12 @@ namespace OpenQotd.Core.Suggestions.Helpers
                 messageBuilder.AddEmbed(GenericEmbeds.Custom($"{config.QotdShorthandText} Suggestion Denied", embedBody +
                     $"\n\nDenied by: {user.Mention}{(!string.IsNullOrEmpty(reason) ? $"\nReason: \"**{reason}**\"" : "")}", color: "#ff2020"));
 
+                if (config.EnableDeletedToStash) { 
+                    messageBuilder.AddActionRowComponent([
+                        new(DiscordButtonStyle.Secondary, $"show-qotd-info/{config.ProfileId}/{question?.GuildDependentId ?? -1}", "𝐢")
+                    ]);
+                }
+
                 await suggestionMessage.ModifyAsync(messageBuilder);
                 
                 if (config.EnableSuggestionsPinMessage)
@@ -217,7 +226,7 @@ namespace OpenQotd.Core.Suggestions.Helpers
                 DiscordUser? suggester;
                 try
                 {
-                    suggester = await Program.Client.GetUserAsync(question.SubmittedByUserId);
+                    suggester = await Program.Client.GetUserAsync(question!.SubmittedByUserId);
                 }
                 catch (NotFoundException)
                 {
@@ -229,7 +238,7 @@ namespace OpenQotd.Core.Suggestions.Helpers
                     DiscordMessageBuilder userSendMessage = new();
                     userSendMessage.AddEmbed(GenericEmbeds.Custom($"{guild.Name}: {config.QotdShorthandText} Suggestion Denied",
                             $"Your {config.QotdTitleText} Suggestion:\n" +
-                            $"\"**{question.Text}**\"\n\n" +
+                            $"\"**{question!.Text}**\"\n\n" +
                             $"Has been :x: **DENIED** :x:{(!string.IsNullOrEmpty(reason) ? $" for the following reason:\n" +
                             $"\"**{reason}**\"" : ".")}",
                             color: "#ff2020"
