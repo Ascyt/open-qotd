@@ -13,7 +13,8 @@ namespace OpenQotd.Core.UncategorizedCommands
         [Command("trigger")]
         [Description("Trigger a QOTD prematurely.")]
         public static async Task TriggerAsync(CommandContext context,
-        [Description("Optionally specify the ID of the question to be sent.")] int? questionId = null)
+        [Description("Optionally specify the ID of the question to be sent.")] int? questionId = null,
+        [Description("Whether or not to alter the question as described in `QotdAlterQuestionAfterSent` (default true).")] bool applyAlterQuestionAfterSent = true)
         {
             Config? config = await Profiles.Api.TryGetSelectedOrDefaultConfigAsync(context);
             if (config is null || !await Permissions.Api.Admin.CheckAsync(context, config))
@@ -22,7 +23,7 @@ namespace OpenQotd.Core.UncategorizedCommands
             await context.DeferResponseAsync();
 
             if (questionId is null)
-                await QotdSending.Sender.Api.SendRandomQotdAsync(context.Guild!, config, Notices.Api.GetLatestAvailableNotice());
+                await QotdSending.Sender.Api.SendRandomQotdAsync(context.Guild!, config, Notices.Api.GetLatestAvailableNotice(), applyAlterQuestionAfterSent);
             else
             {
                 Question? question;
@@ -40,7 +41,7 @@ namespace OpenQotd.Core.UncategorizedCommands
                     }
                 }
 
-                await QotdSending.Sender.Api.SendQotdAsync(context.Guild!, config, question, Notices.Api.GetLatestAvailableNotice());
+                await QotdSending.Sender.Api.SendQotdAsync(context.Guild!, config, question, Notices.Api.GetLatestAvailableNotice(), applyAlterQuestionAfterSent);
             }
 
             await context.RespondAsync(

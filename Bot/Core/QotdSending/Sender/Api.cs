@@ -51,15 +51,15 @@ namespace OpenQotd.Core.QotdSending.Sender
         /// Sends the next QOTD to the specified guild.
         /// </summary>
         /// <exception cref="QotdSendException"></exception>
-        public static async Task SendRandomQotdAsync(DiscordGuild guild, Config config, Notices.Api.Notice? latestAvaliableNotice)
+        public static async Task SendRandomQotdAsync(DiscordGuild guild, Config config, Notices.Api.Notice? latestAvaliableNotice, bool applyAlterQuestionAfterSent=true)
         {
-            await SendQotdAsync(guild, config, await Helpers.GetRandomQotd(config), latestAvaliableNotice);
+            await SendQotdAsync(guild, config, await Helpers.GetRandomQotd(config), latestAvaliableNotice, applyAlterQuestionAfterSent);
         }
 
         /// <summary>
         /// Sends the specified QOTD or a preset/unavailable message if null.
         /// </summary>
-        public static async Task SendQotdAsync(DiscordGuild guild, Config config, Question? question, Notices.Api.Notice? latestAvailableNotice)
+        public static async Task SendQotdAsync(DiscordGuild guild, Config config, Question? question, Notices.Api.Notice? latestAvailableNotice, bool applyAlterQuestionAfterSent=true)
         {
             // Fetch the config and update the last sent timestamp
             DateTime? previousLastSentTimestamp;
@@ -90,7 +90,7 @@ namespace OpenQotd.Core.QotdSending.Sender
             // Try to send a question if available
             if (question != null)
             {
-                await SendQotdQuestionAsync(sendQotdData, question);
+                await SendQotdQuestionAsync(sendQotdData, question, applyAlterQuestionAfterSent);
                 return;
             }
 
@@ -192,7 +192,7 @@ namespace OpenQotd.Core.QotdSending.Sender
         /// <summary>
         /// Send a custom QOTD question to the specified guild.
         /// </summary>
-        private static async Task SendQotdQuestionAsync(SendQotdData d, Question question)
+        private static async Task SendQotdQuestionAsync(SendQotdData d, Question question, bool applyAlterQuestionAfterSent=true)
         {
             DiscordMessageBuilder messageBuilder = new();
 
@@ -213,14 +213,14 @@ namespace OpenQotd.Core.QotdSending.Sender
                     .CountAsync()
                     + 1;
             }
-            if (question.Type != QuestionType.Accepted)
+            if (question.Type != QuestionType.Accepted || !applyAlterQuestionAfterSent)
             {
                 // Treat the question as `accepted` to prevent count from being off when /trigger is used on non-accepted questions
                 acceptedQuestionsCount++; 
             }
 
             DiscordEmbedBuilder qotdEmbed =
-                GenericEmbeds.Custom($"{d.QotdTitle}{(d.config.EnableQotdShowCounter ? $" #{sentQuestionsCount}" : "")}",
+                GenericEmbeds.Custom($"{d.QotdTitle}{(d.config.EnableQotdShowCounter && applyAlterQuestionAfterSent ? $" #{sentQuestionsCount}" : "")}",
                 $"{question.Text}" + (d.config.EnableQotdShowCredit ? (
                     $"\n\n" +
                     $"*Submitted by <@{question.SubmittedByUserId}>*") : ""
@@ -252,7 +252,7 @@ namespace OpenQotd.Core.QotdSending.Sender
                 Question? foundQuestion = await dbContext.Questions
                     .FindAsync(question.Id);
 
-                if (foundQuestion != null)
+                if (foundQuestion != null && applyAlterQuestionAfterSent)
                 {
                     question.SentNumber = sentQuestionsCount + 1;
                     question.SentTimestamp = DateTime.UtcNow;
