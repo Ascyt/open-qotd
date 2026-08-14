@@ -25,6 +25,7 @@ namespace OpenQotd.Core.ActivitySwitcher
                 catch (Exception ex)
                 {
                     Console.WriteLine($"Error in ActivitySwitchLoopAsync:\n{ex.Message}");
+                    await Task.Delay(10_000, ct);
                 }
             }
         }
