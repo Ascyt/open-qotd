@@ -56,7 +56,10 @@ namespace OpenQotd.Core.Configs.Commands
                 if (existingConfig != null)
                 {
                     dbContext.Entry(existingConfig).State = EntityState.Detached; 
+                    
                     config.Id = existingConfig.Id;
+                    config.IsDefaultProfile = existingConfigsCount == 1; // 1 instead of 0 because of reinitialize
+
                     dbContext.Configs.Update(config);
                     reInitialized = true;
                 }

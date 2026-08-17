@@ -238,9 +238,6 @@ namespace OpenQotd.Core.Profiles
         /// <returns>(config if initialized, error if not)</returns>
         public static async Task<Config?> TryGetConfigAsync(ulong guildId, int profileId)
         {
-            if (profileId == 0)
-                return (await TryGetDefaultConfigAsync(guildId)).Item1;
-
             using AppDbContext dbContext = new();
 
             return await dbContext.Configs

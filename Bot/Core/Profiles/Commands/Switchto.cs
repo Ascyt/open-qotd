@@ -17,10 +17,13 @@ namespace OpenQotd.Core.Profiles.Commands
             [Description("The profile to switch to.")][SlashAutoCompleteProvider<AutoCompleteProviders.SwitchableProfiles>] int Profile)
         {
             int profileId = Profile;
+            System.Console.WriteLine($"Profile for guild {context.Guild!.Id}: {profileId}");
 
             Config? configToSelect = await Api.TryGetConfigAsync(context, profileId);
             if (configToSelect is null)
                 return;
+
+            System.Console.WriteLine($"Fetched profile for guild {context.Guild!.Id}: {configToSelect.ProfileId}");
 
             // Check if user has permission to switch to that profile
             bool hasAdmin = await Permissions.Api.Admin.CheckAdminPermissionAsync(context, responseOnError: false);
