@@ -20,4 +20,4 @@ services:
     depends_on:
       - db
     environment:
-      - POSTGRES_CONNECTION_STRING_OVERRIDE=User ID=root;Password=${POSTGRES_PASSWORD};Host=db;Port=${POSTGRES_PORT};Database=openqotd;Pooling=true;MaxPoolSize=100;Connection Lifetime=0
+      - POSTGRES_CONNECTION_STRING_OVERRIDE=User ID=root;Password=${POSTGRES_PASSWORD};Host=db;Port=5432;Database=openqotd;Pooling=true;MaxPoolSize=100;Connection Lifetime=0
